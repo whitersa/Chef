@@ -108,9 +108,9 @@
 
 ### 2.2 基础数据模块 (Ingredients)
 
-- [ ] **实体设计 (Entity)**：创建 `Ingredient` 实体 (id, name, price, unit, nutrition_json)。
-- [ ] **DTO 定义**：在 `packages/types` 定义 `CreateIngredientDto`，后端引入使用。
-- [ ] **CRUD 实现**：实现食材的增删改查接口。
+- [x] **实体设计 (Entity)**：创建 `Ingredient` 实体 (id, name, price, unit, nutrition_json)。
+- [x] **DTO 定义**：在 `packages/types` 定义 `CreateIngredientDto`，后端引入使用。
+- [x] **CRUD 实现**：实现食材的增删改查接口。
 
 ### 2.3 菜谱与 BOM 模块 (Recipes - 核心难点)
 

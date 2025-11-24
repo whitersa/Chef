@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
+import { IngredientsModule } from './ingredients/ingredients.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +25,7 @@ import { AppService } from './app.service';
       }),
       inject: [ConfigService],
     }),
+    IngredientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
