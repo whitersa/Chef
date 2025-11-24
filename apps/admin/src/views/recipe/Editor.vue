@@ -2,11 +2,15 @@
 import { useIngredientsStore } from '../../stores/ingredients';
 import { useRecipeStore } from '../../stores/recipe';
 import draggable from 'vuedraggable';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import BaseChart from '../../components/BaseChart.vue';
 
 const ingredientsStore = useIngredientsStore();
 const recipeStore = useRecipeStore();
+
+onMounted(() => {
+  ingredientsStore.fetchIngredients();
+});
 
 const nutritionOptions = computed(() => {
   const { protein, fat, carbs } = recipeStore.totalNutrition;
@@ -75,6 +79,14 @@ const nutritionOptions = computed(() => {
 
     <!-- 中间：配方画布 -->
     <div class="panel center-panel">
+      <div class="panel-header">
+        <el-input
+          v-model="recipeStore.name"
+          placeholder="请输入菜谱名称"
+          style="width: 200px; margin-right: 10px"
+        />
+        <el-button type="primary" @click="recipeStore.saveRecipe">保存菜谱</el-button>
+      </div>
       <h3>配方详情 (总成本: ¥{{ recipeStore.totalCost.toFixed(2) }})</h3>
       <draggable
         :list="recipeStore.items"
@@ -170,6 +182,12 @@ const nutritionOptions = computed(() => {
   cursor: move;
   display: flex;
   justify-content: space-between;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 .recipe-canvas {

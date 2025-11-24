@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { api } from '../api';
+import { ElMessage } from 'element-plus';
 
 export interface RecipeItem {
-  id: string;
+  id: string; // temporary UI ID
+  ingredientId?: string; // ID from ingredient store
   name: string;
   quantity: number;
   unit: string;
@@ -16,6 +19,7 @@ export interface RecipeItem {
 }
 
 export const useRecipeStore = defineStore('recipe', () => {
+  const name = ref('');
   const items = ref<RecipeItem[]>([]);
 
   const totalCost = computed(() => {
@@ -41,6 +45,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   function addItem(ingredient: any) {
     items.value.push({
       id: crypto.randomUUID(), // 临时 ID
+      ingredientId: ingredient.id,
       name: ingredient.name,
       quantity: 1,
       unit: ingredient.unit,
@@ -54,5 +59,36 @@ export const useRecipeStore = defineStore('recipe', () => {
     items.value.splice(index, 1);
   }
 
-  return { items, totalCost, totalNutrition, addItem, removeItem };
+  async function saveRecipe() {
+    if (!name.value) {
+      ElMessage.warning('请输入菜谱名称');
+      return;
+    }
+    if (items.value.length === 0) {
+      ElMessage.warning('请添加食材');
+      return;
+    }
+
+    try {
+      const payload = {
+        name: name.value,
+        items: items.value.map((item) => ({
+          quantity: item.quantity,
+          yieldRate: item.yieldRate,
+          ingredient: { id: item.ingredientId },
+        })),
+      };
+
+      await api.post('/recipes', payload);
+      ElMessage.success('保存成功');
+      // Reset
+      name.value = '';
+      items.value = [];
+    } catch (error) {
+      console.error('Failed to save recipe:', error);
+      ElMessage.error('保存失败');
+    }
+  }
+
+  return { name, items, totalCost, totalNutrition, addItem, removeItem, saveRecipe };
 });
