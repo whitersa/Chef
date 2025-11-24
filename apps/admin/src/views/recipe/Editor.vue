@@ -2,9 +2,54 @@
 import { useIngredientsStore } from '../../stores/ingredients';
 import { useRecipeStore } from '../../stores/recipe';
 import draggable from 'vuedraggable';
+import { computed } from 'vue';
+import BaseChart from '../../components/BaseChart.vue';
 
 const ingredientsStore = useIngredientsStore();
 const recipeStore = useRecipeStore();
+
+const nutritionOptions = computed(() => {
+  const { protein, fat, carbs } = recipeStore.totalNutrition;
+  // 如果没有数据，显示默认值避免空图表
+  const hasData = protein > 0 || fat > 0 || carbs > 0;
+
+  return {
+    title: {
+      text: '营养成分占比',
+      left: 'center',
+    },
+    tooltip: {
+      trigger: 'item' as const,
+      formatter: '{a} <br/>{b} : {c} ({d}%)',
+    },
+    legend: {
+      orient: 'vertical' as const,
+      left: 'left',
+      top: 'bottom',
+    },
+    series: [
+      {
+        name: 'Nutrition',
+        type: 'pie' as const,
+        radius: '50%',
+        data: hasData
+          ? [
+              { value: parseFloat(protein.toFixed(2)), name: '蛋白质' },
+              { value: parseFloat(fat.toFixed(2)), name: '脂肪' },
+              { value: parseFloat(carbs.toFixed(2)), name: '碳水' },
+            ]
+          : [{ value: 0, name: '无数据' }],
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
+          },
+        },
+      },
+    ],
+  };
+});
 </script>
 
 <template>
@@ -70,8 +115,15 @@ const recipeStore = useRecipeStore();
 
     <!-- 右侧：属性 (暂时留空) -->
     <div class="panel right-panel">
-      <h3>属性设置</h3>
-      <p>选中配方项以编辑详细属性...</p>
+      <h3>数据分析</h3>
+      <div class="chart-wrapper">
+        <BaseChart :options="nutritionOptions" />
+      </div>
+      <div class="nutrition-summary" v-if="recipeStore.items.length > 0">
+        <p>蛋白质: {{ recipeStore.totalNutrition.protein.toFixed(1) }}g</p>
+        <p>脂肪: {{ recipeStore.totalNutrition.fat.toFixed(1) }}g</p>
+        <p>碳水: {{ recipeStore.totalNutrition.carbs.toFixed(1) }}g</p>
+      </div>
     </div>
   </div>
 </template>
@@ -144,5 +196,25 @@ const recipeStore = useRecipeStore();
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.chart-wrapper {
+  height: 300px;
+  width: 100%;
+}
+
+.nutrition-summary {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f9eb;
+  border-radius: 4px;
+  border: 1px solid #e1f3d8;
+}
+
+.nutrition-summary p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #67c23a;
+  font-weight: bold;
 }
 </style>

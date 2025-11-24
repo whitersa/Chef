@@ -8,6 +8,11 @@ export interface RecipeItem {
   unit: string;
   price: number;
   yieldRate: number;
+  nutrition: {
+    protein: number;
+    fat: number;
+    carbs: number;
+  };
 }
 
 export const useRecipeStore = defineStore('recipe', () => {
@@ -20,6 +25,19 @@ export const useRecipeStore = defineStore('recipe', () => {
     }, 0);
   });
 
+  const totalNutrition = computed(() => {
+    return items.value.reduce(
+      (acc, item) => {
+        return {
+          protein: acc.protein + item.nutrition.protein * item.quantity,
+          fat: acc.fat + item.nutrition.fat * item.quantity,
+          carbs: acc.carbs + item.nutrition.carbs * item.quantity,
+        };
+      },
+      { protein: 0, fat: 0, carbs: 0 },
+    );
+  });
+
   function addItem(ingredient: any) {
     items.value.push({
       id: crypto.randomUUID(), // 临时 ID
@@ -28,6 +46,7 @@ export const useRecipeStore = defineStore('recipe', () => {
       unit: ingredient.unit,
       price: ingredient.price,
       yieldRate: 1.0,
+      nutrition: ingredient.nutrition || { protein: 0, fat: 0, carbs: 0 },
     });
   }
 
@@ -35,5 +54,5 @@ export const useRecipeStore = defineStore('recipe', () => {
     items.value.splice(index, 1);
   }
 
-  return { items, totalCost, addItem, removeItem };
+  return { items, totalCost, totalNutrition, addItem, removeItem };
 });
