@@ -19,6 +19,10 @@ export interface RecipeItem {
 }
 
 export const useRecipeStore = defineStore('recipe', () => {
+  const recipes = ref<any[]>([]);
+  const loading = ref(false);
+
+  // Editor state
   const name = ref('');
   const items = ref<RecipeItem[]>([]);
 
@@ -42,6 +46,39 @@ export const useRecipeStore = defineStore('recipe', () => {
     );
   });
 
+  async function fetchRecipes() {
+    loading.value = true;
+    try {
+      recipes.value = await api.get('/recipes');
+    } catch (error) {
+      console.error('Failed to fetch recipes:', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchRecipe(id: string) {
+    loading.value = true;
+    try {
+      const recipe: any = await api.get(`/recipes/${id}`);
+      name.value = recipe.name;
+      items.value = recipe.items.map((item: any) => ({
+        id: crypto.randomUUID(),
+        ingredientId: item.ingredient?.id,
+        name: item.ingredient?.name || 'Unknown',
+        quantity: Number(item.quantity),
+        unit: item.ingredient?.unit || '',
+        price: Number(item.ingredient?.price || 0),
+        yieldRate: Number(item.yieldRate),
+        nutrition: item.ingredient?.nutrition || { protein: 0, fat: 0, carbs: 0 },
+      }));
+    } catch (error) {
+      console.error('Failed to fetch recipe:', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function addItem(ingredient: any) {
     items.value.push({
       id: crypto.randomUUID(), // 临时 ID
@@ -57,6 +94,11 @@ export const useRecipeStore = defineStore('recipe', () => {
 
   function removeItem(index: number) {
     items.value.splice(index, 1);
+  }
+
+  function resetEditor() {
+    name.value = '';
+    items.value = [];
   }
 
   async function saveRecipe() {
@@ -81,14 +123,25 @@ export const useRecipeStore = defineStore('recipe', () => {
 
       await api.post('/recipes', payload);
       ElMessage.success('保存成功');
-      // Reset
-      name.value = '';
-      items.value = [];
+      resetEditor();
     } catch (error) {
       console.error('Failed to save recipe:', error);
       ElMessage.error('保存失败');
     }
   }
 
-  return { name, items, totalCost, totalNutrition, addItem, removeItem, saveRecipe };
+  return {
+    recipes,
+    loading,
+    name,
+    items,
+    totalCost,
+    totalNutrition,
+    fetchRecipes,
+    fetchRecipe,
+    addItem,
+    removeItem,
+    saveRecipe,
+    resetEditor,
+  };
 });

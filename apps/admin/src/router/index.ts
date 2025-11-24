@@ -18,7 +18,7 @@ const routes: Array<RouteRecordRaw> = [
             meta: { title: '菜谱列表' },
           },
           {
-            path: 'editor',
+            path: 'editor/:id?',
             name: 'RecipeEditor',
             component: () => import('../views/recipe/Editor.vue'),
             meta: { title: '可视化编辑器' },
@@ -30,6 +30,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'UserList',
         component: () => import('../views/user/UserList.vue'),
         meta: { title: '人员管理' },
+      },
+      {
+        path: 'ingredient',
+        name: 'IngredientList',
+        component: () => import('../views/ingredient/IngredientList.vue'),
+        meta: { title: '食材管理' },
       },
     ],
   },

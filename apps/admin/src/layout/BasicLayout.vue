@@ -7,24 +7,31 @@
           <span>ChefOS Admin</span>
         </div>
 
-        <el-sub-menu index="restaurant-management">
+        <el-sub-menu index="kitchen">
           <template #title>
-            <el-icon><Shop /></el-icon>
-            <span>餐厅管理</span>
+            <el-icon><Food /></el-icon>
+            <span>后厨管理</span>
           </template>
 
-          <el-sub-menu index="/recipe">
-            <template #title>
-              <el-icon><Food /></el-icon>
-              <span>菜谱管理</span>
-            </template>
-            <el-menu-item index="/recipe/list">菜谱列表</el-menu-item>
-            <el-menu-item index="/recipe/editor">可视化编辑器</el-menu-item>
-          </el-sub-menu>
+          <el-menu-item index="/ingredient">
+            <el-icon><Apple /></el-icon>
+            <span>食材管理</span>
+          </el-menu-item>
 
+          <el-menu-item index="/recipe/list">
+            <el-icon><Notebook /></el-icon>
+            <span>菜谱管理</span>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="organization">
+          <template #title>
+            <el-icon><Shop /></el-icon>
+            <span>组织管理</span>
+          </template>
           <el-menu-item index="/user">
-            <el-icon><User /></el-icon>
-            <span>人员管理</span>
+            <el-icon><Avatar /></el-icon>
+            <span>人员列表</span>
           </el-menu-item>
         </el-sub-menu>
       </el-menu>
@@ -59,7 +66,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { Food, User, Shop } from '@element-plus/icons-vue';
+import { Food, Shop, Apple, Notebook, Avatar } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);

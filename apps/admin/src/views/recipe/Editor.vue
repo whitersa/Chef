@@ -3,13 +3,20 @@ import { useIngredientsStore } from '../../stores/ingredients';
 import { useRecipeStore } from '../../stores/recipe';
 import draggable from 'vuedraggable';
 import { computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import BaseChart from '../../components/BaseChart.vue';
 
+const route = useRoute();
 const ingredientsStore = useIngredientsStore();
 const recipeStore = useRecipeStore();
 
 onMounted(() => {
   ingredientsStore.fetchIngredients();
+  if (route.params.id) {
+    recipeStore.fetchRecipe(route.params.id as string);
+  } else {
+    recipeStore.resetEditor();
+  }
 });
 
 const nutritionOptions = computed(() => {
