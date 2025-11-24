@@ -3,7 +3,7 @@
     <el-aside width="220px">
       <el-menu :default-active="activeMenu" class="el-menu-vertical" router :collapse="false">
         <div class="logo">
-          <el-icon class="logo-icon"><Dish /></el-icon>
+          <img src="/chef-logo.svg" alt="ChefOS Logo" class="logo-img" />
           <span>ChefOS Admin</span>
         </div>
 
@@ -59,7 +59,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { Food, User, Dish, Shop } from '@element-plus/icons-vue';
+import { Food, User, Shop } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);
@@ -91,8 +91,9 @@ const activeMenu = computed(() => route.path);
   color: #409eff;
   border-bottom: 1px solid #e6e6e6;
 
-  .logo-icon {
-    font-size: 24px;
+  .logo-img {
+    width: 32px;
+    height: 32px;
   }
 }
 

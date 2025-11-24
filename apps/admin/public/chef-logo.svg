@@ -1,0 +1,24 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="48" fill="#FF9800" stroke="#F57C00" stroke-width="2" />
+
+  <!-- Chef Hat -->
+  <!-- Puffy part -->
+  <path d="M28 42 C 18 42, 18 22, 33 17 C 33 7, 67 7, 67 17 C 82 22, 82 42, 72 42" fill="#FFFFFF"
+    stroke="#E0E0E0" stroke-width="1" />
+  <!-- Brim -->
+  <rect x="28" y="40" width="44" height="12" rx="2" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1" />
+
+  <!-- Face -->
+  <path d="M33 52 V 65 C 33 78, 67 78, 67 65 V 52" fill="#FFE0B2" />
+
+  <!-- Eyes -->
+  <circle cx="42" cy="60" r="2.5" fill="#3E2723" />
+  <circle cx="58" cy="60" r="2.5" fill="#3E2723" />
+
+  <!-- Mustache -->
+  <path d="M40 68 Q 50 64, 60 68 Q 60 71, 56 71 Q 50 68, 44 71 Q 40 71, 40 68" fill="#5D4037" />
+
+  <!-- Scarf/Collar -->
+  <path d="M33 75 Q 50 85, 67 75 L 67 85 Q 50 95, 33 85 Z" fill="#D32F2F" />
+</svg>
