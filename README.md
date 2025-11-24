@@ -20,6 +20,20 @@
 
 ---
 
+## 🛠️ 开发工具 (Development Tools)
+
+为了顺利完成本项目，请确保你的开发环境安装了以下工具：
+
+| 工具                     | 用途                                                                                   | 备注                     |
+| :----------------------- | :------------------------------------------------------------------------------------- | :----------------------- |
+| **Docker Desktop**       | **基础设施容器化**。用于本地运行 PostgreSQL 和 Redis，无需在本机安装繁琐的数据库软件。 | 必须安装并启动。         |
+| **DBeaver** (或 Navicat) | **数据库管理**。用于连接 Docker 中的数据库，查看表结构和数据。                         | 免费开源，推荐 DBeaver。 |
+| **Node.js** (v16+)       | **运行环境**。NestJS 和前端框架的基础。                                                | 推荐使用 LTS 版本。      |
+| **pnpm**                 | **包管理器**。Monorepo 的核心依赖管理工具。                                            | `npm install -g pnpm`    |
+| **Git**                  | **版本控制**。                                                                         | 基础中的基础。           |
+
+---
+
 ## 🏗️ Milestone 1: 基建与单体仓库初始化 (Infrastructure)
 
 **目标**：跑通前后端协作环境，解决“代码在哪里写”的问题。
@@ -66,7 +80,7 @@
   - [x] 编写 `docker-compose.yml`。
   - [x] 配置 **PostgreSQL** 服务 (端口 5432)。
   - [x] 配置 **Redis** 服务 (端口 6379)。
-  - [ ] 启动容器并使用 DBeaver/Navicat 连接测试成功。
+  - [x] 启动容器并使用 DBeaver/Navicat 连接测试成功。
 
 ---
 
@@ -84,13 +98,13 @@
 
 ### 2.1 NestJS 基础建设 (`apps/api`)
 
-- [ ] **初始化项目**：使用 `nest new apps/api` 创建后端。
-- [ ] **数据库连接**：
-  - [ ] 安装 `typeorm` `pg` `@nestjs/typeorm`。
-  - [ ] 在 `app.module.ts` 配置数据库连接（读取 `.env` 环境变量）。
-- [ ] **Swagger 集成**：
-  - [ ] 安装 `@nestjs/swagger`。
-  - [ ] 在 `main.ts` 配置 Swagger 文档路径 `/api/docs`。
+- [x] **初始化项目**：使用 `nest new apps/api` 创建后端。
+- [x] **数据库连接**：
+  - [x] 安装 `typeorm` `pg` `@nestjs/typeorm`。
+  - [x] 在 `app.module.ts` 配置数据库连接（读取 `.env` 环境变量）。
+- [x] **Swagger 集成**：
+  - [x] 安装 `@nestjs/swagger`。
+  - [x] 在 `main.ts` 配置 Swagger 文档路径 `/api/docs`。
 
 ### 2.2 基础数据模块 (Ingredients)
 
