@@ -139,10 +139,10 @@
 
 ### 3.1 Vue 3 基础建设 (`apps/admin`)
 
-- [ ] **初始化项目**：使用 `npm create vite@latest` (Vue + TS)。
-- [ ] **引入共享库**：在 `package.json` 添加依赖 `"@chefos/types": "workspace:*"`。
-- [ ] **UI 框架**：安装并配置 **Element Plus** 或 **Ant Design Vue**。
-- [ ] **状态管理**：配置 **Pinia**。
+- [x] **初始化项目**：使用 `npm create vite@latest` (Vue + TS)。
+- [x] **引入共享库**：在 `package.json` 添加依赖 `"@chefos/types": "workspace:*"`。
+- [x] **UI 框架**：安装并配置 **Element Plus** 或 **Ant Design Vue**。
+- [x] **状态管理**：配置 **Pinia**。
 
 ### 3.2 可视化编辑器 (Editor)
 
