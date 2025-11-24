@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { IngredientsModule } from './ingredients/ingredients.module';
+import { RecipesModule } from './recipes/recipes.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { IngredientsModule } from './ingredients/ingredients.module';
       inject: [ConfigService],
     }),
     IngredientsModule,
+    RecipesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

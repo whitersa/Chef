@@ -114,14 +114,14 @@
 
 ### 2.3 菜谱与 BOM 模块 (Recipes - 核心难点)
 
-- [ ] **实体设计**：
-  - [ ] `Recipe` (id, name, total_cost)。
-  - [ ] `RecipeItem` (parent_id, child_recipe_id, ingredient_id, quantity, yield_rate)。
-- [ ] **递归计算逻辑 (Service)**：
-  - [ ] 编写 `calculateCost(recipeId)` 方法。
-  - [ ] **任务点**：实现深度优先遍历 (DFS)，如果 `RecipeItem` 是半成品，递归调用自身；如果是食材，直接计算 `price * quantity`。
-  - [ ] **任务点**：处理循环依赖检测（防止 A 包含 B，B 包含 A 导致死循环）。
-- [ ] **接口暴露**：`GET /recipes/:id/cost` 返回计算结果。
+- [x] **实体设计**：
+  - [x] `Recipe` (id, name, total_cost)。
+  - [x] `RecipeItem` (parent_id, child_recipe_id, ingredient_id, quantity, yield_rate)。
+- [x] **递归计算逻辑 (Service)**：
+  - [x] 编写 `calculateCost(recipeId)` 方法。
+  - [x] **任务点**：实现深度优先遍历 (DFS)，如果 `RecipeItem` 是半成品，递归调用自身；如果是食材，直接计算 `price * quantity`。
+  - [x] **任务点**：处理循环依赖检测（防止 A 包含 B，B 包含 A 导致死循环）。
+- [x] **接口暴露**：`GET /recipes/:id/cost` 返回计算结果。
 
 ---
 
