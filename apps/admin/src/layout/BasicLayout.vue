@@ -1,36 +1,50 @@
 <template>
   <el-container class="layout-container">
     <el-aside :width="isCollapse ? '64px' : '200px'" class="aside-transition">
-      <el-menu :default-active="activeMenu" class="el-menu-vertical" router :collapse="isCollapse">
+      <div class="aside-flex-column">
         <div class="logo" :class="{ 'logo-collapsed': isCollapse }">
           <img src="/chef-logo.svg" alt="ChefOS Logo" class="logo-img" />
           <span v-show="!isCollapse">ChefOS Admin</span>
         </div>
 
-        <template v-for="menu in menuStore.menus" :key="menu.id">
-          <!-- Submenu -->
-          <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.id">
-            <template #title>
-              <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
-              <span>{{ menu.title }}</span>
-            </template>
-            <el-menu-item
-              v-for="child in menu.children"
-              :key="child.id"
-              :index="child.path || child.id"
-            >
-              <el-icon v-if="child.icon"><component :is="child.icon" /></el-icon>
-              <span>{{ child.title }}</span>
-            </el-menu-item>
-          </el-sub-menu>
+        <el-scrollbar class="flex-1">
+          <el-menu
+            :default-active="activeMenu"
+            class="el-menu-vertical"
+            router
+            :collapse="isCollapse"
+          >
+            <template v-for="menu in menuStore.menus" :key="menu.id">
+              <!-- Submenu -->
+              <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.id">
+                <template #title>
+                  <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
+                  <span>{{ menu.title }}</span>
+                </template>
+                <el-menu-item
+                  v-for="child in menu.children"
+                  :key="child.id"
+                  :index="child.path || child.id"
+                >
+                  <el-icon v-if="child.icon"><component :is="child.icon" /></el-icon>
+                  <span>{{ child.title }}</span>
+                </el-menu-item>
+              </el-sub-menu>
 
-          <!-- Single Menu Item -->
-          <el-menu-item v-else :index="menu.path || menu.id">
-            <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
-            <span>{{ menu.title }}</span>
-          </el-menu-item>
-        </template>
-      </el-menu>
+              <!-- Single Menu Item -->
+              <el-menu-item v-else :index="menu.path || menu.id">
+                <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
+                <span>{{ menu.title }}</span>
+              </el-menu-item>
+            </template>
+          </el-menu>
+        </el-scrollbar>
+
+        <div class="aside-footer" :class="{ collapsed: isCollapse }" @click="syncMenus">
+          <el-icon class="sync-icon" :class="{ 'is-loading': isSyncing }"><Refresh /></el-icon>
+          <span v-show="!isCollapse">同步菜单</span>
+        </div>
+      </div>
     </el-aside>
     <el-container>
       <el-header height="48px">
@@ -76,8 +90,6 @@
               </template>
             </el-dropdown>
 
-            <el-button type="primary" link @click="syncMenus">同步菜单</el-button>
-
             <el-dropdown trigger="click" @command="handleUserCommand">
               <div class="user-profile-trigger">
                 <el-avatar
@@ -112,7 +124,7 @@ import { useRoute } from 'vue-router';
 import { useMenuStore } from '../stores/menu';
 import { menusApi } from '../api/menus';
 import { ElMessage } from 'element-plus';
-import { Fold, Expand, Setting, Moon, Sunny } from '@element-plus/icons-vue';
+import { Fold, Expand, Setting, Moon, Sunny, Refresh } from '@element-plus/icons-vue';
 import { useThemeStore } from '../stores/theme';
 import { useAuthStore } from '../stores/auth';
 
@@ -122,6 +134,7 @@ const themeStore = useThemeStore();
 const authStore = useAuthStore();
 const activeMenu = computed(() => route.path);
 const isCollapse = ref(false);
+const isSyncing = ref(false);
 
 onMounted(() => {
   menuStore.fetchMenus();
@@ -132,6 +145,8 @@ function toggleCollapse() {
 }
 
 async function syncMenus() {
+  if (isSyncing.value) return;
+  isSyncing.value = true;
   try {
     await menusApi.sync();
     ElMessage.success('菜单同步成功');
@@ -139,6 +154,8 @@ async function syncMenus() {
   } catch (error) {
     console.error(error);
     ElMessage.error('菜单同步失败');
+  } finally {
+    isSyncing.value = false;
   }
 }
 
@@ -161,10 +178,50 @@ function handleUserCommand(command: string) {
   border-right: 1px solid var(--el-border-color-light);
   transition: width 0.3s;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .aside-flex-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+  }
+
+  .flex-1 {
+    flex: 1;
+    overflow-y: auto;
+  }
 
   .el-menu {
     border-right: none;
     width: 100%;
+  }
+}
+
+.aside-footer {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border-top: 1px solid var(--el-border-color-lighter);
+  color: var(--el-text-color-regular);
+  transition: all 0.3s;
+
+  &:hover {
+    background-color: var(--el-fill-color-light);
+    color: var(--el-color-primary);
+  }
+
+  &.collapsed {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sync-icon {
+    font-size: 18px;
   }
 }
 
@@ -273,5 +330,25 @@ function handleUserCommand(command: string) {
   gap: 12px;
   min-width: 200px;
   padding: 4px 0;
+}
+
+:deep(.el-menu--collapse) {
+  .el-sub-menu__title,
+  .el-menu-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 !important;
+
+    .el-icon {
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    .el-sub-menu__icon-arrow {
+      display: none;
+    }
+  }
 }
 </style>

@@ -159,3 +159,37 @@ body {
 .el-form-item__label {
   font-size: var(--app-font-size);
 }
+
+/* --- 菜单样式优化 (Menu Styles) --- */
+
+/* 悬浮子菜单样式 (Popup Submenu) */
+.el-menu--popup {
+  min-width: 140px;
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: none !important;
+}
+
+.el-menu--popup .el-menu-item {
+  height: 36px;
+  line-height: 36px;
+  margin-bottom: 2px;
+  border-radius: 6px;
+  margin: 0 2px 2px 2px;
+}
+
+.el-menu--popup .el-menu-item:last-child {
+  margin-bottom: 0;
+}
+
+.el-menu--popup .el-menu-item:hover {
+  background-color: var(--el-fill-color-light);
+  color: var(--el-color-primary);
+}
+
+.el-menu--popup .el-menu-item.is-active {
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  font-weight: 500;
+}
