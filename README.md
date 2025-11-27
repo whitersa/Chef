@@ -155,7 +155,8 @@
   - [x] 安装 `vue-router`。
   - [x] 实现 `MainLayout`：侧边栏 (Sidebar) + 顶部导航 (Header) + 内容区 (Main)。
   - [x] **动态菜单 (Dynamic Menu)**：
-    - [x] **后端**：创建 `Menu` 实体，实现菜单树接口 `GET /menus`，并支持自动 Seed 初始化数据。
+    - [x] **后端**：创建 `Menu` 实体，实现菜单树接口 `GET /menus`。
+    - [x] **配置化管理**：使用 `default-menus.json` 作为单一数据源，支持通过 API 一键同步 (`POST /menus/sync`)。
     - [x] **前端**：创建 `menuStore`，在应用启动时获取菜单配置，动态渲染侧边栏。
     - [x] **图标支持**：动态加载 Element Plus 图标组件。
 
