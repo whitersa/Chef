@@ -77,11 +77,21 @@
             </el-dropdown>
 
             <el-button type="primary" link @click="syncMenus">同步菜单</el-button>
-            <el-avatar
-              :size="24"
-              src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
-            />
-            <span class="username">Admin</span>
+
+            <el-dropdown trigger="click" @command="handleUserCommand">
+              <div class="user-profile-trigger">
+                <el-avatar
+                  :size="24"
+                  src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+                />
+                <span class="username">Admin</span>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
         </div>
       </el-header>
@@ -104,10 +114,12 @@ import { menusApi } from '../api/menus';
 import { ElMessage } from 'element-plus';
 import { Fold, Expand, Setting, Moon, Sunny } from '@element-plus/icons-vue';
 import { useThemeStore } from '../stores/theme';
+import { useAuthStore } from '../stores/auth';
 
 const route = useRoute();
 const menuStore = useMenuStore();
 const themeStore = useThemeStore();
+const authStore = useAuthStore();
 const activeMenu = computed(() => route.path);
 const isCollapse = ref(false);
 
@@ -127,6 +139,13 @@ async function syncMenus() {
   } catch (error) {
     console.error(error);
     ElMessage.error('菜单同步失败');
+  }
+}
+
+function handleUserCommand(command: string) {
+  if (command === 'logout') {
+    authStore.logout();
+    ElMessage.success('已退出登录');
   }
 }
 </script>
@@ -209,7 +228,20 @@ async function syncMenus() {
     display: flex;
     align-items: center;
     gap: 10px;
-    cursor: pointer;
+
+    .user-profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: var(--el-fill-color-light);
+      }
+    }
 
     .username {
       font-size: 12px;

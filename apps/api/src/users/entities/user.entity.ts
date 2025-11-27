@@ -14,6 +14,12 @@ export class User {
   @Column()
   name: string;
 
+  @Column({ unique: true, nullable: true })
+  username: string;
+
+  @Column({ select: false, nullable: true }) // Don't return password by default
+  password: string;
+
   @Column()
   role: string; // e.g., 'Head Chef', 'Sous Chef'
 
@@ -22,6 +28,12 @@ export class User {
 
   @Column()
   hireDate: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  preferences: {
+    theme?: 'light' | 'dark';
+    density?: 'compact' | 'default' | 'loose';
+  };
 
   @CreateDateColumn()
   createdAt: Date;

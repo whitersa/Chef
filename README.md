@@ -128,6 +128,15 @@
 - [x] **实体设计**：`ProcessingMethod` (id, name, description)。
 - [x] **CRUD 实现**：实现预处理流程的增删改查接口。
 
+### 2.5 用户与认证模块 (User & Auth)
+
+- [x] **实体设计**：`User` (id, username, password, preferences)。
+- [x] **认证机制**：
+  - [x] 集成 `Passport` 和 `JWT` 策略。
+  - [x] 实现 `AuthService` (validateUser, login)。
+  - [x] 密码加密 (Bcrypt)。
+- [x] **数据播种 (Seeding)**：自动创建默认管理员账号。
+
 ---
 
 ## 🍳 Milestone 3: 管理后台前端 (Admin Web)
@@ -196,6 +205,25 @@
   - [x] **主题架构**：基于 CSS Variables (`--app-padding`, `--app-font-size`) 的响应式设计，配合 Pinia 持久化用户偏好。
   - [x] **组件适配**：集成 `ElConfigProvider`，实现 Element Plus 组件尺寸与全局密度同步。
   - [x] **暗黑模式 (Dark Mode)**：集成 Element Plus Dark Theme，实现系统级深色模式切换。
+  - [x] **云端偏好同步 (Cloud Sync)**：
+    - [x] **后端支持**：扩展 User 实体存储 JSONB 格式的 `preferences`。
+    - [x] **无感切换**：实现“本地优先 + 懒同步”策略，确保首屏渲染无闪动 (FOUC)。
+    - [x] **双路径渲染**：针对新设备登录，实现 Loading 状态等待云端配置同步。
+
+### 3.7 认证与安全 (Authentication & Security)
+
+- [x] **登录页面 (Login Page)**：
+  - [x] **现代分屏设计**：左侧品牌视觉区 + 右侧极简表单区。
+  - [x] **响应式布局**：移动端自动适配。
+  - [x] **交互细节**：输入框动效、Loading 状态、错误提示。
+- [x] **前端认证逻辑**：
+  - [x] **Pinia Auth Store**：管理 Token 和用户信息。
+  - [x] **Axios 拦截器**：自动附加 Token，处理 401 过期跳转。
+  - [x] **路由守卫**：防止未登录访问受保护页面。
+- [x] **记住我 (Remember Me)**：
+  - [x] 实现 `localStorage` (永久) 与 `sessionStorage` (会话级) 的切换策略。
+- [x] **退出登录 (Logout)**：
+  - [x] 实现前端登出逻辑，清除 Token 并跳转回登录页。
 
 ---
 

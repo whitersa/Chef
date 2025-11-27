@@ -25,4 +25,14 @@ export class CreateUserDto {
   @ApiProperty({ example: '2024-01-01' })
   @IsDateString()
   hireDate: string;
+
+  @ApiProperty({
+    example: { theme: 'dark', density: 'compact' },
+    required: false,
+  })
+  @IsOptional()
+  preferences?: {
+    theme?: 'light' | 'dark';
+    density?: 'compact' | 'default' | 'loose';
+  };
 }

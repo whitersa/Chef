@@ -9,6 +9,7 @@ import { RecipesModule } from './recipes/recipes.module';
 import { UsersModule } from './users/users.module';
 import { ProcessingMethodsModule } from './processing-methods/processing-methods.module';
 import { MenusModule } from './menus/menus.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { MenusModule } from './menus/menus.module';
     UsersModule,
     ProcessingMethodsModule,
     MenusModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

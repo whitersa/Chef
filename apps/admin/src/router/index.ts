@@ -1,7 +1,14 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import BasicLayout from '../layout/BasicLayout.vue';
+import Login from '../views/Login.vue';
 
 const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: { title: 'Login', public: true },
+  },
   {
     path: '/',
     component: BasicLayout,
@@ -50,6 +57,23 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  if (to.meta.public) {
+    if (token && to.name === 'Login') {
+      next('/');
+    } else {
+      next();
+    }
+  } else {
+    if (token) {
+      next();
+    } else {
+      next('/login');
+    }
+  }
 });
 
 export default router;
