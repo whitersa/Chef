@@ -1,6 +1,6 @@
 <template>
   <el-container class="layout-container">
-    <el-aside :width="isCollapse ? '64px' : '200px'" class="aside-transition">
+    <el-aside :width="isCollapse ? '48px' : '160px'" class="aside-transition">
       <div class="aside-flex-column">
         <div class="logo" :class="{ 'logo-collapsed': isCollapse }">
           <img src="/chef-logo.svg" alt="ChefOS Logo" class="logo-img" />

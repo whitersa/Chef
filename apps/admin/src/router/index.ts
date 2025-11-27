@@ -12,8 +12,20 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     component: BasicLayout,
-    redirect: '/recipe/list',
+    redirect: '/ingredient',
     children: [
+      {
+        path: 'ingredient',
+        name: 'IngredientList',
+        component: () => import('../views/ingredient/IngredientList.vue'),
+        meta: { title: '食材管理' },
+      },
+      {
+        path: 'processing',
+        name: 'ProcessingList',
+        component: () => import('../views/processing/ProcessingList.vue'),
+        meta: { title: '预处理管理' },
+      },
       {
         path: 'recipe',
         meta: { title: '菜谱管理' },
@@ -37,18 +49,6 @@ const routes: Array<RouteRecordRaw> = [
         name: 'UserList',
         component: () => import('../views/user/UserList.vue'),
         meta: { title: '人员管理' },
-      },
-      {
-        path: 'ingredient',
-        name: 'IngredientList',
-        component: () => import('../views/ingredient/IngredientList.vue'),
-        meta: { title: '食材管理' },
-      },
-      {
-        path: 'processing',
-        name: 'ProcessingList',
-        component: () => import('../views/processing/ProcessingList.vue'),
-        meta: { title: '预处理管理' },
       },
     ],
   },
