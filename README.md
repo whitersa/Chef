@@ -62,7 +62,7 @@
 - [x] **统一工程规范**：
   - [x] 在根目录配置 `.eslintrc.js` 和 `.prettierrc`。
   - [x] 配置 `.vscode/settings.json` 实现保存自动格式化。
-  - [ ] (可选) 配置 Husky + Commitlint 拦截不规范提交。
+  - [x] (可选) 配置 Husky + Commitlint 拦截不规范提交。
 
 ### 1.2 共享库开发 (Shared Packages)
 
