@@ -13,4 +13,10 @@ module.exports = [
     },
     ignores: ['**/dist/', '**/node_modules/', '**/.turbo/'],
   },
+  {
+    files: ['packages/eslint-config/**/*.js'],
+    languageOptions: {
+      sourceType: 'module',
+    },
+  },
 ];
