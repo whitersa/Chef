@@ -8,5 +8,10 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
-  }
+  },
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "The commit message header must be less than 100 characters to pass commitlint checks. Keep it concise."
+    }
+  ]
 }
