@@ -183,6 +183,20 @@
   - [x] **统一客户端**：创建 `api-client.ts` 作为基础 HTTP 客户端。
   - [x] **Store 升级**：更新所有 Pinia Store 使用新的 API 模块，解耦业务逻辑与底层 HTTP 请求。
 
+### 3.6 UI/UX 优化 (UI/UX Improvements)
+
+- [x] **紧凑型商务风格 (Compact Business Style)**：
+  - [x] 全局样式调整：缩小字体、间距，增加信息密度。
+  - [x] Element Plus 组件样式覆盖。
+- [x] **交互体验优化**：
+  - [x] 侧边栏菜单支持折叠/展开。
+  - [x] 优化配方编辑器布局，减少空白浪费。
+- [x] **主题与布局系统 (Theming System)**：
+  - [x] **动态密度切换**：支持 紧凑 (Compact)、默认 (Default)、宽松 (Loose) 三种密度模式，适应不同用户习惯。
+  - [x] **主题架构**：基于 CSS Variables (`--app-padding`, `--app-font-size`) 的响应式设计，配合 Pinia 持久化用户偏好。
+  - [x] **组件适配**：集成 `ElConfigProvider`，实现 Element Plus 组件尺寸与全局密度同步。
+  - [x] **暗黑模式 (Dark Mode)**：集成 Element Plus Dark Theme，实现系统级深色模式切换。
+
 ---
 
 ## 🚚 Milestone 4: 供应链与进阶后端 (Advanced Backend)

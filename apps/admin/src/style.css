@@ -1,16 +1,107 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light;
   color: #213547;
-  background-color: #ffffff;
+  background-color: #f0f2f5;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* --- 基础变量定义 (Base Variables) --- */
+
+  /* 默认 (Default) */
+  --app-font-size: 14px;
+  --app-padding: 16px;
+  --app-main-padding: 20px;
+  /* Default main padding */
+  --app-gap: 12px;
+  --app-radius: 4px;
+  --el-component-size: 32px;
+  /* Element Plus default height */
+}
+
+/* --- 密度控制 (Density Control) --- */
+
+/* 紧凑模式 (Compact) - 适合高密度业务操作 */
+html[data-density='compact'] {
+  --app-font-size: 12px;
+  --app-padding: 8px;
+  --app-main-padding: 4px;
+  /* Compact main padding */
+  --app-gap: 6px;
+  --app-radius: 2px;
+
+  /* Element Plus Overrides */
+  --el-font-size-base: 12px;
+  --el-font-size-small: 12px;
+  --el-card-padding: 10px;
+  --el-dialog-padding-primary: 12px;
+  --el-header-height: 40px;
+  --el-menu-item-height: 36px;
+  --el-menu-sub-item-height: 36px;
+  --el-menu-base-level-padding: 12px;
+  --el-component-size: 24px;
+}
+
+/* 默认模式 (Default) - 适合标准后台 */
+html[data-density='default'] {
+  --app-font-size: 13px;
+  /* Slightly smaller than 14px */
+  --app-padding: 12px;
+  /* Reduced from 16px */
+  --app-main-padding: 12px;
+  /* Reduced from 20px */
+  --app-gap: 10px;
+  /* Reduced from 12px */
+  --app-radius: 4px;
+
+  /* Element Plus Defaults */
+  --el-font-size-base: 13px;
+  --el-card-padding: 16px;
+  /* Reduced from 20px */
+  --el-header-height: 50px;
+  /* Reduced from 60px */
+  --el-component-size: 32px;
+}
+
+/* 宽松模式 (Loose) - 适合展示型页面或触屏 */
+html[data-density='loose'] {
+  --app-font-size: 14px;
+  /* Reduced from 16px */
+  --app-padding: 16px;
+  /* Reduced from 24px */
+  --app-main-padding: 20px;
+  /* Reduced from 32px */
+  --app-gap: 12px;
+  /* Reduced from 16px */
+  --app-radius: 6px;
+
+  /* Element Plus Overrides */
+  --el-font-size-base: 14px;
+  --el-card-padding: 20px;
+  /* Reduced from 32px */
+  --el-header-height: 60px;
+  /* Reduced from 70px */
+  --el-component-size: 36px;
+}
+
+/* --- 主题控制 (Theme Control) --- */
+
+/* 暗色模式 (Dark Mode) */
+html.dark {
+  color-scheme: dark;
+  background-color: #141414;
+  color: #e5eaf3;
+
+  /* Element Plus Dark Mode Variables are handled by their dark theme css, 
+     but we can override specific app colors here */
 }
 
 html,
@@ -19,9 +110,52 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
+  font-size: var(--app-font-size);
+  transition: font-size 0.3s, padding 0.3s;
+  /* Smooth transition when switching */
 }
 
 #app {
   width: 100%;
   height: 100%;
+}
+
+/* --- 通用组件样式 (使用变量) --- */
+
+/* Compact Card Styles */
+.el-card {
+  --el-card-border-radius: var(--app-radius);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.el-card__header {
+  padding: var(--app-padding);
+  font-weight: 600;
+}
+
+/* Compact Table Styles */
+.el-table {
+  /* Use Element Plus variables for better dark mode support */
+  --el-table-header-bg-color: var(--el-fill-color-light);
+  --el-table-row-hover-bg-color: var(--el-fill-color);
+  font-size: var(--app-font-size);
+}
+
+.el-table th.el-table__cell {
+  padding: calc(var(--app-padding) / 2) 0;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.el-table td.el-table__cell {
+  padding: calc(var(--app-padding) / 2) 0;
+}
+
+/* Compact Form Styles */
+.el-form-item {
+  margin-bottom: var(--app-gap);
+}
+
+.el-form-item__label {
+  font-size: var(--app-font-size);
 }

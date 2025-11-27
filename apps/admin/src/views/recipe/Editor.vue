@@ -277,93 +277,134 @@ const nutritionOptions = computed(() => {
 <style scoped>
 .editor-container {
   display: flex;
-  height: calc(100vh - 100px);
-  background-color: #f5f7fa;
+  height: 100%; /* Fill the available space in el-main */
+  background-color: transparent; /* Let global background show through */
+  gap: 6px; /* Use gap instead of margins for cleaner layout */
 }
 
 .panel {
-  padding: 20px;
+  padding: 10px; /* Compact padding */
   background: white;
-  margin: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.left-panel {
-  width: 250px;
-}
-
-.center-panel {
-  flex: 1;
+  border-radius: 2px; /* Sharper corners */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Subtle shadow */
   display: flex;
   flex-direction: column;
 }
 
+.panel h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+  border-left: 3px solid #409eff;
+  padding-left: 8px;
+  line-height: 1.2;
+}
+
+.left-panel {
+  width: 200px; /* Slightly narrower */
+}
+
+.center-panel {
+  flex: 1;
+}
+
 .right-panel {
-  width: 300px;
+  width: 260px; /* Slightly narrower */
 }
 
 .ingredient-list {
-  min-height: 200px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* Allow flex item to shrink */
 }
 
 .ingredient-item {
-  padding: 10px;
-  margin-bottom: 10px;
-  background-color: #ecf5ff;
-  border: 1px solid #d9ecff;
-  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background-color: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 2px;
   cursor: move;
   display: flex;
   justify-content: space-between;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.ingredient-item:hover {
+  background-color: #ecf5ff;
+  border-color: #c6e2ff;
 }
 
 .panel-header {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ebeef5;
 }
 
 .scroll-container {
   flex: 1;
   overflow-y: auto;
-  padding-right: 5px;
+  padding-right: 4px; /* Small padding for scrollbar */
 }
 
 .section {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .recipe-canvas {
-  min-height: 150px;
+  min-height: 100px;
   background-color: #fafafa;
-  border: 2px dashed #e4e7ed;
-  border-radius: 4px;
-  padding: 10px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 2px;
+  padding: 6px;
 }
 
 .recipe-item {
-  padding: 15px;
-  margin-bottom: 10px;
+  padding: 8px;
+  margin-bottom: 6px;
   background-color: white;
-  border-left: 4px solid #409eff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-left: 3px solid #409eff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 12px;
+}
+
+.recipe-item .info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recipe-item .name {
+  font-weight: 500;
+  color: #303133;
+}
+
+.recipe-item .cost {
+  color: #909399;
+  font-size: 11px;
 }
 
 .step-item {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .step-index {
-  font-weight: bold;
-  margin-top: 5px;
-  width: 20px;
+  font-weight: 600;
+  margin-top: 6px;
+  width: 18px;
+  font-size: 12px;
+  color: #606266;
 }
 
 .step-input {
@@ -372,27 +413,29 @@ const nutritionOptions = computed(() => {
 
 .controls {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
 }
 
 .chart-wrapper {
-  height: 300px;
+  height: 200px; /* Reduced height */
   width: 100%;
 }
 
 .nutrition-summary {
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 12px;
+  padding: 8px;
   background-color: #f0f9eb;
-  border-radius: 4px;
+  border-radius: 2px;
   border: 1px solid #e1f3d8;
 }
 
 .nutrition-summary p {
-  margin: 8px 0;
-  font-size: 14px;
+  margin: 4px 0;
+  font-size: 12px;
   color: #67c23a;
-  font-weight: bold;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
 }
 </style>
