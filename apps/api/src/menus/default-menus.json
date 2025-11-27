@@ -1,0 +1,40 @@
+[
+  {
+    "title": "后厨管理",
+    "icon": "Food",
+    "order": 1,
+    "children": [
+      {
+        "title": "食材管理",
+        "path": "/ingredient",
+        "icon": "Apple",
+        "order": 1
+      },
+      {
+        "title": "预处理管理",
+        "path": "/processing",
+        "icon": "MagicStick",
+        "order": 2
+      },
+      {
+        "title": "菜谱管理",
+        "path": "/recipe/list",
+        "icon": "Notebook",
+        "order": 3
+      }
+    ]
+  },
+  {
+    "title": "组织管理",
+    "icon": "Shop",
+    "order": 2,
+    "children": [
+      {
+        "title": "人员列表",
+        "path": "/user",
+        "icon": "Avatar",
+        "order": 1
+      }
+    ]
+  }
+]

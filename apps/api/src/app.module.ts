@@ -7,6 +7,8 @@ import { AppService } from './app.service';
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { RecipesModule } from './recipes/recipes.module';
 import { UsersModule } from './users/users.module';
+import { ProcessingMethodsModule } from './processing-methods/processing-methods.module';
+import { MenusModule } from './menus/menus.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { UsersModule } from './users/users.module';
     IngredientsModule,
     RecipesModule,
     UsersModule,
+    ProcessingMethodsModule,
+    MenusModule,
   ],
   controllers: [AppController],
   providers: [AppService],

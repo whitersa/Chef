@@ -1,23 +1,62 @@
 <script setup lang="ts">
 import { useIngredientsStore } from '../../stores/ingredients';
 import { useRecipeStore } from '../../stores/recipe';
+import { useProcessingStore } from '../../stores/processing';
 import draggable from 'vuedraggable';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { Delete } from '@element-plus/icons-vue';
 import BaseChart from '../../components/BaseChart.vue';
 
 const route = useRoute();
 const ingredientsStore = useIngredientsStore();
 const recipeStore = useRecipeStore();
+const processingStore = useProcessingStore();
+
+// Dialog state
+const dialogVisible = ref(false);
+const currentIngredient = ref<any>(null);
+const selectedProcessingId = ref<string>('');
 
 onMounted(() => {
   ingredientsStore.fetchIngredients();
+  processingStore.fetchMethods();
   if (route.params.id) {
     recipeStore.fetchRecipe(route.params.id as string);
   } else {
     recipeStore.resetEditor();
   }
 });
+
+function handleIngredientAdd(evt: any) {
+  if (evt.added) {
+    const ingredient = evt.added.element;
+    // Add to recipe items first
+    recipeStore.addItem(ingredient);
+
+    // Open dialog to ask for pre-processing
+    currentIngredient.value = ingredient;
+    selectedProcessingId.value = ''; // Reset selection
+    dialogVisible.value = true;
+  }
+}
+
+function confirmProcessing() {
+  if (selectedProcessingId.value && currentIngredient.value) {
+    const method = processingStore.methods.find((m) => m.id === selectedProcessingId.value);
+    if (method) {
+      // Generate step description
+      let description = method.description || `${method.name} ${currentIngredient.value.name}`;
+      // Simple template replacement if needed
+      description = description.replace('{ingredient}', currentIngredient.value.name);
+      description = description.replace('{time}', '___'); // Placeholder
+
+      recipeStore.preProcessing.push(description);
+    }
+  }
+  dialogVisible.value = false;
+  currentIngredient.value = null;
+}
 
 const nutritionOptions = computed(() => {
   const { protein, fat, carbs } = recipeStore.totalNutrition;
@@ -94,42 +133,104 @@ const nutritionOptions = computed(() => {
         />
         <el-button type="primary" @click="recipeStore.saveRecipe">保存菜谱</el-button>
       </div>
-      <h3>配方详情 (总成本: ¥{{ recipeStore.totalCost.toFixed(2) }})</h3>
-      <draggable
-        :list="recipeStore.items"
-        group="ingredients"
-        item-key="id"
-        class="recipe-canvas"
-        @change="
-          (evt: any) => {
-            if (evt.added) recipeStore.addItem(evt.added.element);
-          }
-        "
-      >
-        <template #item="{ element, index }">
-          <div class="recipe-item">
-            <div class="info">
-              <span class="name">{{ element.name }}</span>
-              <span class="cost">单价: ¥{{ element.price }}</span>
-            </div>
-            <div class="controls">
-              <el-input-number v-model="element.quantity" :min="0" :step="0.1" size="small" />
-              <span class="unit">{{ element.unit }}</span>
-              <el-input-number
-                v-model="element.yieldRate"
-                :min="0.1"
-                :max="1"
-                :step="0.1"
-                size="small"
-                placeholder="出品率"
+
+      <div class="scroll-container">
+        <div class="section">
+          <h3>配方详情 (总成本: ¥{{ recipeStore.totalCost.toFixed(2) }})</h3>
+          <draggable
+            :list="recipeStore.items"
+            group="ingredients"
+            item-key="id"
+            class="recipe-canvas"
+            @change="handleIngredientAdd"
+          >
+            <template #item="{ element, index }">
+              <div class="recipe-item">
+                <div class="info">
+                  <span class="name">{{ element.name }}</span>
+                  <span class="cost">单价: ¥{{ element.price }}</span>
+                </div>
+                <div class="controls">
+                  <el-input-number v-model="element.quantity" :min="0" :step="0.1" size="small" />
+                  <span class="unit">{{ element.unit }}</span>
+                  <el-input-number
+                    v-model="element.yieldRate"
+                    :min="0.1"
+                    :max="1"
+                    :step="0.1"
+                    size="small"
+                    placeholder="出品率"
+                  />
+                  <el-button
+                    type="danger"
+                    circle
+                    size="small"
+                    @click="recipeStore.removeItem(index)"
+                    >x</el-button
+                  >
+                </div>
+              </div>
+            </template>
+          </draggable>
+        </div>
+
+        <div class="section">
+          <h3>预处理</h3>
+          <div class="steps-list">
+            <div v-for="(_, index) in recipeStore.preProcessing" :key="index" class="step-item">
+              <span class="step-index">{{ index + 1 }}.</span>
+              <el-input
+                v-model="recipeStore.preProcessing[index]"
+                type="textarea"
+                :rows="2"
+                placeholder="请输入预处理步骤"
+                class="step-input"
               />
-              <el-button type="danger" circle size="small" @click="recipeStore.removeItem(index)"
-                >x</el-button
+              <el-button
+                type="danger"
+                circle
+                size="small"
+                @click="recipeStore.removePreProcessing(index)"
               >
+                <el-icon><Delete /></el-icon>
+              </el-button>
             </div>
+            <el-button
+              class="add-step-btn"
+              @click="recipeStore.addPreProcessing"
+              style="width: 100%; margin-top: 10px"
+            >
+              + 添加预处理
+            </el-button>
           </div>
-        </template>
-      </draggable>
+        </div>
+
+        <div class="section">
+          <h3>制作步骤</h3>
+          <div class="steps-list">
+            <div v-for="(_, index) in recipeStore.steps" :key="index" class="step-item">
+              <span class="step-index">{{ index + 1 }}.</span>
+              <el-input
+                v-model="recipeStore.steps[index]"
+                type="textarea"
+                :rows="2"
+                placeholder="请输入步骤描述"
+                class="step-input"
+              />
+              <el-button type="danger" circle size="small" @click="recipeStore.removeStep(index)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </div>
+            <el-button
+              class="add-step-btn"
+              @click="recipeStore.addStep"
+              style="width: 100%; margin-top: 10px"
+            >
+              + 添加步骤
+            </el-button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 右侧：属性 (暂时留空) -->
@@ -144,6 +245,32 @@ const nutritionOptions = computed(() => {
         <p>碳水: {{ recipeStore.totalNutrition.carbs.toFixed(1) }}g</p>
       </div>
     </div>
+
+    <!-- Dialog for Pre-processing Selection -->
+    <el-dialog v-model="dialogVisible" title="选择预处理流程" width="400px">
+      <p v-if="currentIngredient">
+        是否为 <b>{{ currentIngredient.name }}</b> 添加预处理步骤？
+      </p>
+      <el-select
+        v-model="selectedProcessingId"
+        placeholder="请选择预处理方式"
+        style="width: 100%; margin-top: 10px"
+      >
+        <el-option label="不进行预处理" value="" />
+        <el-option
+          v-for="method in processingStore.methods"
+          :key="method.id"
+          :label="method.name"
+          :value="method.id"
+        />
+      </el-select>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmProcessing">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -197,13 +324,22 @@ const nutritionOptions = computed(() => {
   margin-bottom: 15px;
 }
 
-.recipe-canvas {
+.scroll-container {
   flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.recipe-canvas {
+  min-height: 150px;
   background-color: #fafafa;
   border: 2px dashed #e4e7ed;
   border-radius: 4px;
   padding: 10px;
-  overflow-y: auto;
 }
 
 .recipe-item {
@@ -215,6 +351,23 @@ const nutritionOptions = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.step-index {
+  font-weight: bold;
+  margin-top: 5px;
+  width: 20px;
+}
+
+.step-input {
+  flex: 1;
 }
 
 .controls {

@@ -7,33 +7,29 @@
           <span>ChefOS Admin</span>
         </div>
 
-        <el-sub-menu index="kitchen">
-          <template #title>
-            <el-icon><Food /></el-icon>
-            <span>后厨管理</span>
-          </template>
+        <template v-for="menu in menuStore.menus" :key="menu.id">
+          <!-- Submenu -->
+          <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.id">
+            <template #title>
+              <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
+              <span>{{ menu.title }}</span>
+            </template>
+            <el-menu-item
+              v-for="child in menu.children"
+              :key="child.id"
+              :index="child.path || child.id"
+            >
+              <el-icon v-if="child.icon"><component :is="child.icon" /></el-icon>
+              <span>{{ child.title }}</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-          <el-menu-item index="/ingredient">
-            <el-icon><Apple /></el-icon>
-            <span>食材管理</span>
+          <!-- Single Menu Item -->
+          <el-menu-item v-else :index="menu.path || menu.id">
+            <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
+            <span>{{ menu.title }}</span>
           </el-menu-item>
-
-          <el-menu-item index="/recipe/list">
-            <el-icon><Notebook /></el-icon>
-            <span>菜谱管理</span>
-          </el-menu-item>
-        </el-sub-menu>
-
-        <el-sub-menu index="organization">
-          <template #title>
-            <el-icon><Shop /></el-icon>
-            <span>组织管理</span>
-          </template>
-          <el-menu-item index="/user">
-            <el-icon><Avatar /></el-icon>
-            <span>人员列表</span>
-          </el-menu-item>
-        </el-sub-menu>
+        </template>
       </el-menu>
     </el-aside>
     <el-container>
@@ -44,6 +40,7 @@
             <el-breadcrumb-item>{{ route.meta.title }}</el-breadcrumb-item>
           </el-breadcrumb>
           <div class="user-info">
+            <el-button type="primary" link @click="syncMenus">同步菜单</el-button>
             <el-avatar
               :size="32"
               src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
@@ -64,12 +61,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { Food, Shop, Apple, Notebook, Avatar } from '@element-plus/icons-vue';
+import { useMenuStore } from '../stores/menu';
+import { menusApi } from '../api/menus';
+import { ElMessage } from 'element-plus';
 
 const route = useRoute();
+const menuStore = useMenuStore();
 const activeMenu = computed(() => route.path);
+
+onMounted(() => {
+  menuStore.fetchMenus();
+});
+
+async function syncMenus() {
+  try {
+    await menusApi.sync();
+    ElMessage.success('菜单同步成功');
+    await menuStore.fetchMenus();
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('菜单同步失败');
+  }
+}
 </script>
 
 <style scoped lang="scss">

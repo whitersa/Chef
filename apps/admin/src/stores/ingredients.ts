@@ -1,18 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { api } from '../api';
+import { ingredientsApi, type Ingredient } from '../api/ingredients';
 
-export interface Ingredient {
-  id: string;
-  name: string;
-  price: number;
-  unit: string;
-  nutrition: {
-    protein: number;
-    fat: number;
-    carbs: number;
-  };
-}
+export type { Ingredient };
 
 export const useIngredientsStore = defineStore('ingredients', () => {
   const ingredients = ref<Ingredient[]>([]);
@@ -21,7 +11,7 @@ export const useIngredientsStore = defineStore('ingredients', () => {
   async function fetchIngredients() {
     loading.value = true;
     try {
-      ingredients.value = await api.get<Ingredient[]>('/ingredients');
+      ingredients.value = await ingredientsApi.getAll();
     } catch (error) {
       console.error('Failed to fetch ingredients:', error);
     } finally {
@@ -31,7 +21,7 @@ export const useIngredientsStore = defineStore('ingredients', () => {
 
   async function createIngredient(ingredient: Omit<Ingredient, 'id'>) {
     try {
-      const newIngredient = await api.post<Ingredient>('/ingredients', ingredient);
+      const newIngredient = await ingredientsApi.create(ingredient);
       ingredients.value.push(newIngredient);
     } catch (error) {
       console.error('Failed to create ingredient:', error);
@@ -41,7 +31,7 @@ export const useIngredientsStore = defineStore('ingredients', () => {
 
   async function updateIngredient(id: string, ingredient: Partial<Ingredient>) {
     try {
-      await api.patch(`/ingredients/${id}`, ingredient);
+      await ingredientsApi.update(id, ingredient);
       const index = ingredients.value.findIndex((i) => i.id === id);
       if (index !== -1) {
         ingredients.value[index] = { ...ingredients.value[index], ...ingredient } as Ingredient;
@@ -54,7 +44,7 @@ export const useIngredientsStore = defineStore('ingredients', () => {
 
   async function deleteIngredient(id: string) {
     try {
-      await api.delete(`/ingredients/${id}`);
+      await ingredientsApi.delete(id);
       ingredients.value = ingredients.value.filter((i) => i.id !== id);
     } catch (error) {
       console.error('Failed to delete ingredient:', error);

@@ -9,6 +9,12 @@ export class Recipe {
   @Column()
   name: string;
 
+  @Column('jsonb', { nullable: true })
+  steps: string[];
+
+  @Column('jsonb', { nullable: true })
+  preProcessing: string[];
+
   @OneToMany(() => RecipeItem, (item) => item.recipe, { cascade: true })
   items: RecipeItem[];
 }

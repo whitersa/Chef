@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { api } from '../api';
+import { usersApi } from '../api/users';
 import type { User } from '@chefos/types';
 
 export const useUserStore = defineStore('user', () => {
@@ -10,7 +10,7 @@ export const useUserStore = defineStore('user', () => {
   async function fetchUsers() {
     loading.value = true;
     try {
-      users.value = await api.get<User[]>('/users');
+      users.value = await usersApi.getAll();
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {
@@ -20,7 +20,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function createUser(user: Partial<User>) {
     try {
-      const newUser = await api.post<User>('/users', user);
+      const newUser = await usersApi.create(user);
       users.value.push(newUser);
     } catch (error) {
       console.error('Failed to create user:', error);
@@ -30,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function deleteUser(id: string) {
     try {
-      await api.delete(`/users/${id}`);
+      await usersApi.delete(id);
       users.value = users.value.filter((u) => u.id !== id);
     } catch (error) {
       console.error('Failed to delete user:', error);

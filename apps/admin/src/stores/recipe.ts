@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { api } from '../api';
+import { recipesApi } from '../api/recipes';
 import { ElMessage } from 'element-plus';
 
 export interface RecipeItem {
@@ -25,6 +25,8 @@ export const useRecipeStore = defineStore('recipe', () => {
   // Editor state
   const name = ref('');
   const items = ref<RecipeItem[]>([]);
+  const steps = ref<string[]>([]);
+  const preProcessing = ref<string[]>([]);
 
   const totalCost = computed(() => {
     return items.value.reduce((sum, item) => {
@@ -49,7 +51,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   async function fetchRecipes() {
     loading.value = true;
     try {
-      recipes.value = await api.get('/recipes');
+      recipes.value = await recipesApi.getAll();
     } catch (error) {
       console.error('Failed to fetch recipes:', error);
     } finally {
@@ -60,8 +62,10 @@ export const useRecipeStore = defineStore('recipe', () => {
   async function fetchRecipe(id: string) {
     loading.value = true;
     try {
-      const recipe: any = await api.get(`/recipes/${id}`);
+      const recipe: any = await recipesApi.getById(id);
       name.value = recipe.name;
+      steps.value = recipe.steps || [];
+      preProcessing.value = recipe.preProcessing || [];
       items.value = recipe.items.map((item: any) => ({
         id: crypto.randomUUID(),
         ingredientId: item.ingredient?.id,
@@ -96,9 +100,27 @@ export const useRecipeStore = defineStore('recipe', () => {
     items.value.splice(index, 1);
   }
 
+  function addStep() {
+    steps.value.push('');
+  }
+
+  function removeStep(index: number) {
+    steps.value.splice(index, 1);
+  }
+
+  function addPreProcessing() {
+    preProcessing.value.push('');
+  }
+
+  function removePreProcessing(index: number) {
+    preProcessing.value.splice(index, 1);
+  }
+
   function resetEditor() {
     name.value = '';
     items.value = [];
+    steps.value = [];
+    preProcessing.value = [];
   }
 
   async function saveRecipe() {
@@ -114,6 +136,8 @@ export const useRecipeStore = defineStore('recipe', () => {
     try {
       const payload = {
         name: name.value,
+        steps: steps.value,
+        preProcessing: preProcessing.value,
         items: items.value.map((item) => ({
           quantity: item.quantity,
           yieldRate: item.yieldRate,
@@ -121,7 +145,7 @@ export const useRecipeStore = defineStore('recipe', () => {
         })),
       };
 
-      await api.post('/recipes', payload);
+      await recipesApi.create(payload);
       ElMessage.success('保存成功');
       resetEditor();
     } catch (error) {
@@ -135,12 +159,18 @@ export const useRecipeStore = defineStore('recipe', () => {
     loading,
     name,
     items,
+    steps,
+    preProcessing,
     totalCost,
     totalNutrition,
     fetchRecipes,
     fetchRecipe,
     addItem,
     removeItem,
+    addStep,
+    removeStep,
+    addPreProcessing,
+    removePreProcessing,
     saveRecipe,
     resetEditor,
   };

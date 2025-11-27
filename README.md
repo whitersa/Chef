@@ -115,13 +115,18 @@
 ### 2.3 菜谱与 BOM 模块 (Recipes - 核心难点)
 
 - [x] **实体设计**：
-  - [x] `Recipe` (id, name, total_cost)。
+  - [x] `Recipe` (id, name, total_cost, steps, preProcessing)。
   - [x] `RecipeItem` (parent_id, child_recipe_id, ingredient_id, quantity, yield_rate)。
 - [x] **递归计算逻辑 (Service)**：
   - [x] 编写 `calculateCost(recipeId)` 方法。
   - [x] **任务点**：实现深度优先遍历 (DFS)，如果 `RecipeItem` 是半成品，递归调用自身；如果是食材，直接计算 `price * quantity`。
   - [x] **任务点**：处理循环依赖检测（防止 A 包含 B，B 包含 A 导致死循环）。
 - [x] **接口暴露**：`GET /recipes/:id/cost` 返回计算结果。
+
+### 2.4 预处理流程模块 (Processing Methods)
+
+- [x] **实体设计**：`ProcessingMethod` (id, name, description)。
+- [x] **CRUD 实现**：实现预处理流程的增删改查接口。
 
 ---
 
@@ -149,27 +154,33 @@
 - [x] **路由与布局**：
   - [x] 安装 `vue-router`。
   - [x] 实现 `MainLayout`：侧边栏 (Sidebar) + 顶部导航 (Header) + 内容区 (Main)。
-  - [x] **侧边栏菜单**：
-    - [x] **人员管理 (Personnel)**: 员工列表、权限分配。
-    - [x] **菜谱管理 (Recipes)**: 菜谱列表、可视化编辑器入口。
+  - [x] **动态菜单 (Dynamic Menu)**：
+    - [x] **后端**：创建 `Menu` 实体，实现菜单树接口 `GET /menus`，并支持自动 Seed 初始化数据。
+    - [x] **前端**：创建 `menuStore`，在应用启动时获取菜单配置，动态渲染侧边栏。
+    - [x] **图标支持**：动态加载 Element Plus 图标组件。
 
 ### 3.3 核心业务功能 (Core Features)
 
 - [x] **人员管理**：
   - [x] 简单的员工列表展示 (Mock 数据)。
 - [x] **菜谱管理 (可视化编辑器)**：
-  - [x] **布局搭建**：左侧“食材库列表”，中间“画布/树形结构”，右侧“属性面板”。
+  - [x] **布局搭建**：左侧“食材库列表”，中间“配方详情/预处理/制作步骤”，右侧“属性面板”。
   - [x] **拖拽实现**：
     - [x] 安装 `vuedraggable` 或 `dnd-kit`。
     - [x] 实现从左侧拖拽食材到中间，更新本地 JSON 数据结构。
+    - [x] **交互优化**：拖拽食材时弹出“预处理选择”对话框，自动生成预处理步骤。
   - [x] **实时计算**：
     - [x] 利用 Vue `computed` 或 `watch`，当数量变化时，自动计算当前层级的预估成本。
+- [x] **预处理管理**：
+  - [x] 预处理流程的列表展示与增删管理。
+  - [x] 支持定义描述模板（如：`将{ingredient}放入沸水中焯烫{time}秒`）。
 
-### 3.4 数据可视化 (Dashboard)
+### 3.5 代码重构与优化 (Refactoring)
 
-- [x] **ECharts 集成**：
-  - [x] 封装通用 `BaseChart.vue` 组件。
-  - [x] 实现“营养成分饼图”：根据当前配方数据，动态渲染 蛋白质/碳水/脂肪 比例。
+- [x] **前端 API 层重构**：
+  - [x] **模块化拆分**：将 `api.ts` 拆分为 `api/recipes.ts`, `api/users.ts` 等领域模块。
+  - [x] **统一客户端**：创建 `api-client.ts` 作为基础 HTTP 客户端。
+  - [x] **Store 升级**：更新所有 Pinia Store 使用新的 API 模块，解耦业务逻辑与底层 HTTP 请求。
 
 ---
 

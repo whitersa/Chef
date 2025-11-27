@@ -37,6 +37,12 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../views/ingredient/IngredientList.vue'),
         meta: { title: '食材管理' },
       },
+      {
+        path: 'processing',
+        name: 'ProcessingList',
+        component: () => import('../views/processing/ProcessingList.vue'),
+        meta: { title: '预处理管理' },
+      },
     ],
   },
 ];
