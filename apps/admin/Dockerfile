@@ -19,8 +19,8 @@ RUN pnpm install --frozen-lockfile
 COPY apps/admin ./apps/admin
 COPY packages/types ./packages/types
 
-# 构建 Admin
-RUN pnpm --filter @chefos/admin build
+# 构建 Admin (使用 turbo 以确保依赖被构建)
+RUN pnpm exec turbo run build --filter=@chefos/admin
 
 # --- 运行阶段 ---
 FROM nginx:alpine

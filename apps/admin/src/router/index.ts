@@ -45,6 +45,12 @@ const routes: Array<RouteRecordRaw> = [
         ],
       },
       {
+        path: 'procurement',
+        name: 'Procurement',
+        component: () => import('../views/procurement/Procurement.vue'),
+        meta: { title: '采购清单' },
+      },
+      {
         path: 'user',
         name: 'UserList',
         component: () => import('../views/user/UserList.vue'),

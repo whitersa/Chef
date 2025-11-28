@@ -22,8 +22,8 @@ RUN pnpm install --frozen-lockfile
 COPY apps/api ./apps/api
 COPY packages/types ./packages/types
 
-# 构建 API
-RUN pnpm --filter @chefos/api build
+# 构建 API (使用 turbo 以确保依赖被构建)
+RUN pnpm exec turbo run build --filter=@chefos/api
 
 # --- 运行阶段 ---
 FROM base AS runner
@@ -31,6 +31,7 @@ WORKDIR /app
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/src ./apps/api/src
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
 COPY --from=builder /app/package.json ./package.json

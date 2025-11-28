@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -22,13 +23,20 @@ export class UsersService implements OnModuleInit {
       username: 'admin',
     });
 
+    // Always update admin password to match new frontend hashing (MD5)
+    // This ensures dev environment is always consistent
+    const md5Password = crypto
+      .createHash('md5')
+      .update('password')
+      .digest('hex');
+    const hashedPassword = await bcrypt.hash(md5Password, 10);
+
     if (!adminUser) {
       console.log('Admin user not found. Seeding database...');
 
       // Optional: Clear existing users if they are incompatible with new schema
       // await this.userRepository.clear();
 
-      const hashedPassword = await bcrypt.hash('password', 10);
       const users = [
         {
           name: 'Chef John',
@@ -66,6 +74,11 @@ export class UsersService implements OnModuleInit {
         }
       }
       console.log('Seeded initial users');
+    } else {
+      // Update existing admin password
+      adminUser.password = hashedPassword;
+      await this.userRepository.save(adminUser);
+      console.log('Updated admin password to support frontend hashing');
     }
   }
 

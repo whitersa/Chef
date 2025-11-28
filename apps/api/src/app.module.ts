@@ -16,6 +16,8 @@ import { ProcessingMethodsModule } from './processing-methods/processing-methods
 import { MenusModule } from './menus/menus.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
+import { AuditModule } from './audit/audit.module';
+import { ProcurementModule } from './procurement/procurement.module';
 
 @Module({
   imports: [
@@ -96,6 +98,8 @@ import { HealthModule } from './health/health.module';
     MenusModule,
     AuthModule,
     HealthModule,
+    AuditModule,
+    ProcurementModule,
   ],
   controllers: [AppController],
   providers: [AppService],

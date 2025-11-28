@@ -21,6 +21,12 @@
         "path": "/recipe/list",
         "icon": "Notebook",
         "order": 3
+      },
+      {
+        "title": "采购清单",
+        "path": "/procurement",
+        "icon": "ShoppingCart",
+        "order": 4
       }
     ]
   },

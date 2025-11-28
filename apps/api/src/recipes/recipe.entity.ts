@@ -29,7 +29,10 @@ export class Recipe {
   })
   preProcessing: string[];
 
-  @VersionColumn({ comment: 'Version number for optimistic locking' })
+  @VersionColumn({
+    comment: 'Version number for optimistic locking',
+    default: 1,
+  })
   version: number;
 
   @OneToMany(() => RecipeItem, (item) => item.recipe, { cascade: true })

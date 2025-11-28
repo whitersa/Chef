@@ -13,6 +13,7 @@
     "@chefos/api-client": "workspace:^",
     "@chefos/types": "workspace:^",
     "@element-plus/icons-vue": "^2.3.2",
+    "crypto-js": "^4.2.0",
     "echarts": "^6.0.0",
     "element-plus": "^2.11.8",
     "pinia": "^3.0.4",
@@ -22,6 +23,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",

@@ -1,11 +1,18 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  OnModuleInit,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, Like, DataSource } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Ingredient } from './ingredient.entity';
+import { IngredientVersion } from './ingredient-version.entity';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { AuditService } from '../audit/audit.service';
 
 interface RedisStore {
   keys: (pattern: string) => Promise<string[]>;
@@ -18,7 +25,11 @@ export class IngredientsService implements OnModuleInit {
   constructor(
     @InjectRepository(Ingredient)
     private ingredientsRepository: Repository<Ingredient>,
+    @InjectRepository(IngredientVersion)
+    private ingredientVersionsRepository: Repository<IngredientVersion>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private auditService: AuditService,
+    private dataSource: DataSource,
   ) {}
 
   async onModuleInit() {
@@ -78,6 +89,10 @@ export class IngredientsService implements OnModuleInit {
   async create(createIngredientDto: CreateIngredientDto) {
     const ingredient = this.ingredientsRepository.create(createIngredientDto);
     const saved = await this.ingredientsRepository.save(ingredient);
+
+    await this.auditService.log('system', 'CREATE', 'Ingredient', saved.id, {
+      name: saved.name,
+    });
     await this.clearCache();
     return saved;
   }
@@ -125,17 +140,49 @@ export class IngredientsService implements OnModuleInit {
   }
 
   async update(id: string, updateIngredientDto: Partial<CreateIngredientDto>) {
-    const result = await this.ingredientsRepository.update(
-      id,
-      updateIngredientDto,
-    );
-    await this.clearCache();
-    return result;
+    return this.dataSource.manager.transaction(async (manager) => {
+      const current = await manager.findOne(Ingredient, { where: { id } });
+      if (!current) {
+        throw new NotFoundException('Ingredient not found');
+      }
+
+      // Create version snapshot
+      const version = new IngredientVersion();
+      version.ingredient = current;
+      version.version = current.version;
+      version.name = current.name;
+      version.price = current.price;
+      version.unit = current.unit;
+      version.nutrition = current.nutrition;
+      version.changeLog = 'Updated via API';
+
+      await manager.save(IngredientVersion, version);
+
+      // Update
+      const updated = manager.merge(Ingredient, current, updateIngredientDto);
+      const saved = await manager.save(Ingredient, updated);
+
+      await this.auditService.log('system', 'UPDATE', 'Ingredient', id, {
+        version: saved.version,
+        changes: Object.keys(updateIngredientDto),
+      });
+
+      await this.clearCache();
+      return saved;
+    });
   }
 
   async remove(id: string) {
     const result = await this.ingredientsRepository.delete(id);
+    await this.auditService.log('system', 'DELETE', 'Ingredient', id, {});
     await this.clearCache();
     return result;
+  }
+
+  async getVersions(ingredientId: string) {
+    return this.ingredientVersionsRepository.find({
+      where: { ingredientId },
+      order: { version: 'DESC' },
+    });
   }
 }

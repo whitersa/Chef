@@ -31,6 +31,11 @@ export class IngredientsController {
     return this.ingredientsService.findOne(id);
   }
 
+  @Get(':id/versions')
+  getVersions(@Param('id') id: string) {
+    return this.ingredientsService.getVersions(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

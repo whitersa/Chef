@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { api } from '../api-client';
 import { useThemeStore } from './theme';
 import router from '../router';
+import CryptoJS from 'crypto-js';
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(
@@ -12,7 +13,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(username: string, pass: string, remember: boolean = false) {
     try {
-      const response = await api.post('/auth/login', { username, password: pass });
+      // Hash password with MD5 before sending
+      const hashedPassword = CryptoJS.MD5(pass).toString();
+      const response = await api.post('/auth/login', { username, password: hashedPassword });
       const { access_token, user: userData } = response as any;
 
       token.value = access_token;

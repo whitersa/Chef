@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { DataSource } from 'typeorm';
 import { IngredientsService } from './ingredients.service';
 import { Ingredient } from './ingredient.entity';
+import { IngredientVersion } from './ingredient-version.entity';
+import { AuditService } from '../audit/audit.service';
 
 describe('IngredientsService', () => {
   let service: IngredientsService;
@@ -15,6 +18,13 @@ describe('IngredientsService', () => {
     update: jest.fn(),
     delete: jest.fn(),
     count: jest.fn(),
+    findOne: jest.fn(),
+    merge: jest.fn(),
+  };
+
+  const mockVersionRepository = {
+    save: jest.fn(),
+    find: jest.fn(),
   };
 
   const mockCacheManager = {
@@ -27,6 +37,18 @@ describe('IngredientsService', () => {
     },
   };
 
+  const mockAuditService = {
+    log: jest.fn(),
+  };
+
+  const mockDataSource = {
+    manager: {
+      transaction: jest.fn((cb: (repo: typeof mockRepository) => unknown) =>
+        cb(mockRepository),
+      ),
+    },
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -36,8 +58,20 @@ describe('IngredientsService', () => {
           useValue: mockRepository,
         },
         {
+          provide: getRepositoryToken(IngredientVersion),
+          useValue: mockVersionRepository,
+        },
+        {
           provide: CACHE_MANAGER,
           useValue: mockCacheManager,
+        },
+        {
+          provide: AuditService,
+          useValue: mockAuditService,
+        },
+        {
+          provide: DataSource,
+          useValue: mockDataSource,
         },
       ],
     }).compile();
@@ -96,6 +130,13 @@ describe('IngredientsService', () => {
 
       expect(result).toEqual(savedEntity);
       expect(mockRepository.save).toHaveBeenCalled();
+      expect(mockAuditService.log).toHaveBeenCalledWith(
+        'system',
+        'CREATE',
+        'Ingredient',
+        savedEntity.id,
+        expect.any(Object),
+      );
       expect(mockCacheManager.store.keys).toHaveBeenCalledWith(
         'ingredients_list*',
       );
@@ -107,13 +148,35 @@ describe('IngredientsService', () => {
     it('should update ingredient and clear cache', async () => {
       const id = '1';
       const dto = { price: 20 };
-      mockRepository.update.mockResolvedValue({ affected: 1 });
+      const currentEntity = {
+        id,
+        name: 'Old',
+        price: 10,
+        version: 1,
+        unit: 'kg',
+      };
+      const updatedEntity = { ...currentEntity, ...dto, version: 2 };
+
+      // Mock transaction manager behavior
+      mockRepository.findOne.mockResolvedValue(currentEntity);
+      mockRepository.merge.mockReturnValue(updatedEntity);
+      mockRepository.save.mockResolvedValue(updatedEntity);
 
       mockCacheManager.store.keys.mockResolvedValue(['ingredients_list:key1']);
 
       await service.update(id, dto);
 
-      expect(mockRepository.update).toHaveBeenCalledWith(id, dto);
+      expect(mockRepository.findOne).toHaveBeenCalledWith(Ingredient, {
+        where: { id },
+      });
+      expect(mockRepository.save).toHaveBeenCalled(); // Called for version and update
+      expect(mockAuditService.log).toHaveBeenCalledWith(
+        'system',
+        'UPDATE',
+        'Ingredient',
+        id,
+        expect.any(Object),
+      );
       expect(mockCacheManager.store.keys).toHaveBeenCalled();
     });
   });

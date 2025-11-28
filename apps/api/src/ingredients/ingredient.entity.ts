@@ -33,7 +33,10 @@ export class Ingredient {
   })
   nutrition: Record<string, number>; // e.g., { protein: 10, carbs: 20 }
 
-  @VersionColumn({ comment: 'Version number for optimistic locking' })
+  @VersionColumn({
+    comment: 'Version number for optimistic locking',
+    default: 1,
+  })
   version: number;
 
   @CreateDateColumn({ comment: 'Record creation timestamp' })

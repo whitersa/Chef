@@ -34,6 +34,14 @@ export interface CreateRecipeRequest {
   items?: CreateRecipeItemRequest[];
 }
 
+export interface Nutrition {
+  totalWeight: number;
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+}
+
 export const recipesApi = {
   getAll: (query?: PaginationQuery) =>
     api.get<PaginatedResponse<Recipe>>('/recipes', { params: query }),
@@ -42,4 +50,5 @@ export const recipesApi = {
   update: (id: string, data: Partial<CreateRecipeRequest>) => api.patch(`/recipes/${id}`, data),
   delete: (id: string) => api.delete(`/recipes/${id}`),
   getCost: (id: string) => api.get<number>(`/recipes/${id}/cost`),
+  getNutrition: (id: string) => api.get<Nutrition>(`/recipes/${id}/nutrition`),
 };

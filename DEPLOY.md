@@ -228,6 +228,13 @@ _输入命令后通常需要输入数据库密码。_
 
     _等待几分钟构建完成后，访问服务器 IP 即可看到项目。_
 
+4.  **运行数据库迁移 (Docker)**:
+    首次启动后，需要初始化数据库表结构：
+    ```bash
+    # 进入 API 容器并运行迁移
+    docker-compose -f docker-compose.prod.yml exec api pnpm --filter @chefos/api run migration:run
+    ```
+
 **原理说明：**
 
 - `apps/api/Dockerfile`: 定义了后端怎么构建（安装依赖 -> 编译 TS -> 启动）。
