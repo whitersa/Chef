@@ -74,6 +74,38 @@ export class CreateRecipeDto {
   preProcessing?: string[];
 
   @ApiProperty({
+    example: 4,
+    description: 'Quantity produced by this recipe',
+    required: false,
+    default: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  yieldQuantity?: number;
+
+  @ApiProperty({
+    example: 'portion',
+    description: 'Unit of the yield (e.g., portion, kg)',
+    required: false,
+    default: 'portion',
+  })
+  @IsOptional()
+  @IsString()
+  yieldUnit?: string;
+
+  @ApiProperty({
+    example: 15.0,
+    description: 'Estimated labor cost',
+    required: false,
+    default: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  laborCost?: number;
+
+  @ApiProperty({
     type: [CreateRecipeItemDto],
     description: 'List of ingredients or sub-recipes',
     required: false,

@@ -29,6 +29,28 @@ export class Recipe {
   })
   preProcessing: string[];
 
+  @Column('decimal', {
+    precision: 10,
+    scale: 4,
+    default: 1,
+    comment: 'Quantity produced by this recipe (e.g., 4 portions, 2 kg)',
+  })
+  yieldQuantity: number;
+
+  @Column({
+    default: 'portion',
+    comment: 'Unit of the yield (e.g., portion, kg, l)',
+  })
+  yieldUnit: string;
+
+  @Column('decimal', {
+    precision: 10,
+    scale: 2,
+    default: 0,
+    comment: 'Estimated labor cost for this recipe',
+  })
+  laborCost: number;
+
   @VersionColumn({
     comment: 'Version number for optimistic locking',
     default: 1,

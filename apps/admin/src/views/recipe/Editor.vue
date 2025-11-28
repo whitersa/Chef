@@ -136,7 +136,39 @@ const nutritionOptions = computed(() => {
 
       <div class="scroll-container">
         <div class="section">
-          <h3>配方详情 (总成本: ¥{{ recipeStore.totalCost.toFixed(2) }})</h3>
+          <h3>基本信息</h3>
+          <div class="form-row">
+            <div class="form-item">
+              <label>出品数量</label>
+              <el-input-number
+                v-model="recipeStore.yieldQuantity"
+                :min="0.1"
+                :step="1"
+                size="small"
+              />
+            </div>
+            <div class="form-item">
+              <label>单位</label>
+              <el-input
+                v-model="recipeStore.yieldUnit"
+                placeholder="份/kg"
+                size="small"
+                style="width: 80px"
+              />
+            </div>
+            <div class="form-item">
+              <label>预估人工(¥)</label>
+              <el-input-number v-model="recipeStore.laborCost" :min="0" :step="1" size="small" />
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>
+            配方详情 (总成本: ¥{{ recipeStore.totalCost.toFixed(2) }} | 单份: ¥{{
+              recipeStore.costPerPortion.toFixed(2)
+            }})
+          </h3>
           <draggable
             :list="recipeStore.items"
             group="ingredients"
@@ -392,6 +424,26 @@ const nutritionOptions = computed(() => {
   font-size: 11px;
 }
 
+.form-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  background-color: #f5f7fa;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-item label {
+  font-size: 12px;
+  color: #606266;
+}
+
 .step-item {
   display: flex;
   align-items: flex-start;
@@ -437,5 +489,13 @@ const nutritionOptions = computed(() => {
   font-weight: 600;
   display: flex;
   justify-content: space-between;
+}
+
+.el-input-number {
+  max-width: 120px;
+}
+
+.el-input {
+  max-width: 100px;
 }
 </style>

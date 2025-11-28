@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { AuditModule } from './audit/audit.module';
 import { ProcurementModule } from './procurement/procurement.module';
+import { SalesMenusModule } from './sales-menus/sales-menus.module';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { ProcurementModule } from './procurement/procurement.module';
     HealthModule,
     AuditModule,
     ProcurementModule,
+    SalesMenusModule,
   ],
   controllers: [AppController],
   providers: [AppService],

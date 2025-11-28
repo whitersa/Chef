@@ -65,6 +65,9 @@ export class RecipesService {
       version.name = currentRecipe.name;
       version.steps = currentRecipe.steps;
       version.preProcessing = currentRecipe.preProcessing;
+      version.yieldQuantity = currentRecipe.yieldQuantity;
+      version.yieldUnit = currentRecipe.yieldUnit;
+      version.laborCost = currentRecipe.laborCost;
       version.itemsSnapshot = currentRecipe.items.map((item) => ({
         id: item.id,
         quantity: item.quantity,
@@ -159,6 +162,27 @@ export class RecipesService {
   async calculateCost(id: string): Promise<number> {
     const totalCost = await this.calculateCostRecursive(id, new Set());
     return totalCost.toDecimalPlaces(2).toNumber();
+  }
+
+  async calculateCostPerPortion(id: string): Promise<number> {
+    const recipe = await this.findOne(id);
+    if (!recipe) {
+      throw new NotFoundException('Recipe not found');
+    }
+
+    const totalCost = await this.calculateCostRecursive(id, new Set());
+    const laborCost = new Decimal(recipe.laborCost || 0);
+    const totalCostWithLabor = totalCost.plus(laborCost);
+
+    const yieldQuantity = new Decimal(recipe.yieldQuantity || 1);
+    if (yieldQuantity.isZero()) {
+      throw new Error('Yield quantity cannot be zero');
+    }
+
+    return totalCostWithLabor
+      .dividedBy(yieldQuantity)
+      .toDecimalPlaces(2)
+      .toNumber();
   }
 
   async calculateNutrition(id: string): Promise<NutritionDto> {

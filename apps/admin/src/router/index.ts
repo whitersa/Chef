@@ -45,6 +45,24 @@ const routes: Array<RouteRecordRaw> = [
         ],
       },
       {
+        path: 'sales-menu',
+        meta: { title: '销售菜单' },
+        children: [
+          {
+            path: 'list',
+            name: 'SalesMenuList',
+            component: () => import('../views/sales-menu/SalesMenuList.vue'),
+            meta: { title: '菜单列表' },
+          },
+          {
+            path: 'editor/:id?',
+            name: 'SalesMenuEditor',
+            component: () => import('../views/sales-menu/SalesMenuEditor.vue'),
+            meta: { title: '菜单编辑' },
+          },
+        ],
+      },
+      {
         path: 'procurement',
         name: 'Procurement',
         component: () => import('../views/procurement/Procurement.vue'),

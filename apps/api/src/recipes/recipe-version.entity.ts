@@ -32,6 +32,15 @@ export class RecipeVersion {
   @Column('jsonb', { nullable: true })
   preProcessing: string[];
 
+  @Column('decimal', { precision: 10, scale: 4, nullable: true })
+  yieldQuantity: number;
+
+  @Column({ nullable: true })
+  yieldUnit: string;
+
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  laborCost: number;
+
   @Column('jsonb', { comment: 'Snapshot of ingredients and sub-recipes' })
   itemsSnapshot: any[];
 

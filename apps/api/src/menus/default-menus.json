@@ -23,10 +23,16 @@
         "order": 3
       },
       {
+        "title": "销售菜单",
+        "path": "/sales-menu/list",
+        "icon": "Menu",
+        "order": 4
+      },
+      {
         "title": "采购清单",
         "path": "/procurement",
         "icon": "ShoppingCart",
-        "order": 4
+        "order": 5
       }
     ]
   },

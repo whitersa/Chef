@@ -35,12 +35,20 @@ export const useRecipeStore = defineStore('recipe', () => {
   const items = ref<RecipeItem[]>([]);
   const steps = ref<string[]>([]);
   const preProcessing = ref<string[]>([]);
+  const yieldQuantity = ref(1);
+  const yieldUnit = ref('portion');
+  const laborCost = ref(0);
 
   const totalCost = computed(() => {
     return items.value.reduce((sum, item) => {
       const cost = (item.price * item.quantity) / item.yieldRate;
       return sum + cost;
     }, 0);
+  });
+
+  const costPerPortion = computed(() => {
+    if (yieldQuantity.value <= 0) return 0;
+    return (totalCost.value + laborCost.value) / yieldQuantity.value;
   });
 
   const totalNutrition = computed(() => {
@@ -99,6 +107,9 @@ export const useRecipeStore = defineStore('recipe', () => {
       name.value = recipe.name;
       steps.value = recipe.steps || [];
       preProcessing.value = recipe.preProcessing || [];
+      yieldQuantity.value = Number(recipe.yieldQuantity) || 1;
+      yieldUnit.value = recipe.yieldUnit || 'portion';
+      laborCost.value = Number(recipe.laborCost) || 0;
       items.value = recipe.items.map((item: any) => ({
         id: crypto.randomUUID(),
         ingredientId: item.ingredient?.id,
@@ -154,6 +165,9 @@ export const useRecipeStore = defineStore('recipe', () => {
     items.value = [];
     steps.value = [];
     preProcessing.value = [];
+    yieldQuantity.value = 1;
+    yieldUnit.value = 'portion';
+    laborCost.value = 0;
   }
 
   async function saveRecipe() {
@@ -171,6 +185,9 @@ export const useRecipeStore = defineStore('recipe', () => {
         name: name.value,
         steps: steps.value,
         preProcessing: preProcessing.value,
+        yieldQuantity: yieldQuantity.value,
+        yieldUnit: yieldUnit.value,
+        laborCost: laborCost.value,
         items: items.value.map((item) => ({
           quantity: item.quantity,
           yieldRate: item.yieldRate,
@@ -196,7 +213,11 @@ export const useRecipeStore = defineStore('recipe', () => {
     items,
     steps,
     preProcessing,
+    yieldQuantity,
+    yieldUnit,
+    laborCost,
     totalCost,
+    costPerPortion,
     totalNutrition,
     fetchRecipes,
     setPage,
