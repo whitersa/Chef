@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  VersionColumn,
 } from 'typeorm';
 
 @Entity({ comment: 'Raw ingredients used in recipes' })
@@ -31,6 +32,9 @@ export class Ingredient {
     comment: 'Nutritional information (e.g., protein, carbs)',
   })
   nutrition: Record<string, number>; // e.g., { protein: 10, carbs: 20 }
+
+  @VersionColumn({ comment: 'Version number for optimistic locking' })
+  version: number;
 
   @CreateDateColumn({ comment: 'Record creation timestamp' })
   createdAt: Date;

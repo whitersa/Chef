@@ -37,9 +37,8 @@ jobs:
       - name: Type Check
         run: pnpm turbo run check-types
 
-      - name: Build
-        run: pnpm turbo run build
+    - name: Build
+      run: pnpm turbo run build
 
-    # Optional: Run tests if you have them set up
-    # - name: Test
-    #   run: pnpm turbo run test
+    - name: Test
+      run: pnpm turbo run test

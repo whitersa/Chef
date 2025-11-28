@@ -91,7 +91,11 @@ export class RecipesService {
     for (const item of recipe.items) {
       let itemCost = new Decimal(0);
       const quantity = new Decimal(item.quantity);
-      const yieldRate = new Decimal(item.yieldRate || 1);
+      let yieldRateVal = item.yieldRate;
+      if (yieldRateVal === null || yieldRateVal === undefined) {
+        yieldRateVal = 1;
+      }
+      const yieldRate = new Decimal(yieldRateVal);
 
       if (yieldRate.isZero()) {
         throw new Error(
