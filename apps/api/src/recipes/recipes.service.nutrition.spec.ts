@@ -8,6 +8,7 @@ import { DataSource } from 'typeorm';
 
 describe('RecipesService Nutrition', () => {
   let service: RecipesService;
+  let module: TestingModule;
 
   const mockRepo = {
     findOne: jest.fn(),
@@ -17,7 +18,7 @@ describe('RecipesService Nutrition', () => {
   const mockDataSource = {};
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         RecipesService,
         { provide: getRepositoryToken(Recipe), useValue: mockRepo },
@@ -31,6 +32,10 @@ describe('RecipesService Nutrition', () => {
     }).compile();
 
     service = module.get<RecipesService>(RecipesService);
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should calculate nutrition correctly with sub-recipes (Batches logic)', async () => {

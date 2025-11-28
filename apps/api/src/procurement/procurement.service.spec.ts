@@ -5,13 +5,14 @@ import { Decimal } from 'decimal.js';
 
 describe('ProcurementService', () => {
   let service: ProcurementService;
+  let module: TestingModule;
 
   const mockRecipesService = {
     findOne: jest.fn(),
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         ProcurementService,
         {
@@ -22,6 +23,10 @@ describe('ProcurementService', () => {
     }).compile();
 
     service = module.get<ProcurementService>(ProcurementService);
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {

@@ -3,17 +3,30 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { RecipesService } from './recipes.service';
 import { Recipe } from './recipe.entity';
+import { RecipeVersion } from './recipe-version.entity';
 import { RecipeItem } from './recipe-item.entity';
 import { Ingredient } from '../ingredients/ingredient.entity';
+import { AuditService } from '../audit/audit.service';
 
 describe('RecipesService', () => {
   let service: RecipesService;
+  let module: TestingModule;
 
   const mockRecipeRepository = {
     findAndCount: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+  };
+
+  const mockRecipeVersionRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockAuditService = {
+    log: jest.fn(),
   };
 
   const mockDataSource = {
@@ -23,12 +36,20 @@ describe('RecipesService', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         RecipesService,
         {
           provide: getRepositoryToken(Recipe),
           useValue: mockRecipeRepository,
+        },
+        {
+          provide: getRepositoryToken(RecipeVersion),
+          useValue: mockRecipeVersionRepository,
+        },
+        {
+          provide: AuditService,
+          useValue: mockAuditService,
         },
         {
           provide: DataSource,
@@ -38,6 +59,10 @@ describe('RecipesService', () => {
     }).compile();
 
     service = module.get<RecipesService>(RecipesService);
+  });
+
+  afterEach(async () => {
+    await module.close();
   });
 
   it('should be defined', () => {

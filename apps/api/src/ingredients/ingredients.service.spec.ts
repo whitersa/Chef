@@ -9,6 +9,7 @@ import { AuditService } from '../audit/audit.service';
 
 describe('IngredientsService', () => {
   let service: IngredientsService;
+  let module: TestingModule;
 
   const mockRepository = {
     create: jest.fn(),
@@ -50,7 +51,7 @@ describe('IngredientsService', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         IngredientsService,
         {
@@ -79,8 +80,9 @@ describe('IngredientsService', () => {
     service = module.get<IngredientsService>(IngredientsService);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllMocks();
+    await module.close();
   });
 
   it('should be defined', () => {
