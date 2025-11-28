@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Recipe } from './recipe.entity';
+import { CreateRecipeDto } from '@chefos/types';
 import Decimal from 'decimal.js';
 
 @Injectable()
@@ -9,10 +10,20 @@ export class RecipesService {
   constructor(
     @InjectRepository(Recipe)
     private recipesRepository: Repository<Recipe>,
+    private dataSource: DataSource,
   ) {}
 
-  create(createRecipeDto: any) {
-    return this.recipesRepository.save(createRecipeDto);
+  async create(createRecipeDto: CreateRecipeDto) {
+    return this.dataSource.manager.transaction(async (manager) => {
+      // Example of transactional logic:
+      // 1. Save the recipe (and cascade items)
+      const recipe = await manager.save(Recipe, createRecipeDto);
+
+      // 2. Future: Deduct inventory, log audit, etc.
+      // if (somethingFails) throw new Error('Rollback');
+
+      return recipe;
+    });
   }
 
   findAll() {

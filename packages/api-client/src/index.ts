@@ -34,7 +34,18 @@ export class ApiClient {
     // Response Interceptor
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        return response.data;
+        const res = response.data;
+        // Check if the response follows the unified format { code, data, message }
+        if (res && typeof res.code === 'number') {
+          if (res.code === 200) {
+            return res.data;
+          } else {
+            // Business logic error (e.g., 400 Bad Request returned as 200 OK with code 400)
+            return Promise.reject(new Error(res.message || 'Error'));
+          }
+        }
+        // Fallback for non-unified responses (e.g., 3rd party APIs)
+        return res;
       },
       (error) => {
         if (error.response && error.response.status === 401) {

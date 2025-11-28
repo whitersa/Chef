@@ -354,3 +354,56 @@
   - [ ] `.github/workflows/ci.yml`。
   - [ ] 触发条件：Push 到 main 分支。
   - [ ] 步骤：Install -> Lint -> Test -> Build Docker Image。
+
+---
+
+## 🛡️ Milestone 8: 生产环境加固 (Production Readiness)
+
+**目标**：弥补开发环境与生产环境的差距，确保安全性、稳定性和可观测性。
+
+### 🧠 涉及知识点 (Knowledge Points)
+
+- **安全防御**: 深入理解 OWASP Top 10 漏洞。学习 Rate Limiting (限流)、Helmet (安全头)、CORS 配置。
+- **数据库可靠性**: 理解 Database Migrations (迁移) 的重要性，以及 ACID 事务在复杂业务中的应用。
+- **可观测性 (Observability)**: 学习 "Logs, Metrics, Tracing" 三大支柱。掌握结构化日志 (Structured Logging) 和健康检查 (Health Checks)。
+
+### 8.1 安全性增强 (Security - P0/P1)
+
+- [x] **精细化权限控制 (RBAC)**:
+  - [x] 实现全局 `RolesGuard`。
+  - [x] 自定义装饰器 `@RequirePermissions('user:create')`。
+- [x] **防御性中间件**:
+  - [x] 引入 `helmet` 设置 HTTP 安全头。
+  - [x] 引入 `@nestjs/throttler` 实现接口限流 (Rate Limiting)，防止暴力破解。
+  - [x] 严格配置 CORS，仅允许特定域名访问。
+- [x] **数据校验与脱敏**:
+  - [x] 环境变量强校验 (使用 `joi` 或 `zod`)，启动时缺配置直接报错。
+  - [x] 全局异常过滤器 (Global Exception Filter)，屏蔽内部错误堆栈。
+  - [ ] 日志脱敏 (Masking)，防止密码/Token 泄露。
+
+### 8.2 数据库可靠性 (Database Reliability - P0)
+
+- [x] **迁移管理 (Migrations)**:
+  - [x] **禁止** `synchronize: true`。
+  - [x] 配置 TypeORM CLI，建立标准的 Migration 流程 (Generate -> Run -> Revert)。
+- [x] **事务管理 (Transactions)**:
+  - [x] 重构复杂业务逻辑，使用 `QueryRunner` 或 `EntityManager` 确保原子性。
+- [ ] **性能优化**:
+  - [ ] 解决 N+1 查询问题 (使用 `relations` 或 `DataLoader`)。
+
+### 8.3 可观测性与标准化 (Observability - P1)
+
+- [x] **标准化响应**:
+  - [x] 定义统一响应结构 `{ code: 200, data: ..., message: 'success' }`。
+  - [x] 实现 `TransformInterceptor` 统一封装响应。
+- [x] **结构化日志**:
+  - [x] 替换 `console.log` 为 `nestjs-pino` (基于 Pino)，输出 JSON 格式日志。
+  - [ ] 配置 Request ID (Trace ID) 贯穿全链路。
+- [x] **健康检查**:
+  - [x] 引入 `@nestjs/terminus`，暴露 `/health` 接口供 K8s 探针检测。
+
+### 8.4 前端健壮性 (Frontend Robustness)
+
+- [ ] **错误边界 (Error Boundaries)**: 使用 `onErrorCaptured` 防止单组件崩溃导致白屏。
+- [x] **请求竞态处理**: 封装 Axios 取消重复请求 (AbortController)。
+

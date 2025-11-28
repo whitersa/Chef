@@ -20,3 +20,4 @@ export interface User {
 }
 
 export * from './dtos/create-ingredient.dto';
+export * from './dtos/create-recipe.dto';
