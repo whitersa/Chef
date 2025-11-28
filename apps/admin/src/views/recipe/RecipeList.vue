@@ -3,13 +3,27 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>菜谱列表</span>
+          <div class="header-left">
+            <span>菜谱列表</span>
+            <el-input
+              v-model="searchQuery"
+              placeholder="搜索菜谱..."
+              style="width: 200px; margin-left: 16px"
+              @input="handleSearch"
+              clearable
+            />
+          </div>
           <el-button type="primary" @click="handleCreate">新建菜谱</el-button>
         </div>
       </template>
 
-      <el-table :data="recipes" style="width: 100%" v-loading="loading">
-        <el-table-column prop="name" label="菜谱名称" width="200" />
+      <el-table
+        :data="recipes"
+        style="width: 100%"
+        v-loading="loading"
+        @sort-change="handleSortChange"
+      >
+        <el-table-column prop="name" label="菜谱名称" width="200" sortable="custom" />
         <el-table-column label="预估成本" width="120">
           <template #default>
             <!-- Cost calculation might be complex if not returned by API directly. 
@@ -30,23 +44,59 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.page"
+          v-model:page-size="pagination.limit"
+          :total="pagination.total"
+          layout="total, prev, pager, next"
+          @current-change="handlePageChange"
+        />
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRecipeStore } from '../../stores/recipe';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const recipeStore = useRecipeStore();
-const { recipes, loading } = storeToRefs(recipeStore);
+const { recipes, loading, pagination } = storeToRefs(recipeStore);
+const searchQuery = ref('');
 
 onMounted(() => {
   recipeStore.fetchRecipes();
 });
+
+function debounce(fn: Function, delay: number) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
+}
+
+const handleSearch = debounce((val: string) => {
+  recipeStore.setSearch(val);
+}, 300);
+
+const handlePageChange = (page: number) => {
+  recipeStore.setPage(page);
+};
+
+const handleSortChange = ({ prop, order }: { prop: string; order: string }) => {
+  if (!order) {
+    recipeStore.setSort('', 'ASC');
+    return;
+  }
+  const sortOrder = order === 'ascending' ? 'ASC' : 'DESC';
+  recipeStore.setSort(prop, sortOrder);
+};
 
 const handleCreate = () => {
   recipeStore.resetEditor();
@@ -63,5 +113,14 @@ const handleEdit = (id: string) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+}
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

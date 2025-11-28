@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Recipe } from './recipe.entity';
 import { Ingredient } from '../ingredients/ingredient.entity';
 
@@ -21,15 +27,27 @@ export class RecipeItem {
   })
   yieldRate: number;
 
+  @Column({ nullable: true, comment: 'ID of the parent recipe' })
+  recipeId: string;
+
   // 属于哪个父菜谱
   @ManyToOne(() => Recipe, (recipe) => recipe.items, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'recipeId' })
   recipe: Recipe;
+
+  @Column({ nullable: true, comment: 'ID of the ingredient (if applicable)' })
+  ingredientId: string;
 
   // 选项 A: 这是一个原材料 (Ingredient)
   @ManyToOne(() => Ingredient, { nullable: true })
+  @JoinColumn({ name: 'ingredientId' })
   ingredient: Ingredient;
+
+  @Column({ nullable: true, comment: 'ID of the child recipe (if applicable)' })
+  childRecipeId: string;
 
   // 选项 B: 这是一个半成品 (Sub-Recipe)
   @ManyToOne(() => Recipe, { nullable: true })
+  @JoinColumn({ name: 'childRecipeId' })
   childRecipe: Recipe;
 }

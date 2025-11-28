@@ -1,18 +1,20 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
+import { CreateRecipeDto } from './dto/create-recipe.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 @Controller('recipes')
 export class RecipesController {
   constructor(private readonly recipesService: RecipesService) {}
 
   @Post()
-  create(@Body() createRecipeDto: any) {
+  create(@Body() createRecipeDto: CreateRecipeDto) {
     return this.recipesService.create(createRecipeDto);
   }
 
   @Get()
-  findAll() {
-    return this.recipesService.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.recipesService.findAll(query);
   }
 
   @Get(':id')

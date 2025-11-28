@@ -7,11 +7,27 @@ export type { Ingredient };
 export const useIngredientsStore = defineStore('ingredients', () => {
   const ingredients = ref<Ingredient[]>([]);
   const loading = ref(false);
+  const pagination = ref({
+    page: 1,
+    limit: 10,
+    total: 0,
+    sort: '',
+    order: 'ASC' as 'ASC' | 'DESC',
+  });
+  const search = ref('');
 
   async function fetchIngredients() {
     loading.value = true;
     try {
-      ingredients.value = await ingredientsApi.getAll();
+      const response = await ingredientsApi.getAll({
+        page: pagination.value.page,
+        limit: pagination.value.limit,
+        search: search.value,
+        sort: pagination.value.sort,
+        order: pagination.value.order,
+      });
+      ingredients.value = response.data;
+      pagination.value.total = response.meta.total;
     } catch (error) {
       console.error('Failed to fetch ingredients:', error);
     } finally {
@@ -19,10 +35,27 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     }
   }
 
+  function setPage(page: number) {
+    pagination.value.page = page;
+    fetchIngredients();
+  }
+
+  function setSort(sort: string, order: 'ASC' | 'DESC') {
+    pagination.value.sort = sort;
+    pagination.value.order = order;
+    fetchIngredients();
+  }
+
+  function setSearch(term: string) {
+    search.value = term;
+    pagination.value.page = 1; // Reset to first page on search
+    fetchIngredients();
+  }
+
   async function createIngredient(ingredient: Omit<Ingredient, 'id'>) {
     try {
-      const newIngredient = await ingredientsApi.create(ingredient);
-      ingredients.value.push(newIngredient);
+      await ingredientsApi.create(ingredient);
+      fetchIngredients(); // Refresh list
     } catch (error) {
       console.error('Failed to create ingredient:', error);
       throw error;
@@ -55,7 +88,12 @@ export const useIngredientsStore = defineStore('ingredients', () => {
   return {
     ingredients,
     loading,
+    pagination,
+    search,
     fetchIngredients,
+    setPage,
+    setSort,
+    setSearch,
     createIngredient,
     updateIngredient,
     deleteIngredient,

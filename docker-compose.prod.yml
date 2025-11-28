@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: chefos-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_secure_password
+      POSTGRES_DB: chefos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - chef-net
+
+  # 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: chefos-redis
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - chef-net
+
+  # 后端 API
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: chefos-api
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: your_secure_password
+      DB_DATABASE: chefos
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - '3000:3000'
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+    networks:
+      - chef-net
+
+  # 前端 Admin
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+    container_name: chefos-admin
+    ports:
+      - '80:80'
+    depends_on:
+      - api
+    restart: always
+    networks:
+      - chef-net
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  chef-net:
+    driver: bridge

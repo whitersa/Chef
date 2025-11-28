@@ -3,14 +3,28 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>食材管理</span>
+          <div class="header-left">
+            <span>食材管理</span>
+            <el-input
+              v-model="searchQuery"
+              placeholder="搜索食材..."
+              style="width: 200px; margin-left: 16px"
+              @input="handleSearch"
+              clearable
+            />
+          </div>
           <el-button type="primary" @click="handleAdd">添加食材</el-button>
         </div>
       </template>
 
-      <el-table :data="ingredients" style="width: 100%" v-loading="loading">
-        <el-table-column prop="name" label="名称" width="180" />
-        <el-table-column prop="price" label="单价" width="180">
+      <el-table
+        :data="ingredients"
+        style="width: 100%"
+        v-loading="loading"
+        @sort-change="handleSortChange"
+      >
+        <el-table-column prop="name" label="名称" width="180" sortable="custom" />
+        <el-table-column prop="price" label="单价" width="180" sortable="custom">
           <template #default="scope"> ¥{{ scope.row.price }} </template>
         </el-table-column>
         <el-table-column prop="unit" label="单位" width="100" />
@@ -38,6 +52,16 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.page"
+          v-model:page-size="pagination.limit"
+          :total="pagination.total"
+          layout="total, prev, pager, next"
+          @current-change="handlePageChange"
+        />
+      </div>
     </el-card>
 
     <el-dialog
@@ -90,11 +114,12 @@ import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 
 const ingredientsStore = useIngredientsStore();
-const { ingredients, loading } = storeToRefs(ingredientsStore);
+const { ingredients, loading, pagination } = storeToRefs(ingredientsStore);
 
 const dialogVisible = ref(false);
 const isEdit = ref(false);
 const currentId = ref('');
+const searchQuery = ref('');
 
 const form = reactive({
   name: '',
@@ -110,6 +135,31 @@ const form = reactive({
 onMounted(() => {
   ingredientsStore.fetchIngredients();
 });
+
+function debounce(fn: Function, delay: number) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
+}
+
+const handleSearch = debounce((val: string) => {
+  ingredientsStore.setSearch(val);
+}, 300);
+
+const handlePageChange = (page: number) => {
+  ingredientsStore.setPage(page);
+};
+
+const handleSortChange = ({ prop, order }: { prop: string; order: string }) => {
+  if (!order) {
+    ingredientsStore.setSort('', 'ASC');
+    return;
+  }
+  const sortOrder = order === 'ascending' ? 'ASC' : 'DESC';
+  ingredientsStore.setSort(prop, sortOrder);
+};
 
 const handleAdd = () => {
   isEdit.value = false;
@@ -173,6 +223,15 @@ const resetForm = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+}
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 .mr-2 {
   margin-right: 8px;

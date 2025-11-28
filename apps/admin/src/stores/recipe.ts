@@ -21,6 +21,14 @@ export interface RecipeItem {
 export const useRecipeStore = defineStore('recipe', () => {
   const recipes = ref<any[]>([]);
   const loading = ref(false);
+  const pagination = ref({
+    page: 1,
+    limit: 10,
+    total: 0,
+    sort: '',
+    order: 'ASC' as 'ASC' | 'DESC',
+  });
+  const search = ref('');
 
   // Editor state
   const name = ref('');
@@ -51,12 +59,37 @@ export const useRecipeStore = defineStore('recipe', () => {
   async function fetchRecipes() {
     loading.value = true;
     try {
-      recipes.value = await recipesApi.getAll();
+      const response = await recipesApi.getAll({
+        page: pagination.value.page,
+        limit: pagination.value.limit,
+        search: search.value,
+        sort: pagination.value.sort,
+        order: pagination.value.order,
+      });
+      recipes.value = response.data;
+      pagination.value.total = response.meta.total;
     } catch (error) {
       console.error('Failed to fetch recipes:', error);
     } finally {
       loading.value = false;
     }
+  }
+
+  function setPage(page: number) {
+    pagination.value.page = page;
+    fetchRecipes();
+  }
+
+  function setSort(sort: string, order: 'ASC' | 'DESC') {
+    pagination.value.sort = sort;
+    pagination.value.order = order;
+    fetchRecipes();
+  }
+
+  function setSearch(term: string) {
+    search.value = term;
+    pagination.value.page = 1;
+    fetchRecipes();
   }
 
   async function fetchRecipe(id: string) {
@@ -141,7 +174,7 @@ export const useRecipeStore = defineStore('recipe', () => {
         items: items.value.map((item) => ({
           quantity: item.quantity,
           yieldRate: item.yieldRate,
-          ingredient: { id: item.ingredientId },
+          ingredientId: item.ingredientId,
         })),
       };
 
@@ -157,6 +190,8 @@ export const useRecipeStore = defineStore('recipe', () => {
   return {
     recipes,
     loading,
+    pagination,
+    search,
     name,
     items,
     steps,
@@ -164,6 +199,9 @@ export const useRecipeStore = defineStore('recipe', () => {
     totalCost,
     totalNutrition,
     fetchRecipes,
+    setPage,
+    setSort,
+    setSearch,
     fetchRecipe,
     addItem,
     removeItem,

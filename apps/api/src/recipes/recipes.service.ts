@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, Like } from 'typeorm';
 import { Recipe } from './recipe.entity';
-import { CreateRecipeDto } from '@chefos/types';
+import { CreateRecipeDto } from './dto/create-recipe.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import Decimal from 'decimal.js';
 
 @Injectable()
@@ -26,10 +27,34 @@ export class RecipesService {
     });
   }
 
-  findAll() {
-    return this.recipesRepository.find({
+  async findAll(query: PaginationQueryDto) {
+    const { page = 1, limit = 10, search, sort, order = 'ASC' } = query;
+    const skip = (page - 1) * limit;
+
+    const orderOption: Record<string, 'ASC' | 'DESC'> = {};
+    if (sort) {
+      orderOption[sort] = order;
+    } else {
+      orderOption['name'] = 'ASC';
+    }
+
+    const [items, total] = await this.recipesRepository.findAndCount({
+      where: search ? { name: Like(`%${search}%`) } : {},
       relations: ['items', 'items.ingredient', 'items.childRecipe'],
+      skip,
+      take: limit,
+      order: orderOption,
     });
+
+    return {
+      data: items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   findOne(id: string) {

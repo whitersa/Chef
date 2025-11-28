@@ -4,11 +4,35 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, type PropType } from 'vue';
-import * as echarts from 'echarts';
+// Import ECharts core
+import * as echarts from 'echarts/core';
+// Import charts
+import { PieChart, BarChart, LineChart } from 'echarts/charts';
+// Import components
+import {
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+} from 'echarts/components';
+// Import renderer
+import { CanvasRenderer } from 'echarts/renderers';
+
+// Register the required components
+echarts.use([
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  PieChart,
+  BarChart,
+  LineChart,
+  CanvasRenderer,
+]);
 
 const props = defineProps({
   options: {
-    type: Object as PropType<echarts.EChartsOption>,
+    type: Object as PropType<any>, // Use any or specific EChartsOption type if available from echarts/types/dist/shared
     required: true,
   },
 });

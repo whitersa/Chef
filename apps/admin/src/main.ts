@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import ElementPlus, { ElMessage } from 'element-plus';
-import 'element-plus/dist/index.css';
+import { ElMessage } from 'element-plus';
+import 'element-plus/dist/index.css'; // Keep styles or use unplugin-element-plus for on-demand styles too, but keeping this is safer for now
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import './style.css';
 import App from './App.vue';
@@ -22,5 +22,5 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 app.use(createPinia());
 app.use(router);
-app.use(ElementPlus); // Size is now handled by ConfigProvider in App.vue
+// Element Plus is now auto-imported
 app.mount('#app');

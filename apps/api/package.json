@@ -29,6 +29,7 @@
   "dependencies": {
     "@chefos/types": "workspace:^",
     "@nestjs/axios": "^4.0.1",
+    "@nestjs/cache-manager": "^2.3.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -42,6 +43,8 @@
     "@nestjs/typeorm": "^11.0.0",
     "axios": "^1.6.0",
     "bcrypt": "^6.0.0",
+    "cache-manager": "^5.7.6",
+    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "decimal.js": "^10.6.0",
