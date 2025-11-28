@@ -6,26 +6,35 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity({ comment: 'Raw ingredients used in recipes' })
 export class Ingredient {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', {
+    comment: 'Unique identifier for the ingredient',
+  })
   id: string;
 
-  @Column()
+  @Column({ comment: 'Name of the ingredient' })
   name: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', {
+    precision: 10,
+    scale: 2,
+    comment: 'Cost price per unit',
+  })
   price: number;
 
-  @Column()
-  unit: string; // e.g., 'kg', 'g', 'ml'
+  @Column({ comment: 'Unit of measurement (e.g., kg, g, ml)' })
+  unit: string;
 
-  @Column('jsonb', { nullable: true })
+  @Column('jsonb', {
+    nullable: true,
+    comment: 'Nutritional information (e.g., protein, carbs)',
+  })
   nutrition: Record<string, number>; // e.g., { protein: 10, carbs: 20 }
 
-  @CreateDateColumn()
+  @CreateDateColumn({ comment: 'Record creation timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ comment: 'Record last update timestamp' })
   updatedAt: Date;
 }

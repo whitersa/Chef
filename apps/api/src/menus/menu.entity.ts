@@ -6,21 +6,23 @@ import {
   OneToMany,
 } from 'typeorm';
 
-@Entity()
+@Entity({ comment: 'Application navigation menu items' })
 export class Menu {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', {
+    comment: 'Unique identifier for the menu item',
+  })
   id: string;
 
-  @Column()
+  @Column({ comment: 'Display title of the menu item' })
   title: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, comment: 'Navigation path/route' })
   path: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, comment: 'Icon name for the menu item' })
   icon: string;
 
-  @Column({ default: 0 })
+  @Column({ default: 0, comment: 'Display order of the menu item' })
   order: number;
 
   @ManyToOne(() => Menu, (menu) => menu.children, { nullable: true })

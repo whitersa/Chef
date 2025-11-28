@@ -1,13 +1,20 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity({
+  comment: 'Methods used for processing ingredients (e.g., Chopping, Boiling)',
+})
 export class ProcessingMethod {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', {
+    comment: 'Unique identifier for the processing method',
+  })
   id: string;
 
-  @Column()
+  @Column({ comment: 'Name of the processing method' })
   name: string;
 
-  @Column({ nullable: true })
+  @Column({
+    nullable: true,
+    comment: 'Description of the processing technique',
+  })
   description: string;
 }

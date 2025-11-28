@@ -2,16 +2,23 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Recipe } from './recipe.entity';
 import { Ingredient } from '../ingredients/ingredient.entity';
 
-@Entity()
+@Entity({ comment: 'Items (ingredients or sub-recipes) included in a recipe' })
 export class RecipeItem {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', {
+    comment: 'Unique identifier for the recipe item',
+  })
   id: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 10, scale: 2, comment: 'Quantity required' })
   quantity: number;
 
   // 出品率 (例如 0.8 代表损耗 20%)
-  @Column('decimal', { precision: 5, scale: 2, default: 1.0 })
+  @Column('decimal', {
+    precision: 5,
+    scale: 2,
+    default: 1.0,
+    comment: 'Yield rate (e.g., 0.8 means 20% loss)',
+  })
   yieldRate: number;
 
   // 属于哪个父菜谱

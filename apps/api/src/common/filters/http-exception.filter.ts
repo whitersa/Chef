@@ -27,12 +27,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : 'Internal server error';
 
+    let errorMessage: string | string[];
+    if (typeof message === 'string') {
+      errorMessage = message;
+    } else if (typeof message === 'object' && message !== null) {
+      const msg = (message as { message?: string | string[] }).message;
+      errorMessage = msg || JSON.stringify(message);
+    } else {
+      errorMessage = 'Unknown error';
+    }
+
     const errorResponse = {
       code: status,
-      message:
-        typeof message === 'string'
-          ? message
-          : (message as { message: string }).message || message,
+      message: errorMessage,
       timestamp: new Date().toISOString(),
       path: request.url,
     };
