@@ -55,12 +55,18 @@ graph TD
 3.  **配置环境变量**：
     - 复制 `.env.example` 为 `.env`。
     - 修改里面的数据库配置 (`DB_HOST`, `DB_PASSWORD` 等) 和 Redis 配置。
-4.  **构建代码**：
+    - **重要**: 设置 `CORS_ORIGIN` 为你的前端域名 (例如 `http://your-domain.com`)，否则前端会报跨域错误。
+4.  **数据库迁移**:
+    生产环境通常不开启自动同步 (`synchronize: true`)，所以需要手动运行迁移来创建表结构。
+    ```bash
+    npm run migration:run
+    ```
+5.  **构建代码**：
     ```bash
     npm run build
     ```
     _构建完成后会生成一个 `dist` 目录。_
-5.  **启动服务**：
+6.  **启动服务**：
     - **普通启动** (测试用): `node dist/main`
     - **PM2 启动** (生产推荐):
       ```bash
@@ -264,7 +270,37 @@ K8s 是企业级容器编排工具，适合大规模集群。如果你只有几�
 
 ---
 
-## 9. 常见问题排查
+## 9. 常用运维接口
+
+为了方便监控和调试，我们内置了一些特殊的接口：
+
+1.  **API 文档 (Swagger)**:
+    - 地址: `http://your-domain.com/api/docs`
+    - 用途: 查看所有可用的 API 接口、参数说明和测试接口。
+
+2.  **健康检查 (Health Check)**:
+    - 地址: `http://your-domain.com/api/health`
+    - 用途: 监控系统状态。如果返回 200 OK，说明 API、数据库和外部网络都正常。可以配置到负载均衡器 (Load Balancer) 或 K8s 的探针中。
+
+---
+
+## 10. 自动化部署 (CI/CD)
+
+我们已经为您配置了基础的 GitHub Actions 工作流 (`.github/workflows/ci.yml`)。
+
+**它的作用：**
+每次您向 `main` 分支提交代码时，GitHub 会自动执行：
+
+1.  安装依赖
+2.  代码风格检查 (Lint)
+3.  类型检查 (Type Check)
+4.  构建测试 (Build)
+
+如果任何一步失败，您会收到邮件通知，这样可以防止错误的代码被发布到生产环境。
+
+---
+
+## 11. 常见问题排查
 
 - **页面一片白，控制台报错 404**：
   - 检查 Nginx 配置里的 `root` 路径是否正确。

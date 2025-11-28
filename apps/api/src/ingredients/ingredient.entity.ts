@@ -18,7 +18,7 @@ export class Ingredient {
 
   @Column('decimal', {
     precision: 10,
-    scale: 2,
+    scale: 6,
     comment: 'Cost price per unit',
   })
   price: number;

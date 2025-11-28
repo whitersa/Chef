@@ -15,13 +15,13 @@ export class RecipeItem {
   })
   id: string;
 
-  @Column('decimal', { precision: 10, scale: 2, comment: 'Quantity required' })
+  @Column('decimal', { precision: 10, scale: 4, comment: 'Quantity required' })
   quantity: number;
 
   // 出品率 (例如 0.8 代表损耗 20%)
   @Column('decimal', {
     precision: 5,
-    scale: 2,
+    scale: 4,
     default: 1.0,
     comment: 'Yield rate (e.g., 0.8 means 20% loss)',
   })

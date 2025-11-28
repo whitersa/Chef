@@ -12,6 +12,9 @@
   "github.copilot.chat.commitMessageGeneration.instructions": [
     {
       "text": "The commit message header must be less than 100 characters to pass commitlint checks. Keep it concise."
+    },
+    {
+      "text": "The commit message subject must be in lowercase. Do not use sentence-case, start-case, pascal-case, or upper-case. Example: 'feat: add new feature' instead of 'feat: Add new feature'."
     }
   ]
 }

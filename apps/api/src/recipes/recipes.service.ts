@@ -64,10 +64,15 @@ export class RecipesService {
     });
   }
 
-  async calculateCost(
+  async calculateCost(id: string): Promise<number> {
+    const totalCost = await this.calculateCostRecursive(id, new Set());
+    return totalCost.toDecimalPlaces(2).toNumber();
+  }
+
+  private async calculateCostRecursive(
     id: string,
-    visited: Set<string> = new Set(),
-  ): Promise<number> {
+    visited: Set<string>,
+  ): Promise<Decimal> {
     // 1. 循环依赖检测 (Cycle Detection)
     if (visited.has(id)) {
       throw new Error(`Circular dependency detected in recipe: ${id}`);
@@ -100,11 +105,11 @@ export class RecipesService {
         itemCost = price.times(quantity);
       } else if (item.childRecipe) {
         // B. 半成品成本 = 递归计算子菜谱成本 * 数量
-        const childRecipeCost = await this.calculateCost(
+        const childRecipeCost = await this.calculateCostRecursive(
           item.childRecipe.id,
           visited,
         );
-        itemCost = new Decimal(childRecipeCost).times(quantity);
+        itemCost = childRecipeCost.times(quantity);
       }
 
       // C. 计入损耗 (Cost / Yield)
@@ -115,6 +120,6 @@ export class RecipesService {
     // 4. 移除当前节点 (Backtracking)
     visited.delete(id);
 
-    return totalCost.toDecimalPlaces(2).toNumber();
+    return totalCost;
   }
 }

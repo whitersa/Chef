@@ -30,6 +30,7 @@ import { HealthModule } from './health/health.module';
         DB_SYNCHRONIZE: Joi.boolean().default(false),
         REDIS_HOST: Joi.string().default('localhost'),
         REDIS_PORT: Joi.number().default(6379),
+        CORS_ORIGIN: Joi.string().default('http://localhost:5173'),
       }),
     }),
     CacheModule.registerAsync({
