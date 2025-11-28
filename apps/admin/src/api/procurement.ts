@@ -5,8 +5,14 @@ export interface ProcurementItemRequest {
   quantity: number;
 }
 
+export interface SalesMenuRequest {
+  menuId: string;
+  quantity: number;
+}
+
 export interface CreateProcurementListRequest {
   items: ProcurementItemRequest[];
+  salesMenus?: SalesMenuRequest[];
 }
 
 export interface ProcurementItem {

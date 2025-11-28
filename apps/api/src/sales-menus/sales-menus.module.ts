@@ -9,5 +9,6 @@ import { SalesMenuItem } from './entities/sales-menu-item.entity';
   imports: [TypeOrmModule.forFeature([SalesMenu, SalesMenuItem])],
   controllers: [SalesMenusController],
   providers: [SalesMenusService],
+  exports: [SalesMenusService],
 })
 export class SalesMenusModule {}

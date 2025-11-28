@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { RecipesService } from '../recipes/recipes.service';
+import { SalesMenusService } from '../sales-menus/sales-menus.service';
 import { CreateProcurementListDto } from './dto/create-procurement-list.dto';
 import Decimal from 'decimal.js';
 
 @Injectable()
 export class ProcurementService {
-  constructor(private recipesService: RecipesService) {}
+  constructor(
+    private recipesService: RecipesService,
+    private salesMenusService: SalesMenusService,
+  ) {}
 
   async generateList(dto: CreateProcurementListDto) {
     const ingredientMap = new Map<
@@ -13,12 +17,38 @@ export class ProcurementService {
       { name: string; quantity: Decimal; unit: string; cost: Decimal }
     >();
 
-    for (const item of dto.items) {
-      await this.processRecipe(
-        item.recipeId,
-        new Decimal(item.quantity),
-        ingredientMap,
-      );
+    // Process individual recipes
+    if (dto.items) {
+      for (const item of dto.items) {
+        await this.processRecipe(
+          item.recipeId,
+          new Decimal(item.quantity),
+          ingredientMap,
+        );
+      }
+    }
+
+    // Process sales menus
+    if (dto.salesMenus) {
+      for (const menuRequest of dto.salesMenus) {
+        const menu = await this.salesMenusService.findOne(menuRequest.menuId);
+        if (menu && menu.items) {
+          for (const menuItem of menu.items) {
+            if (menuItem.recipe) {
+              // If I sell 10 menus, and each menu has 1 burger, I need 10 burgers.
+              // menuItem doesn't have quantity? Let's check SalesMenuItem entity.
+              // Assuming 1 per menu item for now if not specified, but usually menu item is just a link.
+              // Wait, SalesMenuItem usually implies 1 unit of that recipe unless specified otherwise.
+              // Let's check SalesMenuItem entity.
+              await this.processRecipe(
+                menuItem.recipe.id,
+                new Decimal(menuRequest.quantity), // Assuming 1 recipe per menu item
+                ingredientMap,
+              );
+            }
+          }
+        }
+      }
     }
 
     // Convert map to array
