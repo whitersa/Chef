@@ -185,4 +185,24 @@ export class IngredientsService implements OnModuleInit {
       order: { version: 'DESC' },
     });
   }
+
+  async updateStock(id: string, quantityChange: number) {
+    const ingredient = await this.findOne(id);
+    if (!ingredient) {
+      throw new NotFoundException('Ingredient not found');
+    }
+
+    ingredient.stockQuantity =
+      Number(ingredient.stockQuantity || 0) + Number(quantityChange);
+
+    // We might want to skip versioning for stock updates to avoid bloat,
+    // or we can treat it as a regular update. For now, let's just save it.
+    // If we want to avoid the transaction overhead of the main update method:
+    const saved = await this.ingredientsRepository.save(ingredient);
+
+    // Invalidate cache as stock is part of the list view potentially
+    await this.clearCache();
+
+    return saved;
+  }
 }

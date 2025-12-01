@@ -9,5 +9,6 @@ import { IngredientVersion } from './ingredient-version.entity';
   imports: [TypeOrmModule.forFeature([Ingredient, IngredientVersion])],
   controllers: [IngredientsController],
   providers: [IngredientsService],
+  exports: [IngredientsService],
 })
 export class IngredientsModule {}

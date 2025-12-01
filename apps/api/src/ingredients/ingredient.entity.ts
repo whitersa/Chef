@@ -33,6 +33,20 @@ export class Ingredient {
   })
   nutrition: Record<string, number>; // e.g., { protein: 10, carbs: 20 }
 
+  @Column('decimal', {
+    precision: 10,
+    scale: 3,
+    default: 0,
+    comment: 'Current stock quantity',
+  })
+  stockQuantity: number;
+
+  @Column({
+    nullable: true,
+    comment: 'Unit for stock (usually same as unit)',
+  })
+  stockUnit: string;
+
   @VersionColumn({
     comment: 'Version number for optimistic locking',
     default: 1,

@@ -11,6 +11,8 @@ export interface Ingredient {
     fat: number;
     carbs: number;
   };
+  stockQuantity?: number;
+  stockUnit?: string;
 }
 
 export const ingredientsApi = {

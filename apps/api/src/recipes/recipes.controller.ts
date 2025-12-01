@@ -47,8 +47,10 @@ export class RecipesController {
   }
 
   @Get(':id/cost')
-  getCost(@Param('id') id: string) {
-    return this.recipesService.calculateCost(id);
+  async getCost(@Param('id') id: string) {
+    const total = await this.recipesService.calculateCost(id);
+    const perPortion = await this.recipesService.calculateCostPerPortion(id);
+    return { total, perPortion };
   }
 
   @Get(':id/nutrition')

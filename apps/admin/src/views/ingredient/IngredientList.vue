@@ -24,19 +24,30 @@
         @sort-change="handleSortChange"
       >
         <el-table-column prop="name" label="名称" width="180" sortable="custom" />
+        <el-table-column prop="stockQuantity" label="库存" width="120">
+          <template #default="scope">
+            <el-tag :type="scope.row.stockQuantity > 0 ? 'success' : 'danger'">
+              {{ scope.row.stockQuantity || 0 }} {{ scope.row.stockUnit || scope.row.unit }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="price" label="单价" width="180" sortable="custom">
           <template #default="scope"> ¥{{ scope.row.price }} </template>
         </el-table-column>
         <el-table-column prop="unit" label="单位" width="100" />
         <el-table-column label="营养成分 (每单位)">
           <template #default="scope">
-            <el-tag size="small" type="info" class="mr-2">
-              蛋白质: {{ scope.row.nutrition?.protein || 0 }}
-            </el-tag>
-            <el-tag size="small" type="info" class="mr-2">
-              脂肪: {{ scope.row.nutrition?.fat || 0 }}
-            </el-tag>
-            <el-tag size="small" type="info"> 碳水: {{ scope.row.nutrition?.carbs || 0 }} </el-tag>
+            <div class="nutrition-tags">
+              <el-tag size="small" type="info" effect="plain">
+                蛋白质: {{ scope.row.nutrition?.protein || 0 }}
+              </el-tag>
+              <el-tag size="small" type="info" effect="plain">
+                脂肪: {{ scope.row.nutrition?.fat || 0 }}
+              </el-tag>
+              <el-tag size="small" type="info" effect="plain">
+                碳水: {{ scope.row.nutrition?.carbs || 0 }}
+              </el-tag>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180">
@@ -219,20 +230,40 @@ const resetForm = () => {
 </script>
 
 <style scoped>
+.ingredient-list {
+  padding: 20px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .header-left {
   display: flex;
   align-items: center;
+  gap: 16px;
 }
+
+.header-left span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
 .pagination-container {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
 }
+
+.nutrition-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .mr-2 {
   margin-right: 8px;
 }

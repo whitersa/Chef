@@ -10,6 +10,7 @@ if (!(global as any).crypto) {
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
+import { Logger as NestLogger } from '@nestjs/common';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -49,6 +50,21 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+  });
+
+  // Global Error Handling for Uncaught Exceptions and Rejections
+  process.on('uncaughtException', (err) => {
+    const logger = new NestLogger('UncaughtException');
+    logger.error(err.message, err.stack);
+    // In production, you might want to exit here to let PM2 restart the process
+    // process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    const logger = new NestLogger('UnhandledRejection');
+    logger.error(
+      `Unhandled Rejection: ${reason instanceof Error ? reason.message : String(reason)}`,
+    );
   });
 
   await app.listen(process.env.PORT ?? 3000);

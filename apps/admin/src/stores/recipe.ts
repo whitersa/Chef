@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus';
 export interface RecipeItem {
   id: string; // temporary UI ID
   ingredientId?: string; // ID from ingredient store
+  childRecipeId?: string; // ID from recipe store (sub-recipe)
   name: string;
   quantity: number;
   unit: string;
@@ -113,10 +114,11 @@ export const useRecipeStore = defineStore('recipe', () => {
       items.value = recipe.items.map((item: any) => ({
         id: crypto.randomUUID(),
         ingredientId: item.ingredient?.id,
-        name: item.ingredient?.name || 'Unknown',
+        childRecipeId: item.childRecipe?.id,
+        name: item.ingredient?.name || item.childRecipe?.name || 'Unknown',
         quantity: Number(item.quantity),
-        unit: item.ingredient?.unit || '',
-        price: Number(item.ingredient?.price || 0),
+        unit: item.ingredient?.unit || 'batch',
+        price: Number(item.ingredient?.price || 0), // For sub-recipes, price might be 0 initially or we need to fetch cost
         yieldRate: Number(item.yieldRate),
         nutrition: item.ingredient?.nutrition || { protein: 0, fat: 0, carbs: 0 },
       }));
@@ -127,16 +129,17 @@ export const useRecipeStore = defineStore('recipe', () => {
     }
   }
 
-  function addItem(ingredient: any) {
+  function addItem(item: any, isRecipe = false) {
     items.value.push({
       id: crypto.randomUUID(), // 临时 ID
-      ingredientId: ingredient.id,
-      name: ingredient.name,
+      ingredientId: isRecipe ? undefined : item.id,
+      childRecipeId: isRecipe ? item.id : undefined,
+      name: item.name,
       quantity: 1,
-      unit: ingredient.unit,
-      price: ingredient.price,
+      unit: isRecipe ? 'batch' : item.unit,
+      price: isRecipe ? 0 : item.price, // Sub-recipe cost is calculated dynamically on backend usually, or we fetch it
       yieldRate: 1.0,
-      nutrition: ingredient.nutrition || { protein: 0, fat: 0, carbs: 0 },
+      nutrition: item.nutrition || { protein: 0, fat: 0, carbs: 0 },
     });
   }
 
@@ -192,6 +195,7 @@ export const useRecipeStore = defineStore('recipe', () => {
           quantity: item.quantity,
           yieldRate: item.yieldRate,
           ingredientId: item.ingredientId,
+          childRecipeId: item.childRecipeId,
         })),
       };
 

@@ -1,15 +1,91 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { RecipesService } from '../recipes/recipes.service';
 import { SalesMenusService } from '../sales-menus/sales-menus.service';
+import { IngredientsService } from '../ingredients/ingredients.service';
 import { CreateProcurementListDto } from './dto/create-procurement-list.dto';
+import { Procurement, ProcurementStatus } from './procurement.entity';
+import { ProcurementItem } from './procurement-item.entity';
 import Decimal from 'decimal.js';
 
 @Injectable()
 export class ProcurementService {
   constructor(
+    @InjectRepository(Procurement)
+    private procurementRepository: Repository<Procurement>,
+    @InjectRepository(ProcurementItem)
+    private procurementItemRepository: Repository<ProcurementItem>,
     private recipesService: RecipesService,
     private salesMenusService: SalesMenusService,
+    private ingredientsService: IngredientsService,
   ) {}
+
+  async create(dto: CreateProcurementListDto) {
+    const items = await this.generateList(dto);
+
+    const procurement = new Procurement();
+    procurement.status = ProcurementStatus.PENDING;
+    procurement.totalPrice = items.reduce(
+      (sum, item) => sum + item.estimatedCost,
+      0,
+    );
+
+    const procurementItems = items.map((item) => {
+      const pi = new ProcurementItem();
+      pi.ingredient = { id: item.ingredientId } as any;
+      pi.quantity = item.quantity;
+      pi.unit = item.unit;
+      pi.cost = item.estimatedCost;
+      return pi;
+    });
+
+    procurement.items = procurementItems;
+
+    return this.procurementRepository.save(procurement);
+  }
+
+  async findAll() {
+    return this.procurementRepository.find({
+      order: { createdAt: 'DESC' },
+      relations: ['items', 'items.ingredient'],
+    });
+  }
+
+  async findOne(id: string) {
+    return this.procurementRepository.findOne({
+      where: { id },
+      relations: ['items', 'items.ingredient'],
+    });
+  }
+
+  async updateStatus(id: string, status: ProcurementStatus) {
+    const procurement = await this.findOne(id);
+    if (!procurement) throw new NotFoundException('Procurement not found');
+
+    if (procurement.status === ProcurementStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Cannot change status of completed procurement',
+      );
+    }
+
+    if (status === ProcurementStatus.COMPLETED) {
+      // Update stock
+      for (const item of procurement.items) {
+        await this.ingredientsService.updateStock(
+          item.ingredient.id,
+          item.quantity,
+        );
+      }
+    }
+
+    procurement.status = status;
+    return this.procurementRepository.save(procurement);
+  }
 
   async generateList(dto: CreateProcurementListDto) {
     const ingredientMap = new Map<

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useSalesMenuStore } from '../../stores/sales-menu';
 import { useRecipeStore } from '../../stores/recipe';
+import { recipesApi } from '../../api/recipes';
 import draggable from 'vuedraggable';
-import { Delete } from '@element-plus/icons-vue';
+import { Delete, InfoFilled } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -12,22 +13,40 @@ const store = useSalesMenuStore();
 const recipeStore = useRecipeStore();
 
 const categories = ['前菜', '主菜', '汤品', '甜点', '饮料', '套餐'];
+const recipeCosts = ref<Record<string, number>>({});
 
 onMounted(async () => {
   recipeStore.fetchRecipes();
   if (route.params.id) {
     await store.fetchMenu(route.params.id as string);
+    // Fetch costs for existing items
+    if (store.currentMenu.items) {
+      for (const item of store.currentMenu.items) {
+        if (item.recipeId && !recipeCosts.value[item.recipeId]) {
+          fetchCost(item.recipeId);
+        }
+      }
+    }
   } else {
     store.resetEditor();
   }
 });
 
+async function fetchCost(recipeId: string) {
+  try {
+    const cost = await recipesApi.getCost(recipeId);
+    recipeCosts.value[recipeId] = cost.perPortion;
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 function handleRecipeAdd(evt: any) {
   if (evt.added) {
     const recipe = evt.added.element;
-    // Calculate suggested price based on cost per portion if available
-    // We need to fetch detailed recipe info to get cost, but for now we use a placeholder or fetch on demand
-    // For simplicity, let's just add it with 0 price and let user edit
+
+    // Fetch cost immediately
+    fetchCost(recipe.id);
 
     store.addItem({
       recipeId: recipe.id,
@@ -117,6 +136,7 @@ function handleCancel() {
       <div class="menu-canvas">
         <h3>菜单内容</h3>
         <div class="menu-items-header">
+          <span class="drag-handle-header"></span>
           <span class="col-name">菜品名称</span>
           <span class="col-category">分类</span>
           <span class="col-price">售价 (¥)</span>
@@ -135,22 +155,32 @@ function handleCancel() {
             <div class="menu-item-row">
               <div class="drag-handle">⋮⋮</div>
               <div class="col-name">
-                <el-input v-model="element.name" size="small" />
+                <el-input v-model="element.name" size="default" />
               </div>
               <div class="col-category">
-                <el-select v-model="element.category" size="small" placeholder="选择分类">
+                <el-select v-model="element.category" size="default" placeholder="选择分类">
                   <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
                 </el-select>
               </div>
               <div class="col-price">
-                <el-input-number
-                  v-model="element.price"
-                  :min="0"
-                  :precision="2"
-                  :step="1"
-                  size="small"
-                  style="width: 100%"
-                />
+                <div class="price-input-group">
+                  <el-input-number
+                    v-model="element.price"
+                    :min="0"
+                    :precision="2"
+                    :step="1"
+                    size="default"
+                    style="width: 100%"
+                  />
+                  <div class="cost-info" v-if="recipeCosts[element.recipeId]">
+                    <el-tooltip content="单份成本 (仅供参考)" placement="top">
+                      <span class="cost-tag">
+                        <el-icon><InfoFilled /></el-icon>
+                        ¥{{ recipeCosts[element.recipeId]?.toFixed(2) }}
+                      </span>
+                    </el-tooltip>
+                  </div>
+                </div>
               </div>
               <div class="col-action">
                 <el-button
@@ -212,6 +242,10 @@ function handleCancel() {
   margin-bottom: 10px;
 }
 
+.search-box .el-input {
+  width: 100%;
+}
+
 .recipe-list {
   flex: 1;
   overflow-y: auto;
@@ -260,11 +294,16 @@ function handleCancel() {
 
 .menu-items-header {
   display: flex;
-  padding: 0 10px 10px 30px; /* 30px left padding for drag handle alignment */
+  padding: 0 22px 10px 22px; /* Match row padding + drag handle width approx */
   border-bottom: 1px solid #ebeef5;
   font-size: 12px;
   color: #909399;
   font-weight: 600;
+  gap: 12px;
+}
+
+.drag-handle-header {
+  width: 20px;
 }
 
 .menu-items-list {
@@ -272,43 +311,80 @@ function handleCancel() {
   overflow-y: auto;
   background-color: #fafafa;
   border: 1px dashed #dcdfe6;
-  border-radius: 2px;
-  padding: 5px;
+  border-radius: 4px;
+  padding: 10px;
 }
 
 .menu-item-row {
   display: flex;
   align-items: center;
   background: white;
-  padding: 8px 10px;
-  margin-bottom: 5px;
-  border-radius: 2px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid #ebeef5;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.menu-item-row:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-color: #dcdfe6;
 }
 
 .drag-handle {
   width: 20px;
   cursor: move;
-  color: #c0c4cc;
+  color: #909399;
   font-size: 14px;
-  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .col-name {
   flex: 2;
-  margin-right: 10px;
+  min-width: 0;
 }
+
 .col-category {
-  width: 120px;
-  margin-right: 10px;
+  flex: 1;
+  min-width: 120px;
 }
+
 .col-price {
-  width: 120px;
-  margin-right: 10px;
+  flex: 1;
+  min-width: 140px;
 }
+
+.price-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cost-info {
+  font-size: 12px;
+  color: #909399;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cost-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0f2f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: help;
+}
+
 .col-action {
-  width: 50px;
-  text-align: center;
+  width: 40px;
+  display: flex;
+  justify-content: center;
 }
 
 .empty-placeholder {
