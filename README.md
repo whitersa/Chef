@@ -128,7 +128,12 @@
 - [x] **实体设计**：`ProcessingMethod` (id, name, description)。
 - [x] **CRUD 实现**：实现预处理流程的增删改查接口。
 
-### 2.5 用户与认证模块 (User & Auth)
+### 2.5 销售菜单模块 (Sales Menu)
+
+- [x] **实体设计**：`SalesMenu` (id, name, active), `SalesMenuItem` (menu_id, recipe_id, price)。
+- [x] **CRUD 实现**：实现销售菜单的增删改查，支持关联多个菜谱。
+
+### 2.6 用户与认证模块 (User & Auth)
 
 - [x] **实体设计**：`User` (id, username, password, preferences)。
 - [x] **认证机制**：
@@ -184,6 +189,9 @@
 - [x] **预处理管理**：
   - [x] 预处理流程的列表展示与增删管理。
   - [x] 支持定义描述模板（如：`将{ingredient}放入沸水中焯烫{time}秒`）。
+- [x] **销售菜单管理**：
+  - [x] 菜单列表与详情编辑。
+  - [x] 关联菜谱管理。
 
 ### 3.5 代码重构与优化 (Refactoring)
 
@@ -191,6 +199,9 @@
   - [x] **模块化拆分**：将 `api.ts` 拆分为 `api/recipes.ts`, `api/users.ts` 等领域模块。
   - [x] **统一客户端**：创建 `api-client.ts` 作为基础 HTTP 客户端。
   - [x] **Store 升级**：更新所有 Pinia Store 使用新的 API 模块，解耦业务逻辑与底层 HTTP 请求。
+  - [x] **前端列表页标准化**：
+    - [x] **组件抽象**：提取 `ListLayout` 组件，统一 "搜索-工具栏-列表-分页" 结构。
+    - [x] **页面重构**：重构所有列表页 (User, Recipe, Ingredient, Processing, SalesMenu) 适配新布局。
 
 ### 3.6 UI/UX 优化 (UI/UX Improvements)
 
@@ -238,15 +249,24 @@
 - **定时任务 (Cron)**: 学习 Cron 表达式语法 (e.g., `0 0 * * *`)，理解 Node.js 中的 Event Loop 如何处理定时器。
 - **爬虫技术**: 理解 HTTP 协议，DOM 树结构，CSS 选择器 (用于 `cheerio` 解析)。
 
-### 4.1 采购与库存 (Procurement)
+### 4.1 采购管理 (Procurement)
 
-- [ ] **事务控制 (Transaction)**：
-  - [ ] 编写“下单”接口。
+- [x] **采购清单生成**：
+  - [x] 基于“菜谱”或“销售菜单”自动计算所需食材总量 (BOM 逆向计算)。
+  - [x] 自动合并相同食材，计算预估成本。
+- [x] **采购流程**：
+  - [x] 生成采购单 (Pending 状态)。
+  - [x] 确认入库 (Completed 状态)，自动增加库存 (`updateStock`)。
+
+### 4.2 库存事务与并发 (Inventory Transactions)
+
+- [ ] **销售下单 (Sales Order)**：
+  - [ ] 编写“销售扣减”接口。
   - [ ] **任务点**：使用 `queryRunner.startTransaction()`。
   - [ ] **任务点**：先扣减 `Inventory` 表库存，再写入 `Order` 表。如果库存不足，抛出异常并 `rollback`。
 - [ ] **并发锁测试**：使用 Apache Bench (ab) 或 Jmeter 模拟 100 个并发请求扣库存，验证是否超卖。
 
-### 4.2 每日行情爬虫 (Crawler)
+### 4.3 每日行情爬虫 (Crawler)
 
 - [ ] **定时任务**：安装 `@nestjs/schedule`。
 - [ ] **爬虫实现**：
@@ -380,6 +400,9 @@
   - [x] 环境变量强校验 (使用 `joi` 或 `zod`)，启动时缺配置直接报错。
   - [x] 全局异常过滤器 (Global Exception Filter)，屏蔽内部错误堆栈。
   - [ ] 日志脱敏 (Masking)，防止密码/Token 泄露。
+- [x] **审计与版本控制**:
+  - [x] **操作审计 (Audit Log)**：记录关键操作 (Create/Update/Delete) 的操作人、时间、资源 ID。
+  - [x] **数据版本 (Versioning)**：食材 (Ingredient) 修改时自动保存历史版本快照，支持追溯。
 
 ### 8.2 数据库可靠性 (Database Reliability - P0)
 
@@ -406,4 +429,3 @@
 
 - [ ] **错误边界 (Error Boundaries)**: 使用 `onErrorCaptured` 防止单组件崩溃导致白屏。
 - [x] **请求竞态处理**: 封装 Axios 取消重复请求 (AbortController)。
-
