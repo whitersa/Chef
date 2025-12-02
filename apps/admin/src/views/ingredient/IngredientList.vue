@@ -120,7 +120,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue';
-import { useIngredientsStore, type Ingredient } from '../../stores/ingredients';
+import { useIngredientsStore, type Ingredient } from '@/stores/ingredients';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { debounce } from '@chefos/utils';
