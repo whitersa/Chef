@@ -1,6 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProcurementService } from './procurement.service';
 import { RecipesService } from '../recipes/recipes.service';
+import { SalesMenusService } from '../sales-menus/sales-menus.service';
+import { IngredientsService } from '../ingredients/ingredients.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Procurement } from './procurement.entity';
+import { ProcurementItem } from './procurement-item.entity';
 import { Decimal } from 'decimal.js';
 
 describe('ProcurementService', () => {
@@ -11,6 +16,24 @@ describe('ProcurementService', () => {
     findOne: jest.fn(),
   };
 
+  const mockSalesMenusService = {
+    findOne: jest.fn(),
+  };
+
+  const mockIngredientsService = {
+    updateStock: jest.fn(),
+  };
+
+  const mockProcurementRepository = {
+    save: jest.fn(),
+    find: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const mockProcurementItemRepository = {
+    save: jest.fn(),
+  };
+
   beforeEach(async () => {
     module = await Test.createTestingModule({
       providers: [
@@ -18,6 +41,22 @@ describe('ProcurementService', () => {
         {
           provide: RecipesService,
           useValue: mockRecipesService,
+        },
+        {
+          provide: SalesMenusService,
+          useValue: mockSalesMenusService,
+        },
+        {
+          provide: IngredientsService,
+          useValue: mockIngredientsService,
+        },
+        {
+          provide: getRepositoryToken(Procurement),
+          useValue: mockProcurementRepository,
+        },
+        {
+          provide: getRepositoryToken(ProcurementItem),
+          useValue: mockProcurementItemRepository,
         },
       ],
     }).compile();
