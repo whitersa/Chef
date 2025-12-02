@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export class ApiClient {
   private client: AxiosInstance;
+  private onUnauthorized?: () => void;
 
   constructor(baseURL: string) {
     this.client = axios.create({
@@ -13,6 +14,10 @@ export class ApiClient {
     });
 
     this.initializeInterceptors();
+  }
+
+  public setUnauthorizedHandler(handler: () => void) {
+    this.onUnauthorized = handler;
   }
 
   private initializeInterceptors() {
@@ -52,7 +57,10 @@ export class ApiClient {
           // Handle unauthorized access
           localStorage.removeItem('access_token');
           sessionStorage.removeItem('access_token');
-          if (window.location.pathname !== '/login') {
+
+          if (this.onUnauthorized) {
+            this.onUnauthorized();
+          } else if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }
         }
@@ -60,6 +68,7 @@ export class ApiClient {
       },
     );
   }
+  // ...existing code...
 
   public get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.client.get(url, config);

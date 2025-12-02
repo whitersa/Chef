@@ -6,6 +6,7 @@ import 'element-plus/theme-chalk/dark/css-vars.css';
 import './style.css';
 import App from './App.vue';
 import router from './router';
+import { api } from './api-client';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 
 const app = createApp(App);
@@ -15,6 +16,11 @@ app.config.errorHandler = (err, _instance, info) => {
   console.error('Global Error:', err, info);
   ElMessage.error('系统发生错误，请查看控制台');
 };
+
+// Configure API client to use router for redirection on 401
+api.setUnauthorizedHandler(() => {
+  router.push('/login');
+});
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component);

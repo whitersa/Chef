@@ -32,13 +32,14 @@ function handleDelete(id: string) {
 </script>
 
 <template>
-  <div class="sales-menu-list">
-    <div class="header">
-      <h2>销售菜单管理</h2>
-      <el-button type="primary" :icon="Plus" @click="handleCreate">新建菜单</el-button>
-    </div>
+  <ListLayout>
+    <template #toolbar>
+      <div class="toolbar-right">
+        <el-button type="primary" :icon="Plus" @click="handleCreate">新建菜单</el-button>
+      </div>
+    </template>
 
-    <el-table :data="store.menus" v-loading="store.loading" style="width: 100%">
+    <el-table :data="store.menus" v-loading="store.loading" style="width: 100%" border>
       <el-table-column prop="name" label="菜单名称" />
       <el-table-column prop="description" label="描述" />
       <el-table-column prop="active" label="状态">
@@ -62,26 +63,9 @@ function handleDelete(id: string) {
         </template>
       </el-table-column>
     </el-table>
-  </div>
+  </ListLayout>
 </template>
 
 <style scoped>
-.sales-menu-list {
-  padding: 20px;
-  background: white;
-  border-radius: 4px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-h2 {
-  margin: 0;
-  font-size: 18px;
-  color: #303133;
-}
+/* Styles removed as they are handled by ListLayout */
 </style>

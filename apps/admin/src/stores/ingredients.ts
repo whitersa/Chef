@@ -40,6 +40,12 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     fetchIngredients();
   }
 
+  function setLimit(limit: number) {
+    pagination.value.limit = limit;
+    pagination.value.page = 1;
+    fetchIngredients();
+  }
+
   function setSort(sort: string, order: 'ASC' | 'DESC') {
     pagination.value.sort = sort;
     pagination.value.order = order;
@@ -92,6 +98,7 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     search,
     fetchIngredients,
     setPage,
+    setLimit,
     setSort,
     setSearch,
     createIngredient,

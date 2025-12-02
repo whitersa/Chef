@@ -1,121 +1,141 @@
 <template>
-  <div class="ingredient-list">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <div class="header-left">
-            <span>食材管理</span>
-            <el-input
-              v-model="searchQuery"
-              placeholder="搜索食材..."
-              style="width: 200px; margin-left: 16px"
-              @input="handleSearch"
-              clearable
-            />
-          </div>
-          <el-button type="primary" @click="handleAdd">添加食材</el-button>
-        </div>
-      </template>
-
-      <el-table
-        :data="ingredients"
-        style="width: 100%"
-        v-loading="loading"
-        @sort-change="handleSortChange"
-      >
-        <el-table-column prop="name" label="名称" width="180" sortable="custom" />
-        <el-table-column prop="stockQuantity" label="库存" width="120">
-          <template #default="scope">
-            <el-tag :type="scope.row.stockQuantity > 0 ? 'success' : 'danger'">
-              {{ scope.row.stockQuantity || 0 }} {{ scope.row.stockUnit || scope.row.unit }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="price" label="单价" width="180" sortable="custom">
-          <template #default="scope"> ¥{{ scope.row.price }} </template>
-        </el-table-column>
-        <el-table-column prop="unit" label="单位" width="100" />
-        <el-table-column label="营养成分 (每单位)">
-          <template #default="scope">
-            <div class="nutrition-tags">
-              <el-tag size="small" type="info" effect="plain">
-                蛋白质: {{ scope.row.nutrition?.protein || 0 }}
-              </el-tag>
-              <el-tag size="small" type="info" effect="plain">
-                脂肪: {{ scope.row.nutrition?.fat || 0 }}
-              </el-tag>
-              <el-tag size="small" type="info" effect="plain">
-                碳水: {{ scope.row.nutrition?.carbs || 0 }}
-              </el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180">
-          <template #default="scope">
-            <el-button link type="primary" size="small" @click="handleEdit(scope.row)"
-              >编辑</el-button
-            >
-            <el-popconfirm title="确定要删除吗?" @confirm="handleDelete(scope.row.id)">
-              <template #reference>
-                <el-button link type="danger" size="small">删除</el-button>
-              </template>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.limit"
-          :total="pagination.total"
-          layout="total, prev, pager, next"
-          @current-change="handlePageChange"
-        />
-      </div>
-    </el-card>
-
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEdit ? '编辑食材' : '添加食材'"
-      width="30%"
-      @close="resetForm"
-    >
-      <el-form :model="form" label-width="80px">
-        <el-form-item label="名称">
-          <el-input v-model="form.name" />
+  <ListLayout>
+    <!-- 查询区域 -->
+    <template #search>
+      <el-form :inline="true" class="search-form">
+        <el-form-item label="食材名称">
+          <el-input
+            v-model="searchQuery"
+            placeholder="请输入食材名称"
+            clearable
+            @input="handleSearch"
+          />
         </el-form-item>
-        <el-form-item label="单价">
-          <el-input-number v-model="form.price" :min="0" :precision="2" />
-        </el-form-item>
-        <el-form-item label="单位">
-          <el-select v-model="form.unit" placeholder="请选择单位">
-            <el-option label="kg" value="kg" />
-            <el-option label="g" value="g" />
-            <el-option label="L" value="L" />
-            <el-option label="ml" value="ml" />
-            <el-option label="个" value="个" />
-          </el-select>
-        </el-form-item>
-        <el-divider content-position="left">营养成分</el-divider>
-        <el-form-item label="蛋白质">
-          <el-input-number v-model="form.nutrition.protein" :min="0" :precision="1" />
-        </el-form-item>
-        <el-form-item label="脂肪">
-          <el-input-number v-model="form.nutrition.fat" :min="0" :precision="1" />
-        </el-form-item>
-        <el-form-item label="碳水">
-          <el-input-number v-model="form.nutrition.carbs" :min="0" :precision="1" />
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch(searchQuery)">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">确定</el-button>
-        </span>
-      </template>
-    </el-dialog>
-  </div>
+    </template>
+
+    <!-- 工具栏 -->
+    <template #toolbar>
+      <div class="toolbar-left">
+        <!-- 预留左侧工具栏位置，如批量操作等 -->
+      </div>
+      <div class="toolbar-right">
+        <el-button type="primary" @click="handleAdd">
+          <el-icon class="el-icon--left"><Plus /></el-icon>添加食材
+        </el-button>
+      </div>
+    </template>
+
+    <!-- 列表区域 -->
+    <el-table
+      :data="ingredients"
+      style="width: 100%"
+      v-loading="loading"
+      @sort-change="handleSortChange"
+      border
+    >
+      <el-table-column prop="name" label="名称" width="180" sortable="custom" />
+      <el-table-column prop="stockQuantity" label="库存" width="120">
+        <template #default="scope">
+          <el-tag :type="scope.row.stockQuantity > 0 ? 'success' : 'danger'">
+            {{ scope.row.stockQuantity || 0 }} {{ scope.row.stockUnit || scope.row.unit }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="price" label="单价" width="180" sortable="custom">
+        <template #default="scope"> ¥{{ scope.row.price }} </template>
+      </el-table-column>
+      <el-table-column prop="unit" label="单位" width="100" />
+      <el-table-column label="营养成分 (每单位)">
+        <template #default="scope">
+          <div class="nutrition-tags">
+            <el-tag size="small" type="info" effect="plain">
+              蛋白质: {{ scope.row.nutrition?.protein || 0 }}
+            </el-tag>
+            <el-tag size="small" type="info" effect="plain">
+              脂肪: {{ scope.row.nutrition?.fat || 0 }}
+            </el-tag>
+            <el-tag size="small" type="info" effect="plain">
+              碳水: {{ scope.row.nutrition?.carbs || 0 }}
+            </el-tag>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="180" fixed="right">
+        <template #default="scope">
+          <el-button link type="primary" size="small" @click="handleEdit(scope.row)"
+            >编辑</el-button
+          >
+          <el-popconfirm title="确定要删除吗?" @confirm="handleDelete(scope.row.id)">
+            <template #reference>
+              <el-button link type="danger" size="small">删除</el-button>
+            </template>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!-- 分页 -->
+    <template #pagination>
+      <el-pagination
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.limit"
+        :total="pagination.total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
+    </template>
+
+    <!-- 弹窗 -->
+    <template #extra>
+      <el-dialog
+        v-model="dialogVisible"
+        :title="isEdit ? '编辑食材' : '添加食材'"
+        width="30%"
+        @close="resetForm"
+      >
+        <el-form :model="form" label-width="80px">
+          <el-form-item label="名称">
+            <el-input v-model="form.name" />
+          </el-form-item>
+          <el-form-item label="单价">
+            <el-input-number v-model="form.price" :min="0" :precision="2" />
+          </el-form-item>
+          <el-form-item label="单位">
+            <el-select v-model="form.unit" placeholder="请选择单位">
+              <el-option label="kg" value="kg" />
+              <el-option label="g" value="g" />
+              <el-option label="L" value="L" />
+              <el-option label="ml" value="ml" />
+              <el-option label="个" value="个" />
+            </el-select>
+          </el-form-item>
+          <el-divider content-position="left">营养成分</el-divider>
+          <el-form-item label="蛋白质">
+            <el-input-number v-model="form.nutrition.protein" :min="0" :precision="1" />
+          </el-form-item>
+          <el-form-item label="脂肪">
+            <el-input-number v-model="form.nutrition.fat" :min="0" :precision="1" />
+          </el-form-item>
+          <el-form-item label="碳水">
+            <el-input-number v-model="form.nutrition.carbs" :min="0" :precision="1" />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="handleSubmit">确定</el-button>
+          </span>
+        </template>
+      </el-dialog>
+    </template>
+  </ListLayout>
 </template>
 
 <script setup lang="ts">
@@ -152,8 +172,17 @@ const handleSearch = debounce((val: string) => {
   ingredientsStore.setSearch(val);
 }, 300);
 
+const handleReset = () => {
+  searchQuery.value = '';
+  ingredientsStore.setSearch('');
+};
+
 const handlePageChange = (page: number) => {
   ingredientsStore.setPage(page);
+};
+
+const handleSizeChange = (size: number) => {
+  ingredientsStore.setLimit(size);
 };
 
 const handleSortChange = ({ prop, order }: { prop: string; order: string }) => {
@@ -223,41 +252,9 @@ const resetForm = () => {
 </script>
 
 <style scoped>
-.ingredient-list {
-  /* padding: 20px; Removed to match other pages */
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.header-left span {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
-
 .nutrition-tags {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-}
-
-.mr-2 {
-  margin-right: 8px;
 }
 </style>

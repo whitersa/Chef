@@ -395,8 +395,7 @@ const getStatusType = (status: ProcurementStatus) => {
 }
 
 .input-section {
-  margin-bottom: 30px;
-  padding: 20px;
+  padding: 0 10px;
   background-color: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #ebeef5;
@@ -408,7 +407,6 @@ const getStatusType = (status: ProcurementStatus) => {
 }
 
 .result-section {
-  margin-top: 30px;
   animation: fadeIn 0.5s ease-in-out;
 }
 
@@ -434,5 +432,9 @@ const getStatusType = (status: ProcurementStatus) => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+:deep(.el-card__body) {
+  padding: 10px;
 }
 </style>
