@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { RecipesService } from '../recipes/recipes.service';
 import { SalesMenusService } from '../sales-menus/sales-menus.service';
 import { IngredientsService } from '../ingredients/ingredients.service';
+import { Ingredient } from '../ingredients/ingredient.entity';
 import { CreateProcurementListDto } from './dto/create-procurement-list.dto';
 import { Procurement, ProcurementStatus } from './procurement.entity';
 import { ProcurementItem } from './procurement-item.entity';
@@ -37,7 +38,7 @@ export class ProcurementService {
 
     const procurementItems = items.map((item) => {
       const pi = new ProcurementItem();
-      pi.ingredient = { id: item.ingredientId } as any;
+      pi.ingredient = { id: item.ingredientId } as Ingredient;
       pi.quantity = item.quantity;
       pi.unit = item.unit;
       pi.cost = item.estimatedCost;
