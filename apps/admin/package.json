@@ -12,6 +12,7 @@
   "dependencies": {
     "@chefos/api-client": "workspace:^",
     "@chefos/types": "workspace:^",
+    "@chefos/utils": "workspace:*",
     "@element-plus/icons-vue": "^2.3.2",
     "crypto-js": "^4.2.0",
     "echarts": "^6.0.0",

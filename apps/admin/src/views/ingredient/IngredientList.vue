@@ -123,6 +123,7 @@ import { ref, onMounted, reactive } from 'vue';
 import { useIngredientsStore, type Ingredient } from '../../stores/ingredients';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
+import { debounce } from '@chefos/utils';
 
 const ingredientsStore = useIngredientsStore();
 const { ingredients, loading, pagination } = storeToRefs(ingredientsStore);
@@ -146,14 +147,6 @@ const form = reactive({
 onMounted(() => {
   ingredientsStore.fetchIngredients();
 });
-
-function debounce(fn: Function, delay: number) {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return (...args: any[]) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), delay);
-  };
-}
 
 const handleSearch = debounce((val: string) => {
   ingredientsStore.setSearch(val);

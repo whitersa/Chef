@@ -44,6 +44,9 @@ importers:
       '@chefos/types':
         specifier: workspace:^
         version: link:../../packages/types
+      '@chefos/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@element-plus/icons-vue':
         specifier: ^2.3.2
         version: 2.3.2(vue@3.5.25(typescript@5.9.3))
@@ -383,6 +386,18 @@ importers:
         version: 19.2.2(@types/react@19.2.2)
       eslint:
         specifier: ^9.39.1
+        version: 9.39.1(jiti@2.6.1)
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/utils:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: ^9.18.0
         version: 9.39.1(jiti@2.6.1)
       typescript:
         specifier: 5.9.2
