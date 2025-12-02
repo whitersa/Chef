@@ -231,7 +231,7 @@ const resetForm = () => {
 
 <style scoped>
 .ingredient-list {
-  padding: 20px;
+  /* padding: 20px; Removed to match other pages */
 }
 
 .card-header {

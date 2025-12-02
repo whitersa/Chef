@@ -57,8 +57,11 @@ import { SalesMenusModule } from './sales-menus/sales-menus.module';
             ? {
                 target: 'pino-pretty',
                 options: {
-                  singleLine: true,
+                  singleLine: false,
                   colorize: true,
+                  translateTime: 'SYS:standard',
+                  ignore: 'pid,hostname',
+                  messageFormat: '{msg}',
                 },
               }
             : undefined,

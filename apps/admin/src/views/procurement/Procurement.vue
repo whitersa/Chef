@@ -367,9 +367,9 @@ const getStatusType = (status: ProcurementStatus) => {
 
 <style scoped>
 .procurement-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  /* padding: 20px; */
+  /* max-width: 1200px; */
+  /* margin: 0 auto; */
 }
 
 .box-card {
