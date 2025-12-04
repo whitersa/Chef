@@ -99,6 +99,7 @@
 ### 2.1 NestJS 基础建设 (`apps/api`)
 
 - [x] **初始化项目**：使用 `nest new apps/api` 创建后端。
+- [x] **全局路由前缀**：配置 `/api` 作为全局路由前缀，规范 API 访问路径。
 - [x] **数据库连接**：
   - [x] 安装 `typeorm` `pg` `@nestjs/typeorm`。
   - [x] 在 `app.module.ts` 配置数据库连接（读取 `.env` 环境变量）。
@@ -117,6 +118,7 @@
 - [x] **实体设计**：
   - [x] `Recipe` (id, name, total_cost, steps, preProcessing)。
   - [x] `RecipeItem` (parent_id, child_recipe_id, ingredient_id, quantity, yield_rate)。
+- [x] **数据播种 (Seeding)**：应用启动时自动初始化演示菜谱数据 (Tomato Scrambled Eggs)，方便快速开始。
 - [x] **递归计算逻辑 (Service)**：
   - [x] 编写 `calculateCost(recipeId)` 方法。
   - [x] **任务点**：实现深度优先遍历 (DFS)，如果 `RecipeItem` 是半成品，递归调用自身；如果是食材，直接计算 `price * quantity`。
@@ -199,6 +201,8 @@
   - [x] **模块化拆分**：将 `api.ts` 拆分为 `api/recipes.ts`, `api/users.ts` 等领域模块。
   - [x] **统一客户端**：创建 `api-client.ts` 作为基础 HTTP 客户端。
   - [x] **Store 升级**：更新所有 Pinia Store 使用新的 API 模块，解耦业务逻辑与底层 HTTP 请求。
+  - [x] **错误处理优化**：增强 Axios 拦截器，提取后端具体错误信息并在 UI 展示，提升排错体验。
+  - [x] **分页标准化**：统一后端分页响应结构 ({ data, meta }) 并适配前端 Store，修复列表加载问题。
   - [x] **前端列表页标准化**：
     - [x] **组件抽象**：提取 `ListLayout` 组件，统一 "搜索-工具栏-列表-分页" 结构。
     - [x] **页面重构**：重构所有列表页 (User, Recipe, Ingredient, Processing, SalesMenu) 适配新布局。
@@ -449,15 +453,17 @@
   - [x] **核心实体**：`Recipe`, `Ingredient`, `User`, `SalesMenu`, `ProcessingMethod`。
   - [x] **实现方式**：添加 `@DeleteDateColumn()`，TypeORM 自动处理 `deleted_at IS NULL` 过滤。
   - [x] **价值**：防止误删导致的历史报表数据缺失。
+- [x] **物化视图 (Materialized View)**:
+  - [x] **场景**：实时计算数百个菜谱的动态成本。
+  - [x] **方案**：创建 `recipe_costs` 视图，在食材价格变动时触发刷新。
+  - [x] **实现**：Migration `AddAdvancedDbFeatures` 创建视图。
+- [x] **JSONB GIN 索引**:
+  - [x] **场景**：菜谱步骤 (`steps`) 的全文检索。
+  - [x] **方案**：`CREATE INDEX ON recipe USING GIN (steps)`。
+  - [x] **实现**：Migration `AddAdvancedDbFeatures` 创建索引。
 
 ### 9.2 规划中模式 (Planned)
 
 - [ ] **闭包表 (Closure Table)**:
   - [ ] **场景**：菜谱 BOM 的多级嵌套查询。
   - [ ] **方案**：创建 `recipe_closure` 表存储所有祖先-后代关系，替代递归查询。
-- [ ] **物化视图 (Materialized View)**:
-  - [ ] **场景**：实时计算数百个菜谱的动态成本。
-  - [ ] **方案**：创建 `recipe_costs` 视图，在食材价格变动时触发刷新。
-- [ ] **JSONB GIN 索引**:
-  - [ ] **场景**：菜谱步骤 (`steps`) 的全文检索。
-  - [ ] **方案**：`CREATE INDEX ON recipe USING GIN (steps)`。

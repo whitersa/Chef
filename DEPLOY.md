@@ -116,7 +116,7 @@ _如果你是初学者，建议先从 PM2 开始；等你熟悉了 Linux 和基�
     - 将该文件内容复制到服务器 Nginx 的配置目录（通常是 `/etc/nginx/conf.d/chef.conf`）。
     - **修改配置中的路径**：
       - `root /usr/share/nginx/html;` -> 修改为你上传文件的路径，例如 `root /var/www/chef-admin;`
-      - `proxy_pass http://localhost:3000/;` -> 确保这里的地址能访问到你的后端服务。
+      - `proxy_pass http://localhost:3000/;` -> **注意**：由于后端启用了全局前缀 `/api`，请确保 Nginx 转发时保留该前缀。建议配置为 `proxy_pass http://localhost:3000;` (不带尾部斜杠) 或者 `proxy_pass http://localhost:3000/api/;` (如果 location 也是 /api/)。
 
 4.  **重启 Nginx**：
     ```bash
