@@ -6,7 +6,7 @@
       </div>
     </template>
 
-    <el-table :data="users" style="width: 100%" v-loading="loading" border>
+    <el-table :data="users" style="width: 100%; height: 100%" v-loading="loading" border>
       <el-table-column prop="hireDate" label="入职日期" width="180">
         <template #default="scope">
           {{ formatDate(scope.row.hireDate) }}
@@ -32,6 +32,18 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <template #pagination>
+      <el-pagination
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.limit"
+        :total="pagination.total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
+    </template>
 
     <template #extra>
       <el-dialog v-model="dialogVisible" title="添加员工" width="30%">
@@ -79,9 +91,12 @@ import { ref, onMounted, reactive } from 'vue';
 import { useUserStore } from '../../stores/user';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
+import { useListFilter } from '@/composables/useListFilter';
 
 const userStore = useUserStore();
-const { users, loading } = storeToRefs(userStore);
+const { users, loading, pagination } = storeToRefs(userStore);
+
+const { handlePageChange, handleSizeChange } = useListFilter(userStore);
 
 const dialogVisible = ref(false);
 const form = reactive({

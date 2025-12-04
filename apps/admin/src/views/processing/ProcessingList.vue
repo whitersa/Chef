@@ -2,8 +2,13 @@
 import { onMounted, ref } from 'vue';
 import { useProcessingStore } from '../../stores/processing';
 import { Delete, Plus } from '@element-plus/icons-vue';
+import { useListFilter } from '@/composables/useListFilter';
+import { storeToRefs } from 'pinia';
 
 const store = useProcessingStore();
+const { pagination } = storeToRefs(store);
+const { handlePageChange, handleSizeChange } = useListFilter(store);
+
 const dialogVisible = ref(false);
 const form = ref({
   name: '',
@@ -38,7 +43,12 @@ function handleDelete(id: string) {
       </div>
     </template>
 
-    <el-table :data="store.methods" v-loading="store.loading" style="width: 100%" border>
+    <el-table
+      :data="store.methods"
+      v-loading="store.loading"
+      style="width: 100%; height: 100%"
+      border
+    >
       <el-table-column prop="name" label="名称" width="180" />
       <el-table-column prop="description" label="描述模板" />
       <el-table-column label="操作" width="120">
@@ -47,6 +57,18 @@ function handleDelete(id: string) {
         </template>
       </el-table-column>
     </el-table>
+
+    <template #pagination>
+      <el-pagination
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.limit"
+        :total="pagination.total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
+    </template>
 
     <template #extra>
       <el-dialog v-model="dialogVisible" title="新增预处理流程" width="500px">

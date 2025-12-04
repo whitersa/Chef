@@ -1,4 +1,5 @@
 import { api } from '../api-client';
+import type { PaginatedResponse, PaginationQuery } from './common';
 
 export interface SalesMenuItem {
   id?: string;
@@ -39,7 +40,8 @@ export interface CreateSalesMenuRequest {
 export interface UpdateSalesMenuRequest extends Partial<CreateSalesMenuRequest> {}
 
 export const salesMenusApi = {
-  getAll: () => api.get<SalesMenu[]>('/sales-menus'),
+  getAll: (query?: PaginationQuery) =>
+    api.get<PaginatedResponse<SalesMenu>>('/sales-menus', { params: query }),
   getById: (id: string) => api.get<SalesMenu>(`/sales-menus/${id}`),
   create: (data: CreateSalesMenuRequest) => api.post<SalesMenu>('/sales-menus', data),
   update: (id: string, data: UpdateSalesMenuRequest) =>

@@ -4,9 +4,13 @@ import { useRouter } from 'vue-router';
 import { useSalesMenuStore } from '../../stores/sales-menu';
 import { Edit, Delete, Plus } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
+import { useListFilter } from '@/composables/useListFilter';
+import { storeToRefs } from 'pinia';
 
 const router = useRouter();
 const store = useSalesMenuStore();
+const { pagination } = storeToRefs(store);
+const { handlePageChange, handleSizeChange } = useListFilter(store);
 
 onMounted(() => {
   store.fetchMenus();
@@ -39,7 +43,12 @@ function handleDelete(id: string) {
       </div>
     </template>
 
-    <el-table :data="store.menus" v-loading="store.loading" style="width: 100%" border>
+    <el-table
+      :data="store.menus"
+      v-loading="store.loading"
+      style="width: 100%; height: 100%"
+      border
+    >
       <el-table-column prop="name" label="菜单名称" />
       <el-table-column prop="description" label="描述" />
       <el-table-column prop="active" label="状态">
@@ -63,6 +72,17 @@ function handleDelete(id: string) {
         </template>
       </el-table-column>
     </el-table>
+    <template #pagination>
+      <el-pagination
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.limit"
+        :total="pagination.total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
+    </template>
   </ListLayout>
 </template>
 

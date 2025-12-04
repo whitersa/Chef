@@ -5,6 +5,7 @@
  * @returns 返回一个新的函数，该函数在停止调用 delay 毫秒后才会执行原函数
  */
 // <T> 定义了一个泛型，表示传入的函数类型。这样 TypeScript 就能知道原函数的参数是什么
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function debounce<T extends (...args: any[]) => any>(fn: T, delay: number) {
   // 用于存储定时器的 ID
   // ReturnType<typeof setTimeout> 是为了兼容 Node.js 和浏览器环境（一个是对象，一个是数字）

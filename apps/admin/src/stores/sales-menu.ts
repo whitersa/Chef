@@ -1,11 +1,21 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import { salesMenusApi, type SalesMenu, type SalesMenuItem } from '../api/sales-menus';
 import { ElMessage } from 'element-plus';
 
 export const useSalesMenuStore = defineStore('salesMenu', () => {
   const menus = ref<SalesMenu[]>([]);
   const loading = ref(false);
+  const pagination = reactive({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+  const query = reactive({
+    search: '',
+    sort: '',
+    order: 'ASC' as 'ASC' | 'DESC',
+  });
 
   // Editor state
   const currentMenu = ref<Partial<SalesMenu>>({
@@ -18,14 +28,44 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
   async function fetchMenus() {
     loading.value = true;
     try {
-      const response = await salesMenusApi.getAll();
-      menus.value = response;
+      const { data, meta } = await salesMenusApi.getAll({
+        page: pagination.page,
+        limit: pagination.limit,
+        search: query.search,
+        sort: query.sort,
+        order: query.order,
+      });
+      menus.value = data;
+      pagination.total = meta.total;
     } catch (error) {
       console.error('Failed to fetch sales menus:', error);
       ElMessage.error('获取菜单列表失败');
     } finally {
       loading.value = false;
     }
+  }
+
+  function setSearch(term: string) {
+    query.search = term;
+    pagination.page = 1;
+    fetchMenus();
+  }
+
+  function setPage(page: number) {
+    pagination.page = page;
+    fetchMenus();
+  }
+
+  function setLimit(limit: number) {
+    pagination.limit = limit;
+    pagination.page = 1;
+    fetchMenus();
+  }
+
+  function setSort(field: string, order: 'ASC' | 'DESC') {
+    query.sort = field;
+    query.order = order;
+    fetchMenus();
   }
 
   async function fetchMenu(id: string) {
@@ -115,6 +155,7 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
   return {
     menus,
     loading,
+    pagination,
     currentMenu,
     fetchMenus,
     fetchMenu,
@@ -123,5 +164,9 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
     removeItem,
     saveMenu,
     deleteMenu,
+    setSearch,
+    setPage,
+    setLimit,
+    setSort,
   };
 });

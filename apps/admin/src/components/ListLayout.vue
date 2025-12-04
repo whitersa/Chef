@@ -13,7 +13,9 @@
       </div>
 
       <!-- Main Content (Table) -->
-      <slot></slot>
+      <div class="table-wrapper">
+        <slot></slot>
+      </div>
 
       <!-- Pagination -->
       <div v-if="$slots.pagination" class="pagination-container">
@@ -31,15 +33,36 @@
 </script>
 
 <style scoped>
+.page-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .search-card {
-  margin-bottom: 8px;
+  margin-bottom: var(--app-main-padding);
+  flex-shrink: 0;
+}
+
+.list-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .toolbar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--app-gap);
+  flex-shrink: 0;
 }
 
 :deep(.toolbar-left) {
@@ -47,16 +70,17 @@
 }
 
 .pagination-container {
-  margin-top: 20px;
+  margin-top: var(--app-gap);
   display: flex;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 /* Helper styles for search form content */
 :deep(.search-form) {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--app-padding);
 }
 
 :deep(.search-form .el-form-item__label) {
@@ -74,6 +98,11 @@
 }
 
 :deep(.el-card__body) {
-  padding: 10px;
+  padding: var(--app-gap);
+  flex: 1; /* Changed from height: 100% to flex: 1 */
+  min-height: 0; /* Important for nested flex scrolling */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 </style>

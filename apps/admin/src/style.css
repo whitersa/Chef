@@ -141,6 +141,14 @@ body {
   font-size: var(--app-font-size);
 }
 
+/* 修复表格内容垂直居中 */
+.el-table .cell {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
+  /* 确保最小高度 */
+}
+
 .el-table th.el-table__cell {
   padding: calc(var(--app-padding) / 2) 0;
   font-weight: 600;

@@ -25,7 +25,7 @@
 
     <el-table
       :data="recipes"
-      style="width: 100%"
+      style="width: 100%; height: 100%"
       v-loading="loading"
       @sort-change="handleSortChange"
       border
@@ -57,50 +57,38 @@
         v-model:current-page="pagination.page"
         v-model:page-size="pagination.limit"
         :total="pagination.total"
-        layout="total, prev, pager, next"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
         @current-change="handlePageChange"
+        @size-change="handleSizeChange"
       />
     </template>
   </ListLayout>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 import { useRecipeStore } from '../../stores/recipe';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
-import { debounce } from '@chefos/utils';
+import { useListFilter } from '@/composables/useListFilter';
 
 const router = useRouter();
 const recipeStore = useRecipeStore();
 const { recipes, loading, pagination } = storeToRefs(recipeStore);
-const searchQuery = ref('');
+
+const {
+  searchQuery,
+  handleSearch,
+  handleReset,
+  handlePageChange,
+  handleSizeChange,
+  handleSortChange,
+} = useListFilter(recipeStore);
 
 onMounted(() => {
   recipeStore.fetchRecipes();
 });
-
-const handleSearch = debounce((val: string) => {
-  recipeStore.setSearch(val);
-}, 300);
-
-const handleReset = () => {
-  searchQuery.value = '';
-  recipeStore.setSearch('');
-};
-
-const handlePageChange = (page: number) => {
-  recipeStore.setPage(page);
-};
-
-const handleSortChange = ({ prop, order }: { prop: string; order: string }) => {
-  if (!order) {
-    recipeStore.setSort('', 'ASC');
-    return;
-  }
-  const sortOrder = order === 'ascending' ? 'ASC' : 'DESC';
-  recipeStore.setSort(prop, sortOrder);
-};
 
 const handleCreate = () => {
   recipeStore.resetEditor();

@@ -33,7 +33,7 @@
     <!-- 列表区域 -->
     <el-table
       :data="ingredients"
-      style="width: 100%"
+      style="width: 100%; height: 100%"
       v-loading="loading"
       @sort-change="handleSortChange"
       border
@@ -50,19 +50,45 @@
         <template #default="scope"> ¥{{ scope.row.price }} </template>
       </el-table-column>
       <el-table-column prop="unit" label="单位" width="100" />
-      <el-table-column label="营养成分 (每单位)">
+      <el-table-column label="营养成分" width="100" align="center">
         <template #default="scope">
-          <div class="nutrition-tags">
-            <el-tag size="small" type="info" effect="plain">
-              蛋白质: {{ scope.row.nutrition?.protein || 0 }}
-            </el-tag>
-            <el-tag size="small" type="info" effect="plain">
-              脂肪: {{ scope.row.nutrition?.fat || 0 }}
-            </el-tag>
-            <el-tag size="small" type="info" effect="plain">
-              碳水: {{ scope.row.nutrition?.carbs || 0 }}
-            </el-tag>
-          </div>
+          <el-popover placement="top" width="220" trigger="hover" :show-arrow="false" offset="10">
+            <template #reference>
+              <el-tag class="nutrition-trigger" size="small" effect="plain" round>
+                <el-icon><DataAnalysis /></el-icon>
+                <span>营养</span>
+              </el-tag>
+            </template>
+            <div class="nutrition-card">
+              <div class="card-header">
+                <span class="title">营养概览</span>
+                <span class="subtitle">每单位含量</span>
+              </div>
+              <div class="card-body">
+                <div class="nutrient-row">
+                  <div class="nutrient-label">
+                    <span class="dot protein"></span>
+                    <span>蛋白质</span>
+                  </div>
+                  <span class="nutrient-value">{{ scope.row.nutrition?.protein || 0 }}</span>
+                </div>
+                <div class="nutrient-row">
+                  <div class="nutrient-label">
+                    <span class="dot fat"></span>
+                    <span>脂肪</span>
+                  </div>
+                  <span class="nutrient-value">{{ scope.row.nutrition?.fat || 0 }}</span>
+                </div>
+                <div class="nutrient-row">
+                  <div class="nutrient-label">
+                    <span class="dot carbs"></span>
+                    <span>碳水化合物</span>
+                  </div>
+                  <span class="nutrient-value">{{ scope.row.nutrition?.carbs || 0 }}</span>
+                </div>
+              </div>
+            </div>
+          </el-popover>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="180" fixed="right">
@@ -143,15 +169,23 @@ import { ref, onMounted, reactive } from 'vue';
 import { useIngredientsStore, type Ingredient } from '@/stores/ingredients';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
-import { debounce } from '@chefos/utils';
+import { useListFilter } from '@/composables/useListFilter';
 
 const ingredientsStore = useIngredientsStore();
 const { ingredients, loading, pagination } = storeToRefs(ingredientsStore);
 
+const {
+  searchQuery,
+  handleSearch,
+  handleReset,
+  handlePageChange,
+  handleSizeChange,
+  handleSortChange,
+} = useListFilter(ingredientsStore);
+
 const dialogVisible = ref(false);
 const isEdit = ref(false);
 const currentId = ref('');
-const searchQuery = ref('');
 
 const form = reactive({
   name: '',
@@ -167,32 +201,6 @@ const form = reactive({
 onMounted(() => {
   ingredientsStore.fetchIngredients();
 });
-
-const handleSearch = debounce((val: string) => {
-  ingredientsStore.setSearch(val);
-}, 300);
-
-const handleReset = () => {
-  searchQuery.value = '';
-  ingredientsStore.setSearch('');
-};
-
-const handlePageChange = (page: number) => {
-  ingredientsStore.setPage(page);
-};
-
-const handleSizeChange = (size: number) => {
-  ingredientsStore.setLimit(size);
-};
-
-const handleSortChange = ({ prop, order }: { prop: string; order: string }) => {
-  if (!order) {
-    ingredientsStore.setSort('', 'ASC');
-    return;
-  }
-  const sortOrder = order === 'ascending' ? 'ASC' : 'DESC';
-  ingredientsStore.setSort(prop, sortOrder);
-};
 
 const handleAdd = () => {
   isEdit.value = false;
@@ -252,9 +260,100 @@ const resetForm = () => {
 </script>
 
 <style scoped>
-.nutrition-tags {
+.nutrition-trigger {
+  cursor: pointer;
+  border: none;
+  background-color: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: middle;
+  height: 24px;
+  padding: 0 12px;
+}
+
+.nutrition-trigger:hover {
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+}
+
+.nutrition-card {
+  padding: 4px;
+}
+
+.card-header {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.card-header .title {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
+}
+
+.card-header .subtitle {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.nutrient-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.nutrient-row:last-child {
+  margin-bottom: 0;
+}
+
+.nutrient-label {
+  display: flex;
+  align-items: center;
+  color: var(--el-text-color-regular);
+}
+
+.nutrient-value {
+  font-family: var(--el-font-family);
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+}
+
+.dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  opacity: 0.2;
+  background-color: inherit;
+}
+
+.dot.protein {
+  background-color: #e6a23c;
+}
+.dot.fat {
+  background-color: #f56c6c;
+}
+.dot.carbs {
+  background-color: #409eff;
 }
 </style>

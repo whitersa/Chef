@@ -1,21 +1,62 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import { processingApi, type ProcessingMethod } from '../api/processing';
 import { ElMessage } from 'element-plus';
 
 export const useProcessingStore = defineStore('processing', () => {
   const methods = ref<ProcessingMethod[]>([]);
   const loading = ref(false);
+  const pagination = reactive({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+  const query = reactive({
+    search: '',
+    sort: '',
+    order: 'ASC' as 'ASC' | 'DESC',
+  });
 
   async function fetchMethods() {
     loading.value = true;
     try {
-      methods.value = await processingApi.getAll();
+      const { data, meta } = await processingApi.getAll({
+        page: pagination.page,
+        limit: pagination.limit,
+        search: query.search,
+        sort: query.sort,
+        order: query.order,
+      });
+      methods.value = data;
+      pagination.total = meta.total;
     } catch (error) {
       console.error('Failed to fetch processing methods:', error);
     } finally {
       loading.value = false;
     }
+  }
+
+  function setSearch(term: string) {
+    query.search = term;
+    pagination.page = 1;
+    fetchMethods();
+  }
+
+  function setPage(page: number) {
+    pagination.page = page;
+    fetchMethods();
+  }
+
+  function setLimit(limit: number) {
+    pagination.limit = limit;
+    pagination.page = 1;
+    fetchMethods();
+  }
+
+  function setSort(field: string, order: 'ASC' | 'DESC') {
+    query.sort = field;
+    query.order = order;
+    fetchMethods();
   }
 
   async function createMethod(name: string, description?: string) {
@@ -43,8 +84,13 @@ export const useProcessingStore = defineStore('processing', () => {
   return {
     methods,
     loading,
+    pagination,
     fetchMethods,
     createMethod,
     removeMethod,
+    setSearch,
+    setPage,
+    setLimit,
+    setSort,
   };
 });

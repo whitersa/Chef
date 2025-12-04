@@ -1,16 +1,34 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import { usersApi } from '../api/users';
 import type { User } from '@chefos/types';
 
 export const useUserStore = defineStore('user', () => {
   const users = ref<User[]>([]);
   const loading = ref(false);
+  const pagination = reactive({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+  const query = reactive({
+    search: '',
+    sort: '',
+    order: 'ASC' as 'ASC' | 'DESC',
+  });
 
   async function fetchUsers() {
     loading.value = true;
     try {
-      users.value = await usersApi.getAll();
+      const { data, meta } = await usersApi.getAll({
+        page: pagination.page,
+        limit: pagination.limit,
+        search: query.search,
+        sort: query.sort,
+        order: query.order,
+      });
+      users.value = data;
+      pagination.total = meta.total;
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {
@@ -18,10 +36,33 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  function setSearch(term: string) {
+    query.search = term;
+    pagination.page = 1;
+    fetchUsers();
+  }
+
+  function setPage(page: number) {
+    pagination.page = page;
+    fetchUsers();
+  }
+
+  function setLimit(limit: number) {
+    pagination.limit = limit;
+    pagination.page = 1;
+    fetchUsers();
+  }
+
+  function setSort(field: string, order: 'ASC' | 'DESC') {
+    query.sort = field;
+    query.order = order;
+    fetchUsers();
+  }
+
   async function createUser(user: Partial<User>) {
     try {
-      const newUser = await usersApi.create(user);
-      users.value.push(newUser);
+      await usersApi.create(user);
+      fetchUsers();
     } catch (error) {
       console.error('Failed to create user:', error);
       throw error;
@@ -31,12 +72,23 @@ export const useUserStore = defineStore('user', () => {
   async function deleteUser(id: string) {
     try {
       await usersApi.delete(id);
-      users.value = users.value.filter((u) => u.id !== id);
+      fetchUsers();
     } catch (error) {
       console.error('Failed to delete user:', error);
       throw error;
     }
   }
 
-  return { users, loading, fetchUsers, createUser, deleteUser };
+  return {
+    users,
+    loading,
+    pagination,
+    fetchUsers,
+    createUser,
+    deleteUser,
+    setSearch,
+    setPage,
+    setLimit,
+    setSort,
+  };
 });

@@ -1,4 +1,5 @@
 import { api } from '../api-client';
+import type { PaginatedResponse, PaginationQuery } from './common';
 
 export interface ProcessingMethod {
   id: string;
@@ -7,7 +8,8 @@ export interface ProcessingMethod {
 }
 
 export const processingApi = {
-  getAll: () => api.get<ProcessingMethod[]>('/processing-methods'),
+  getAll: (query?: PaginationQuery) =>
+    api.get<PaginatedResponse<ProcessingMethod>>('/processing-methods', { params: query }),
   create: (data: { name: string; description?: string }) => api.post('/processing-methods', data),
   delete: (id: string) => api.delete(`/processing-methods/${id}`),
 };

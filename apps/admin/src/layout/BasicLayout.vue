@@ -310,6 +310,14 @@ function handleUserCommand(command: string) {
 .el-main {
   background-color: var(--el-bg-color-page);
   padding: var(--app-main-padding) !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Let children handle scrolling */
+}
+
+.el-main > * {
+  flex: 1;
+  min-height: 0;
 }
 
 .fade-enter-active,
