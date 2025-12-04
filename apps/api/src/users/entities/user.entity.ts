@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity({ comment: 'System users including chefs and staff' })
@@ -47,4 +48,7 @@ export class User {
 
   @UpdateDateColumn({ comment: 'Record last update timestamp' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ comment: 'Deletion timestamp for soft delete' })
+  deletedAt: Date;
 }

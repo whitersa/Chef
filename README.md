@@ -300,7 +300,7 @@
   - [ ] 使用 `Server Component` 直接在服务端请求 NestJS 的“热门菜谱”接口。
   - [ ] 使用 Tailwind CSS 快速构建响应式网格布局。
 - [ ] **菜谱详情页 (Detail)**：
-  - [ ] 创建动态路由 `app/recipe/[id]/page.tsx`。
+  - [ ] 创建 动态路由 `app/recipe/[id]/page.tsx`。
   - [ ] **SEO 优化**：使用 `generateMetadata` 函数，根据 API 返回的菜谱名称动态生成 `<title>` 和 `<meta description>`。
   - [ ] **结构化数据**：注入 JSON-LD (Schema.org)，让 Google 能识别这是“食谱”并展示富文本搜索结果。
 
@@ -429,3 +429,35 @@
 
 - [ ] **错误边界 (Error Boundaries)**: 使用 `onErrorCaptured` 防止单组件崩溃导致白屏。
 - [x] **请求竞态处理**: 封装 Axios 取消重复请求 (AbortController)。
+
+---
+
+## 💾 进阶数据库设计 (Advanced Database Patterns)
+
+**目标**：引入企业级数据库设计模式，解决复杂关系、性能瓶颈与数据审计问题。
+
+### 🧠 涉及知识点 (Knowledge Points)
+
+- **软删除 (Soft Delete)**: 逻辑删除而非物理删除，保证数据可恢复性与历史关联完整性。
+- **闭包表 (Closure Table)**: 解决无限层级树形结构（如 BOM 表）的高效查询。
+- **物化视图 (Materialized View)**: 预计算复杂查询结果（如实时成本），以空间换时间。
+- **JSONB 索引 (GIN)**: 在关系型数据库中高效存储与检索非结构化数据。
+
+### 9.1 已实现模式 (Implemented)
+
+- [x] **软删除 (Soft Delete)**:
+  - [x] **核心实体**：`Recipe`, `Ingredient`, `User`, `SalesMenu`, `ProcessingMethod`。
+  - [x] **实现方式**：添加 `@DeleteDateColumn()`，TypeORM 自动处理 `deleted_at IS NULL` 过滤。
+  - [x] **价值**：防止误删导致的历史报表数据缺失。
+
+### 9.2 规划中模式 (Planned)
+
+- [ ] **闭包表 (Closure Table)**:
+  - [ ] **场景**：菜谱 BOM 的多级嵌套查询。
+  - [ ] **方案**：创建 `recipe_closure` 表存储所有祖先-后代关系，替代递归查询。
+- [ ] **物化视图 (Materialized View)**:
+  - [ ] **场景**：实时计算数百个菜谱的动态成本。
+  - [ ] **方案**：创建 `recipe_costs` 视图，在食材价格变动时触发刷新。
+- [ ] **JSONB GIN 索引**:
+  - [ ] **场景**：菜谱步骤 (`steps`) 的全文检索。
+  - [ ] **方案**：`CREATE INDEX ON recipe USING GIN (steps)`。

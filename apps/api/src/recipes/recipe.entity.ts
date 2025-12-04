@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   VersionColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { RecipeItem } from './recipe-item.entity';
 
@@ -59,4 +60,7 @@ export class Recipe {
 
   @OneToMany(() => RecipeItem, (item) => item.recipe, { cascade: true })
   items: RecipeItem[];
+
+  @DeleteDateColumn({ comment: 'Deletion timestamp for soft delete' })
+  deletedAt: Date;
 }

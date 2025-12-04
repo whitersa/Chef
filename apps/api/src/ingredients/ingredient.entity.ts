@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   VersionColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity({ comment: 'Raw ingredients used in recipes' })
@@ -58,4 +59,7 @@ export class Ingredient {
 
   @UpdateDateColumn({ comment: 'Record last update timestamp' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ comment: 'Deletion timestamp for soft delete' })
+  deletedAt: Date;
 }
