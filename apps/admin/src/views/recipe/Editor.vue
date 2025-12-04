@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useIngredientsStore } from '../../stores/ingredients';
-import { useRecipeStore } from '../../stores/recipe';
-import { useProcessingStore } from '../../stores/processing';
+import { useIngredientsStore } from '@/stores/ingredients';
+import { useRecipeStore } from '@/stores/recipe';
+import { useProcessingStore } from '@/stores/processing';
 import draggable from 'vuedraggable';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { Delete } from '@element-plus/icons-vue';
-import BaseChart from '../../components/BaseChart.vue';
+import BaseChart from '@/components/BaseChart.vue';
 
 const route = useRoute();
 const ingredientsStore = useIngredientsStore();

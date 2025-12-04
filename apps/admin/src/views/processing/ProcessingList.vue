@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { useProcessingStore } from '../../stores/processing';
+import { useProcessingStore } from '@/stores/processing';
 import { Delete, Plus } from '@element-plus/icons-vue';
 import { useListFilter } from '@/composables/useListFilter';
 import { storeToRefs } from 'pinia';

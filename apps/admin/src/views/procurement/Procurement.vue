@@ -159,14 +159,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { recipesApi, type Recipe } from '../../api/recipes';
+import { recipesApi, type Recipe } from '@/api/recipes';
 import {
   procurementApi,
   type ProcurementItem,
   type Procurement,
   ProcurementStatus,
-} from '../../api/procurement';
-import { useSalesMenuStore } from '../../stores/sales-menu';
+} from '@/api/procurement';
+import { useSalesMenuStore } from '@/stores/sales-menu';
 import { ElMessage } from 'element-plus';
 
 interface RequestItem {

@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { useRecipeStore } from '../../stores/recipe';
+import { useRecipeStore } from '@/stores/recipe';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useListFilter } from '@/composables/useListFilter';

@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue';
-import { useUserStore } from '../../stores/user';
+import { useUserStore } from '@/stores/user';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { useListFilter } from '@/composables/useListFilter';

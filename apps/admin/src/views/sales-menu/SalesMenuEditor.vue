@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useSalesMenuStore } from '../../stores/sales-menu';
-import { useRecipeStore } from '../../stores/recipe';
-import { recipesApi } from '../../api/recipes';
+import { useSalesMenuStore } from '@/stores/sales-menu';
+import { useRecipeStore } from '@/stores/recipe';
+import { recipesApi } from '@/api/recipes';
 import draggable from 'vuedraggable';
 import { Delete, InfoFilled } from '@element-plus/icons-vue';
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useSalesMenuStore } from '../../stores/sales-menu';
+import { useSalesMenuStore } from '@/stores/sales-menu';
 import { Edit, Delete, Plus } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
 import { useListFilter } from '@/composables/useListFilter';
