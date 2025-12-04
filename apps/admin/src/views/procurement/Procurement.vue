@@ -327,7 +327,13 @@ const showHistory = async () => {
   historyLoading.value = true;
   try {
     const res = await procurementApi.getAll();
+    if (!Array.isArray(res)) {
+      throw new Error('后端返回数据格式异常: 期望数组');
+    }
     historyList.value = res;
+  } catch (error: any) {
+    console.error(error);
+    ElMessage.error(error.message || '获取历史记录失败');
   } finally {
     historyLoading.value = false;
   }

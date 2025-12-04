@@ -28,18 +28,24 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
   async function fetchMenus() {
     loading.value = true;
     try {
-      const { data, meta } = await salesMenusApi.getAll({
+      const res = await salesMenusApi.getAll({
         page: pagination.page,
         limit: pagination.limit,
         search: query.search,
         sort: query.sort,
         order: query.order,
       });
-      menus.value = data;
-      pagination.total = meta.total;
-    } catch (error) {
+
+      // Defensive check for response format
+      if (!res || !Array.isArray(res.data) || !res.meta) {
+        throw new Error('后端返回数据格式异常: 缺少分页数据');
+      }
+
+      menus.value = res.data;
+      pagination.total = res.meta.total;
+    } catch (error: any) {
       console.error('Failed to fetch sales menus:', error);
-      ElMessage.error('获取菜单列表失败');
+      ElMessage.error(error.message || '获取菜单列表失败');
     } finally {
       loading.value = false;
     }
