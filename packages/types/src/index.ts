@@ -19,5 +19,18 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Recipe {
+  id: string;
+  name: string;
+  steps: string[];
+  preProcessing: string[];
+  yieldQuantity: number;
+  yieldUnit: string;
+  laborCost: number;
+  items?: any[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export * from './dtos/create-ingredient.dto';
 export * from './dtos/create-recipe.dto';

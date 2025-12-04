@@ -64,6 +64,17 @@ export class ApiClient {
             window.location.href = '/login';
           }
         }
+
+        // Extract meaningful error message from backend response
+        if (error.response && error.response.data) {
+          const backendMessage = error.response.data.message;
+          if (backendMessage) {
+            error.message = Array.isArray(backendMessage)
+              ? backendMessage.join(', ')
+              : backendMessage;
+          }
+        }
+
         return Promise.reject(error);
       },
     );
