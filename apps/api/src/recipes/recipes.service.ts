@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Like } from 'typeorm';
 import { Recipe } from './recipe.entity';
 import { RecipeVersion } from './recipe-version.entity';
+import { RecipeCostView } from './recipe-cost-view.entity';
+import { Ingredient } from '../ingredients/ingredient.entity';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { NutritionDto } from './dto/nutrition.dto';
@@ -12,15 +14,63 @@ import { UnitConversionUtil } from '../common/utils/unit-conversion.util';
 import Decimal from 'decimal.js';
 
 @Injectable()
-export class RecipesService {
+export class RecipesService implements OnModuleInit {
   constructor(
     @InjectRepository(Recipe)
     private recipesRepository: Repository<Recipe>,
     @InjectRepository(RecipeVersion)
     private recipeVersionsRepository: Repository<RecipeVersion>,
+    @InjectRepository(RecipeCostView)
+    private recipeCostViewRepository: Repository<RecipeCostView>,
+    @InjectRepository(Ingredient)
+    private ingredientsRepository: Repository<Ingredient>,
     private auditService: AuditService,
     private dataSource: DataSource,
   ) {}
+
+  async onModuleInit() {
+    console.log('RecipesService: onModuleInit started');
+    const count = await this.recipesRepository.count();
+    if (count === 0) {
+      const tomato = await this.ingredientsRepository.findOne({
+        where: { name: '番茄' },
+      });
+      const egg = await this.ingredientsRepository.findOne({
+        where: { name: '鸡蛋' },
+      });
+
+      if (tomato && egg) {
+        const recipe = this.recipesRepository.create({
+          name: '番茄炒蛋',
+          steps: ['切番茄', '打鸡蛋', '炒鸡蛋', '炒番茄', '混合翻炒', '出锅'],
+          preProcessing: ['洗番茄', '洗鸡蛋'],
+          yieldQuantity: 2,
+          yieldUnit: 'portion',
+          laborCost: 5.0,
+          items: [
+            {
+              ingredient: tomato,
+              quantity: 0.5, // 0.5 kg tomato
+              yieldRate: 0.95,
+            },
+            {
+              ingredient: egg,
+              quantity: 0.3, // 0.3 kg egg
+              yieldRate: 1.0,
+            },
+          ],
+        });
+
+        await this.recipesRepository.save(recipe);
+        console.log('Seeded initial recipe: 番茄炒蛋');
+      }
+    }
+    console.log('RecipesService: onModuleInit completed');
+  }
+
+  async refreshMaterializedView() {
+    await this.dataSource.query('REFRESH MATERIALIZED VIEW "recipe_costs"');
+  }
 
   async create(createRecipeDto: CreateRecipeDto) {
     return this.dataSource.manager.transaction(async (manager) => {

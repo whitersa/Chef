@@ -17,6 +17,8 @@ import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
+import { API_PORT } from '@chefos/utils';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
@@ -30,6 +32,7 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Strip properties not in DTO
@@ -53,20 +56,25 @@ async function bootstrap() {
   });
 
   // Global Error Handling for Uncaught Exceptions and Rejections
-  process.on('uncaughtException', (err) => {
+  process.on('uncaughtException', (err: unknown) => {
     const logger = new NestLogger('UncaughtException');
-    logger.error(err.message, err.stack);
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    logger.error(message, stack);
     // In production, you might want to exit here to let PM2 restart the process
     // process.exit(1);
   });
 
-  process.on('unhandledRejection', (reason) => {
+  process.on('unhandledRejection', (reason: unknown) => {
     const logger = new NestLogger('UnhandledRejection');
     logger.error(
       `Unhandled Rejection: ${reason instanceof Error ? reason.message : String(reason)}`,
     );
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  console.log('Starting application listen...');
+  const port = process.env.PORT ?? (API_PORT as number);
+  await app.listen(port, '0.0.0.0');
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 void bootstrap();

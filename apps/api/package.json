@@ -20,14 +20,16 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typeorm": "typeorm-ts-node-commonjs",
-    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/config/typeorm.config.ts",
+    "typeorm": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js",
+    "migration:generate": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:generate -d src/config/typeorm.config.ts",
     "postmigration:generate": "npm run format",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/config/typeorm.config.ts",
-    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/config/typeorm.config.ts"
+    "migration:run": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:run -d src/config/typeorm.config.ts",
+    "migration:revert": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:revert -d src/config/typeorm.config.ts",
+    "migration:show": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:show -d src/config/typeorm.config.ts"
   },
   "dependencies": {
     "@chefos/types": "workspace:^",
+    "@chefos/utils": "workspace:^",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/cache-manager": "^2.3.0",
     "@nestjs/common": "^11.0.1",

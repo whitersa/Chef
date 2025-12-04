@@ -15,6 +15,7 @@ export class UsersService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    console.log('UsersService: onModuleInit started');
     // Clean up legacy users without username
     await this.userRepository.delete({ username: IsNull() });
 
@@ -80,6 +81,7 @@ export class UsersService implements OnModuleInit {
       await this.userRepository.save(adminUser);
       console.log('Updated admin password to support frontend hashing');
     }
+    console.log('UsersService: onModuleInit completed');
   }
 
   async create(createUserDto: CreateUserDto) {

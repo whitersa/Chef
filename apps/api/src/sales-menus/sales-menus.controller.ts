@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SalesMenusService } from './sales-menus.service';
 import { CreateSalesMenuDto } from './dto/create-sales-menu.dto';
 import { UpdateSalesMenuDto } from './dto/update-sales-menu.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 @Controller('sales-menus')
 export class SalesMenusController {
@@ -21,8 +23,8 @@ export class SalesMenusController {
   }
 
   @Get()
-  findAll() {
-    return this.salesMenusService.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.salesMenusService.findAll(query);
   }
 
   @Get(':id')

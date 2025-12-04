@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { CreateSalesMenuDto } from './dto/create-sales-menu.dto';
 import { UpdateSalesMenuDto } from './dto/update-sales-menu.dto';
 import { SalesMenu } from './entities/sales-menu.entity';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 @Injectable()
 export class SalesMenusService {
@@ -17,10 +18,34 @@ export class SalesMenusService {
     return this.salesMenuRepository.save(menu);
   }
 
-  findAll() {
-    return this.salesMenuRepository.find({
+  async findAll(query: PaginationQueryDto) {
+    const { page = 1, limit = 10, search, sort, order = 'ASC' } = query;
+    const skip = (page - 1) * limit;
+
+    const orderOption: Record<string, 'ASC' | 'DESC'> = {};
+    if (sort) {
+      orderOption[sort] = order;
+    } else {
+      orderOption['name'] = 'ASC';
+    }
+
+    const [items, total] = await this.salesMenuRepository.findAndCount({
+      where: search ? { name: Like(`%${search}%`) } : {},
       relations: ['items', 'items.recipe'],
+      skip,
+      take: limit,
+      order: orderOption,
     });
+
+    return {
+      data: items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string) {

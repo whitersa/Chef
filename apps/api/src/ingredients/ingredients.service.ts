@@ -33,6 +33,7 @@ export class IngredientsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    console.log('IngredientsService: onModuleInit started');
     const count = await this.ingredientsRepository.count();
     if (count === 0) {
       const ingredients = [
@@ -69,6 +70,7 @@ export class IngredientsService implements OnModuleInit {
       }
       console.log('Seeded initial ingredients');
     }
+    console.log('IngredientsService: onModuleInit completed');
   }
 
   async clearCache() {

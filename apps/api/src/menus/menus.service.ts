@@ -12,10 +12,12 @@ export class MenusService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    console.log('MenusService: onModuleInit started');
     const count = await this.repo.count();
     if (count === 0) {
       await this.seed();
     }
+    console.log('MenusService: onModuleInit completed');
   }
 
   async seed() {
