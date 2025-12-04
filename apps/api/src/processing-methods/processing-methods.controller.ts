@@ -1,5 +1,14 @@
-import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Delete,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { ProcessingMethodsService } from './processing-methods.service';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 @Controller('processing-methods')
 export class ProcessingMethodsController {
@@ -11,8 +20,8 @@ export class ProcessingMethodsController {
   }
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.service.findAll(query);
   }
 
   @Delete(':id')

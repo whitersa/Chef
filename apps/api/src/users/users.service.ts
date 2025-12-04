@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Like } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -93,8 +94,29 @@ export class UsersService implements OnModuleInit {
     return this.userRepository.save(user);
   }
 
-  findAll() {
-    return this.userRepository.find();
+  async findAll(query: PaginationQueryDto) {
+    const { page = 1, limit = 10, search } = query;
+    const skip = (page - 1) * limit;
+
+    const where = search
+      ? [{ username: Like(`%${search}%`) }, { name: Like(`%${search}%`) }]
+      : {};
+
+    const [data, total] = await this.userRepository.findAndCount({
+      where,
+      skip,
+      take: limit,
+      order: { id: 'DESC' },
+    });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+      },
+    };
   }
 
   async findOne(id: string) {
