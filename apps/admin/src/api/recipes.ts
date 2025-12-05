@@ -1,6 +1,7 @@
 import { api } from '../api-client';
 import type { PaginatedResponse, PaginationQuery } from './common';
 import type { Ingredient } from './ingredients';
+import type { ProcessingStep } from '@chefos/types';
 
 export interface RecipeItem {
   id: string;
@@ -16,7 +17,7 @@ export interface Recipe {
   id: string;
   name: string;
   steps?: string[];
-  preProcessing?: string[];
+  preProcessing?: ProcessingStep[];
   items: RecipeItem[];
 }
 
@@ -30,7 +31,7 @@ export interface CreateRecipeItemRequest {
 export interface CreateRecipeRequest {
   name: string;
   steps?: string[];
-  preProcessing?: string[];
+  preProcessing?: ProcessingStep[];
   items?: CreateRecipeItemRequest[];
 }
 

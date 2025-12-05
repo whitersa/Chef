@@ -70,7 +70,10 @@ function confirmProcessing() {
       description = description.replace('{ingredient}', currentIngredient.value.name);
       description = description.replace('{time}', '___'); // Placeholder
 
-      recipeStore.preProcessing.push(description);
+      recipeStore.preProcessing.push({
+        description,
+        type: 'mandatory',
+      });
     }
   }
   dialogVisible.value = false;
@@ -136,14 +139,8 @@ const nutritionOptions = computed(() => {
     <div class="main-area">
       <!-- 左侧：食材库 -->
       <div class="panel left-panel">
-        <el-tabs
-          v-model="activeTab"
-          class="left-tabs"
-        >
-          <el-tab-pane
-            label="食材库"
-            name="ingredients"
-          >
+        <el-tabs v-model="activeTab" class="left-tabs">
+          <el-tab-pane label="食材库" name="ingredients">
             <div class="search-box">
               <el-input
                 v-model="ingredientsStore.search"
@@ -167,10 +164,7 @@ const nutritionOptions = computed(() => {
               </template>
             </draggable>
           </el-tab-pane>
-          <el-tab-pane
-            label="菜谱库"
-            name="recipes"
-          >
+          <el-tab-pane label="菜谱库" name="recipes">
             <div class="search-box">
               <el-input
                 v-model="recipeStore.search"
@@ -239,16 +233,10 @@ const nutritionOptions = computed(() => {
             <div class="section-header">
               <h3>配方详情</h3>
               <div class="cost-summary">
-                <el-tag
-                  type="info"
-                  effect="plain"
-                >
+                <el-tag type="info" effect="plain">
                   总成本: ¥{{ recipeStore.totalCost.toFixed(2) }}
                 </el-tag>
-                <el-tag
-                  type="success"
-                  effect="plain"
-                >
+                <el-tag type="success" effect="plain">
                   单份: ¥{{ recipeStore.costPerPortion.toFixed(2) }}
                 </el-tag>
               </div>
@@ -263,9 +251,7 @@ const nutritionOptions = computed(() => {
             >
               <template #item="{ element, index }">
                 <div class="recipe-item">
-                  <div class="drag-handle">
-                    ⋮⋮
-                  </div>
+                  <div class="drag-handle">⋮⋮</div>
                   <div class="info">
                     <span class="name">{{ element.name }}</span>
                     <span class="cost">单价: ¥{{ element.price }}</span>
@@ -312,18 +298,27 @@ const nutritionOptions = computed(() => {
             <h3>预处理</h3>
             <div class="steps-list">
               <div
-                v-for="(_, index) in recipeStore.preProcessing"
+                v-for="(step, index) in recipeStore.preProcessing"
                 :key="index"
                 class="step-item"
               >
                 <span class="step-index">{{ index + 1 }}.</span>
-                <el-input
-                  v-model="recipeStore.preProcessing[index]"
-                  type="textarea"
-                  :rows="2"
-                  placeholder="请输入预处理步骤"
-                  class="step-input"
-                />
+                <div
+                  class="step-content"
+                  style="flex: 1; display: flex; flex-direction: column; gap: 8px"
+                >
+                  <el-input
+                    v-model="step.description"
+                    type="textarea"
+                    :rows="2"
+                    placeholder="请输入预处理步骤"
+                  />
+                  <el-radio-group v-model="step.type" size="small">
+                    <el-radio-button label="mandatory">必要</el-radio-button>
+                    <el-radio-button label="recommended">推荐</el-radio-button>
+                    <el-radio-button label="optional">可选</el-radio-button>
+                  </el-radio-group>
+                </div>
                 <el-button
                   type="danger"
                   circle
@@ -346,11 +341,7 @@ const nutritionOptions = computed(() => {
           <div class="section">
             <h3>制作步骤</h3>
             <div class="steps-list">
-              <div
-                v-for="(_, index) in recipeStore.steps"
-                :key="index"
-                class="step-item"
-              >
+              <div v-for="(_, index) in recipeStore.steps" :key="index" class="step-item">
                 <span class="step-index">{{ index + 1 }}.</span>
                 <el-input
                   v-model="recipeStore.steps[index]"
@@ -359,12 +350,7 @@ const nutritionOptions = computed(() => {
                   placeholder="请输入步骤描述"
                   class="step-input"
                 />
-                <el-button
-                  type="danger"
-                  circle
-                  size="small"
-                  @click="recipeStore.removeStep(index)"
-                >
+                <el-button type="danger" circle size="small" @click="recipeStore.removeStep(index)">
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </div>
@@ -386,10 +372,7 @@ const nutritionOptions = computed(() => {
         <div class="chart-wrapper">
           <BaseChart :options="nutritionOptions" />
         </div>
-        <div
-          v-if="recipeStore.items.length > 0"
-          class="nutrition-summary"
-        >
+        <div v-if="recipeStore.items.length > 0" class="nutrition-summary">
           <p>蛋白质: {{ recipeStore.totalNutrition.protein.toFixed(1) }}g</p>
           <p>脂肪: {{ recipeStore.totalNutrition.fat.toFixed(1) }}g</p>
           <p>碳水: {{ recipeStore.totalNutrition.carbs.toFixed(1) }}g</p>
@@ -400,28 +383,15 @@ const nutritionOptions = computed(() => {
     <!-- 底部固定栏 -->
     <div class="bottom-bar">
       <div class="bar-left">
-        <el-input
-          v-model="recipeStore.name"
-          placeholder="请输入菜谱名称"
-          style="width: 200px"
-        />
+        <el-input v-model="recipeStore.name" placeholder="请输入菜谱名称" style="width: 200px" />
       </div>
       <div class="bar-right">
-        <el-button
-          type="primary"
-          @click="recipeStore.saveRecipe"
-        >
-          保存菜谱
-        </el-button>
+        <el-button type="primary" @click="recipeStore.saveRecipe"> 保存菜谱 </el-button>
       </div>
     </div>
 
     <!-- Dialog for Pre-processing Selection -->
-    <el-dialog
-      v-model="dialogVisible"
-      title="选择预处理流程"
-      width="400px"
-    >
+    <el-dialog v-model="dialogVisible" title="选择预处理流程" width="400px">
       <p v-if="currentIngredient">
         是否为 <b>{{ currentIngredient.name }}</b> 添加预处理步骤？
       </p>
@@ -430,10 +400,7 @@ const nutritionOptions = computed(() => {
         placeholder="请选择预处理方式"
         style="width: 100%; margin-top: 10px"
       >
-        <el-option
-          label="不进行预处理"
-          value=""
-        />
+        <el-option label="不进行预处理" value="" />
         <el-option
           v-for="method in processingStore.methods"
           :key="method.id"
@@ -444,10 +411,7 @@ const nutritionOptions = computed(() => {
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button
-            type="primary"
-            @click="confirmProcessing"
-          >确定</el-button>
+          <el-button type="primary" @click="confirmProcessing">确定</el-button>
         </span>
       </template>
     </el-dialog>

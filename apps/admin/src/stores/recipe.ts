@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { recipesApi } from '../api/recipes';
 import { ElMessage } from 'element-plus';
+import type { ProcessingStep } from '@chefos/types';
 
 export interface RecipeItem {
   id: string; // temporary UI ID
@@ -35,7 +36,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   const name = ref('');
   const items = ref<RecipeItem[]>([]);
   const steps = ref<string[]>([]);
-  const preProcessing = ref<string[]>([]);
+  const preProcessing = ref<ProcessingStep[]>([]);
   const yieldQuantity = ref(1);
   const yieldUnit = ref('portion');
   const laborCost = ref(0);
@@ -162,7 +163,7 @@ export const useRecipeStore = defineStore('recipe', () => {
   }
 
   function addPreProcessing() {
-    preProcessing.value.push('');
+    preProcessing.value.push({ description: '', type: 'mandatory' });
   }
 
   function removePreProcessing(index: number) {

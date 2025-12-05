@@ -34,6 +34,13 @@ export interface Dish {
   cuisine?: Cuisine;
 }
 
+export type ProcessingStepType = 'recommended' | 'mandatory' | 'optional';
+
+export interface ProcessingStep {
+  description: string;
+  type: ProcessingStepType;
+}
+
 export interface Recipe {
   id: string;
   dishId?: string;
@@ -41,7 +48,7 @@ export interface Recipe {
   variantName: string;
   name: string;
   steps: string[];
-  preProcessing: string[];
+  preProcessing: ProcessingStep[];
   yieldQuantity: number;
   yieldUnit: string;
   laborCost: number;

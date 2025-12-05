@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { RecipeItem } from './recipe-item.entity';
 import { Dish } from '../dishes/dish.entity';
+import { ProcessingStep } from '@chefos/types';
 
 @Entity({ comment: 'Recipes containing instructions and ingredients' })
 export class Recipe {
@@ -41,7 +42,7 @@ export class Recipe {
     nullable: true,
     comment: 'Pre-processing steps required before cooking',
   })
-  preProcessing!: string[];
+  preProcessing!: ProcessingStep[];
 
   @Column('decimal', {
     precision: 10,

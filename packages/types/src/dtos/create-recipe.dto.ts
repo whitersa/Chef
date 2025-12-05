@@ -1,7 +1,9 @@
+import { ProcessingStep } from '../index';
+
 export interface CreateRecipeDto {
   name: string;
   steps?: string[];
-  preProcessing?: string[];
+  preProcessing?: ProcessingStep[];
   items?: Array<{
     quantity: number;
     yieldRate?: number;
