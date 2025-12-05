@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Delete,
-  Param,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param, Query } from '@nestjs/common';
 import { ProcessingMethodsService } from './processing-methods.service';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 

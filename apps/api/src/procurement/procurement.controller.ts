@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  Param,
-  Patch,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, ParseUUIDPipe } from '@nestjs/common';
 import { ProcurementService } from './procurement.service';
 import { CreateProcurementListDto } from './dto/create-procurement-list.dto';
 import { ProcurementStatus } from './procurement.entity';
@@ -16,9 +8,7 @@ export class ProcurementController {
   constructor(private readonly procurementService: ProcurementService) {}
 
   @Post('generate')
-  async generateList(
-    @Body() createProcurementListDto: CreateProcurementListDto,
-  ) {
+  async generateList(@Body() createProcurementListDto: CreateProcurementListDto) {
     return this.procurementService.generateList(createProcurementListDto);
   }
 

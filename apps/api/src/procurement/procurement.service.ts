@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RecipesService } from '../recipes/recipes.service';
@@ -31,10 +27,7 @@ export class ProcurementService {
 
     const procurement = new Procurement();
     procurement.status = ProcurementStatus.PENDING;
-    procurement.totalPrice = items.reduce(
-      (sum, item) => sum + item.estimatedCost,
-      0,
-    );
+    procurement.totalPrice = items.reduce((sum, item) => sum + item.estimatedCost, 0);
 
     const procurementItems = items.map((item) => {
       const pi = new ProcurementItem();
@@ -69,18 +62,13 @@ export class ProcurementService {
     if (!procurement) throw new NotFoundException('Procurement not found');
 
     if (procurement.status === ProcurementStatus.COMPLETED) {
-      throw new BadRequestException(
-        'Cannot change status of completed procurement',
-      );
+      throw new BadRequestException('Cannot change status of completed procurement');
     }
 
     if (status === ProcurementStatus.COMPLETED) {
       // Update stock
       for (const item of procurement.items) {
-        await this.ingredientsService.updateStock(
-          item.ingredient.id,
-          item.quantity,
-        );
+        await this.ingredientsService.updateStock(item.ingredient.id, item.quantity);
       }
     }
 
@@ -152,17 +140,12 @@ export class ProcurementService {
   private async processRecipe(
     recipeId: string,
     multiplier: Decimal,
-    map: Map<
-      string,
-      { name: string; quantity: Decimal; unit: string; cost: Decimal }
-    >,
+    map: Map<string, { name: string; quantity: Decimal; unit: string; cost: Decimal }>,
     visited: Set<string>,
   ) {
     try {
       if (visited.has(recipeId)) {
-        console.warn(
-          `Circular dependency detected for recipe ${recipeId}, skipping.`,
-        );
+        console.warn(`Circular dependency detected for recipe ${recipeId}, skipping.`);
         return;
       }
       visited.add(recipeId);
@@ -192,9 +175,7 @@ export class ProcurementService {
 
         if (item.ingredient) {
           const existing = map.get(item.ingredient.id);
-          const cost = new Decimal(item.ingredient.price || 0).times(
-            grossQuantity,
-          );
+          const cost = new Decimal(item.ingredient.price || 0).times(grossQuantity);
 
           if (existing) {
             existing.quantity = existing.quantity.plus(grossQuantity);

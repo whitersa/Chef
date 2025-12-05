@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  OnModuleInit,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, DataSource } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -64,9 +59,7 @@ export class IngredientsService implements OnModuleInit {
       ];
 
       for (const item of ingredients) {
-        await this.ingredientsRepository.save(
-          this.ingredientsRepository.create(item),
-        );
+        await this.ingredientsRepository.save(this.ingredientsRepository.create(item));
       }
       console.log('Seeded initial ingredients');
     }
@@ -194,8 +187,7 @@ export class IngredientsService implements OnModuleInit {
       throw new NotFoundException('Ingredient not found');
     }
 
-    ingredient.stockQuantity =
-      Number(ingredient.stockQuantity || 0) + Number(quantityChange);
+    ingredient.stockQuantity = Number(ingredient.stockQuantity || 0) + Number(quantityChange);
 
     // We might want to skip versioning for stock updates to avoid bloat,
     // or we can treat it as a regular update. For now, let's just save it.

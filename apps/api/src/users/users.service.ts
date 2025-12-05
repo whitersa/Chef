@@ -27,10 +27,7 @@ export class UsersService implements OnModuleInit {
 
     // Always update admin password to match new frontend hashing (MD5)
     // This ensures dev environment is always consistent
-    const md5Password = crypto
-      .createHash('md5')
-      .update('password')
-      .digest('hex');
+    const md5Password = crypto.createHash('md5').update('password').digest('hex');
     const hashedPassword = await bcrypt.hash(md5Password, 10);
 
     if (!adminUser) {
@@ -98,9 +95,7 @@ export class UsersService implements OnModuleInit {
     const { page = 1, limit = 10, search } = query;
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? [{ username: Like(`%${search}%`) }, { name: Like(`%${search}%`) }]
-      : {};
+    const where = search ? [{ username: Like(`%${search}%`) }, { name: Like(`%${search}%`) }] : {};
 
     const [data, total] = await this.userRepository.findAndCount({
       where,

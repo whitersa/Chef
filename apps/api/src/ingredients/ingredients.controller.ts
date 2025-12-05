@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
@@ -37,10 +28,7 @@ export class IngredientsController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateIngredientDto: Partial<CreateIngredientDto>,
-  ) {
+  update(@Param('id') id: string, @Body() updateIngredientDto: Partial<CreateIngredientDto>) {
     return this.ingredientsService.update(id, updateIngredientDto);
   }
 

@@ -37,9 +37,7 @@ export class InitialSchema1764307254190 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "menu" DROP CONSTRAINT "FK_23ac1b81a7bfb85b14e86bd23a5"`,
-    );
+    await queryRunner.query(`ALTER TABLE "menu" DROP CONSTRAINT "FK_23ac1b81a7bfb85b14e86bd23a5"`);
     await queryRunner.query(
       `ALTER TABLE "recipe_item" DROP CONSTRAINT "FK_04f0905a5083aa0b63e1f7c7fa4"`,
     );

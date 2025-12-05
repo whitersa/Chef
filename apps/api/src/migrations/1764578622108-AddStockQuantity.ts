@@ -19,9 +19,7 @@ export class AddStockQuantity1764578622108 implements MigrationInterface {
     await queryRunner.query(
       `COMMENT ON COLUMN "ingredient"."stockQuantity" IS 'Current stock quantity'`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "ingredient" ADD "stockUnit" character varying`,
-    );
+    await queryRunner.query(`ALTER TABLE "ingredient" ADD "stockUnit" character varying`);
     await queryRunner.query(
       `COMMENT ON COLUMN "ingredient"."stockUnit" IS 'Unit for stock (usually same as unit)'`,
     );
@@ -47,9 +45,7 @@ export class AddStockQuantity1764578622108 implements MigrationInterface {
     await queryRunner.query(
       `COMMENT ON COLUMN "ingredient"."stockQuantity" IS 'Current stock quantity'`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "ingredient" DROP COLUMN "stockQuantity"`,
-    );
+    await queryRunner.query(`ALTER TABLE "ingredient" DROP COLUMN "stockQuantity"`);
     await queryRunner.query(`DROP TABLE "procurement"`);
     await queryRunner.query(`DROP TYPE "public"."procurement_status_enum"`);
     await queryRunner.query(`DROP TABLE "procurement_item"`);

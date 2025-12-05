@@ -10,13 +10,7 @@ import { Ingredient } from '../ingredients/ingredient.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Recipe,
-      RecipeItem,
-      RecipeVersion,
-      RecipeCostView,
-      Ingredient,
-    ]),
+    TypeOrmModule.forFeature([Recipe, RecipeItem, RecipeVersion, RecipeCostView, Ingredient]),
   ],
   controllers: [RecipesController],
   providers: [RecipesService],

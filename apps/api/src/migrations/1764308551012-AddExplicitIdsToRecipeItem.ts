@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddExplicitIdsToRecipeItem1764308551012
-  implements MigrationInterface
-{
+export class AddExplicitIdsToRecipeItem1764308551012 implements MigrationInterface {
   name = 'AddExplicitIdsToRecipeItem1764308551012';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

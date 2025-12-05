@@ -217,9 +217,7 @@ describe('RecipesService', () => {
       });
 
       // Act & Assert
-      await expect(service.calculateCost('A')).rejects.toThrow(
-        'Circular dependency detected',
-      );
+      await expect(service.calculateCost('A')).rejects.toThrow('Circular dependency detected');
     });
 
     it('should throw error if yield rate is zero', async () => {
@@ -237,9 +235,7 @@ describe('RecipesService', () => {
 
       mockRecipeRepository.findOne.mockResolvedValue(recipe);
 
-      await expect(service.calculateCost('recipe-1')).rejects.toThrow(
-        'Yield rate cannot be zero',
-      );
+      await expect(service.calculateCost('recipe-1')).rejects.toThrow('Yield rate cannot be zero');
     });
   });
 });

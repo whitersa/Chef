@@ -84,13 +84,9 @@ export class RecipesService implements OnModuleInit {
       // We'll just await it. If it fails, the transaction might have already committed.
       // For critical audit, it should be in transaction.
       // Let's keep it simple for now.
-      await this.auditService.log(
-        'system',
-        'CREATE',
-        'Recipe',
-        savedRecipe.id,
-        { name: savedRecipe.name },
-      );
+      await this.auditService.log('system', 'CREATE', 'Recipe', savedRecipe.id, {
+        name: savedRecipe.name,
+      });
 
       return savedRecipe;
     });
@@ -142,11 +138,7 @@ export class RecipesService implements OnModuleInit {
         await manager.delete('RecipeItem', { recipeId: id });
       }
 
-      const updatedRecipe = manager.merge(
-        Recipe,
-        currentRecipe,
-        updateRecipeDto,
-      );
+      const updatedRecipe = manager.merge(Recipe, currentRecipe, updateRecipeDto);
       const saved = await manager.save(Recipe, updatedRecipe);
 
       // 4. Log Audit
@@ -229,10 +221,7 @@ export class RecipesService implements OnModuleInit {
       throw new Error('Yield quantity cannot be zero');
     }
 
-    return totalCostWithLabor
-      .dividedBy(yieldQuantity)
-      .toDecimalPlaces(2)
-      .toNumber();
+    return totalCostWithLabor.dividedBy(yieldQuantity).toDecimalPlaces(2).toNumber();
   }
 
   async calculateNutrition(id: string): Promise<NutritionDto> {
@@ -273,10 +262,7 @@ export class RecipesService implements OnModuleInit {
       if (item.ingredient) {
         // Convert ingredient quantity to grams
         // item.quantity is Net Quantity (what goes into the pot)
-        itemWeightInGrams = UnitConversionUtil.toGrams(
-          item.quantity,
-          item.ingredient.unit,
-        );
+        itemWeightInGrams = UnitConversionUtil.toGrams(item.quantity, item.ingredient.unit);
 
         if (item.ingredient.nutrition) {
           // Nutrition is per 100g
@@ -291,10 +277,7 @@ export class RecipesService implements OnModuleInit {
         }
       } else if (item.childRecipe) {
         // Recursive call
-        const childStats = await this.calculateNutritionRecursive(
-          item.childRecipe.id,
-          visited,
-        );
+        const childStats = await this.calculateNutritionRecursive(item.childRecipe.id, visited);
 
         // NEW LOGIC: item.quantity is Number of Batches (e.g. 0.5 batches)
         const batches = new Decimal(item.quantity);
@@ -312,12 +295,8 @@ export class RecipesService implements OnModuleInit {
       }
 
       totalWeight = totalWeight.plus(itemWeightInGrams);
-      totalNutrition.calories = totalNutrition.calories.plus(
-        itemNutrition.calories,
-      );
-      totalNutrition.protein = totalNutrition.protein.plus(
-        itemNutrition.protein,
-      );
+      totalNutrition.calories = totalNutrition.calories.plus(itemNutrition.calories);
+      totalNutrition.protein = totalNutrition.protein.plus(itemNutrition.protein);
       totalNutrition.fat = totalNutrition.fat.plus(itemNutrition.fat);
       totalNutrition.carbs = totalNutrition.carbs.plus(itemNutrition.carbs);
     }
@@ -333,10 +312,7 @@ export class RecipesService implements OnModuleInit {
     };
   }
 
-  private async calculateCostRecursive(
-    id: string,
-    visited: Set<string>,
-  ): Promise<Decimal> {
+  private async calculateCostRecursive(id: string, visited: Set<string>): Promise<Decimal> {
     // 1. 循环依赖检测 (Cycle Detection)
     if (visited.has(id)) {
       throw new Error(`Circular dependency detected in recipe: ${id}`);
@@ -362,9 +338,7 @@ export class RecipesService implements OnModuleInit {
       const yieldRate = new Decimal(yieldRateVal);
 
       if (yieldRate.isZero()) {
-        throw new Error(
-          `Yield rate cannot be zero for item in recipe: ${recipe.name}`,
-        );
+        throw new Error(`Yield rate cannot be zero for item in recipe: ${recipe.name}`);
       }
 
       if (item.ingredient) {
@@ -373,10 +347,7 @@ export class RecipesService implements OnModuleInit {
         itemCost = price.times(quantity);
       } else if (item.childRecipe) {
         // B. 半成品成本 = 递归计算子菜谱成本 * 数量
-        const childRecipeCost = await this.calculateCostRecursive(
-          item.childRecipe.id,
-          visited,
-        );
+        const childRecipeCost = await this.calculateCostRecursive(item.childRecipe.id, visited);
         itemCost = childRecipeCost.times(quantity);
       }
 

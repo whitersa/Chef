@@ -44,9 +44,7 @@ describe('IngredientsService', () => {
 
   const mockDataSource = {
     manager: {
-      transaction: jest.fn((cb: (repo: typeof mockRepository) => unknown) =>
-        cb(mockRepository),
-      ),
+      transaction: jest.fn((cb: (repo: typeof mockRepository) => unknown) => cb(mockRepository)),
     },
   };
 
@@ -139,9 +137,7 @@ describe('IngredientsService', () => {
         savedEntity.id,
         expect.any(Object),
       );
-      expect(mockCacheManager.store.keys).toHaveBeenCalledWith(
-        'ingredients_list*',
-      );
+      expect(mockCacheManager.store.keys).toHaveBeenCalledWith('ingredients_list*');
       expect(mockCacheManager.store.mdel).toHaveBeenCalled();
     });
   });

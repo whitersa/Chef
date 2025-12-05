@@ -22,27 +22,15 @@ export class AddRecipeYieldAndLabor1764322374009 implements MigrationInterface {
     await queryRunner.query(
       `COMMENT ON COLUMN "recipe"."laborCost" IS 'Estimated labor cost for this recipe'`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "recipe_version" ADD "yieldQuantity" numeric(10,4)`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "recipe_version" ADD "yieldUnit" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "recipe_version" ADD "laborCost" numeric(10,2)`,
-    );
+    await queryRunner.query(`ALTER TABLE "recipe_version" ADD "yieldQuantity" numeric(10,4)`);
+    await queryRunner.query(`ALTER TABLE "recipe_version" ADD "yieldUnit" character varying`);
+    await queryRunner.query(`ALTER TABLE "recipe_version" ADD "laborCost" numeric(10,2)`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "recipe_version" DROP COLUMN "laborCost"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "recipe_version" DROP COLUMN "yieldUnit"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "recipe_version" DROP COLUMN "yieldQuantity"`,
-    );
+    await queryRunner.query(`ALTER TABLE "recipe_version" DROP COLUMN "laborCost"`);
+    await queryRunner.query(`ALTER TABLE "recipe_version" DROP COLUMN "yieldUnit"`);
+    await queryRunner.query(`ALTER TABLE "recipe_version" DROP COLUMN "yieldQuantity"`);
     await queryRunner.query(
       `COMMENT ON COLUMN "recipe"."laborCost" IS 'Estimated labor cost for this recipe'`,
     );

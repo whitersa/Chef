@@ -33,9 +33,7 @@ describe('SalesMenusService', () => {
     }).compile();
 
     service = module.get<SalesMenusService>(SalesMenusService);
-    repository = module.get<MockRepository<SalesMenu>>(
-      getRepositoryToken(SalesMenu),
-    );
+    repository = module.get<MockRepository<SalesMenu>>(getRepositoryToken(SalesMenu));
   });
 
   afterEach(() => {
@@ -66,9 +64,7 @@ describe('SalesMenusService', () => {
       const expectedMenus = [{ id: 'uuid', name: 'Lunch Menu' }];
       const total = 1;
       // Mock findAndCount instead of find
-      repository.findAndCount = jest
-        .fn()
-        .mockResolvedValue([expectedMenus, total]);
+      repository.findAndCount = jest.fn().mockResolvedValue([expectedMenus, total]);
 
       const result = await service.findAll({});
       expect(result).toEqual({

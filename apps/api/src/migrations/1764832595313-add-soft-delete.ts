@@ -8,21 +8,15 @@ export class AddSoftDelete1764832595313 implements MigrationInterface {
     await queryRunner.query(
       `COMMENT ON COLUMN "recipe"."deletedAt" IS 'Deletion timestamp for soft delete'`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "ingredient" ADD "deletedAt" TIMESTAMP`,
-    );
+    await queryRunner.query(`ALTER TABLE "ingredient" ADD "deletedAt" TIMESTAMP`);
     await queryRunner.query(
       `COMMENT ON COLUMN "ingredient"."deletedAt" IS 'Deletion timestamp for soft delete'`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "processing_method" ADD "deletedAt" TIMESTAMP`,
-    );
+    await queryRunner.query(`ALTER TABLE "processing_method" ADD "deletedAt" TIMESTAMP`);
     await queryRunner.query(
       `COMMENT ON COLUMN "processing_method"."deletedAt" IS 'Deletion timestamp for soft delete'`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "sales_menu" ADD "deletedAt" TIMESTAMP`,
-    );
+    await queryRunner.query(`ALTER TABLE "sales_menu" ADD "deletedAt" TIMESTAMP`);
     await queryRunner.query(
       `COMMENT ON COLUMN "sales_menu"."deletedAt" IS 'Deletion timestamp for soft delete'`,
     );
@@ -44,9 +38,7 @@ export class AddSoftDelete1764832595313 implements MigrationInterface {
     await queryRunner.query(
       `COMMENT ON COLUMN "processing_method"."deletedAt" IS 'Deletion timestamp for soft delete'`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "processing_method" DROP COLUMN "deletedAt"`,
-    );
+    await queryRunner.query(`ALTER TABLE "processing_method" DROP COLUMN "deletedAt"`);
     await queryRunner.query(
       `COMMENT ON COLUMN "ingredient"."deletedAt" IS 'Deletion timestamp for soft delete'`,
     );

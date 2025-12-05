@@ -13,10 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(
-    username: string,
-    pass: string,
-  ): Promise<ValidatedUser | null> {
+  async validateUser(username: string, pass: string): Promise<ValidatedUser | null> {
     const user = await this.usersService.findByUsername(username);
     if (user && (await bcrypt.compare(pass, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
