@@ -3,6 +3,8 @@ import { RecipesService } from './recipes.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Recipe } from './recipe.entity';
 import { RecipeVersion } from './recipe-version.entity';
+import { RecipeCostView } from './recipe-cost-view.entity';
+import { Ingredient } from '../ingredients/ingredient.entity';
 import { AuditService } from '../audit/audit.service';
 import { DataSource } from 'typeorm';
 
@@ -14,6 +16,8 @@ describe('RecipesService Nutrition', () => {
     findOne: jest.fn(),
   };
   const mockVersionRepo = {};
+  const mockCostViewRepo = {};
+  const mockIngredientRepo = {};
   const mockAuditService = {};
   const mockDataSource = {};
 
@@ -25,6 +29,14 @@ describe('RecipesService Nutrition', () => {
         {
           provide: getRepositoryToken(RecipeVersion),
           useValue: mockVersionRepo,
+        },
+        {
+          provide: getRepositoryToken(RecipeCostView),
+          useValue: mockCostViewRepo,
+        },
+        {
+          provide: getRepositoryToken(Ingredient),
+          useValue: mockIngredientRepo,
         },
         { provide: AuditService, useValue: mockAuditService },
         { provide: DataSource, useValue: mockDataSource },

@@ -5,6 +5,7 @@ import { RecipesService } from './recipes.service';
 import { Recipe } from './recipe.entity';
 import { RecipeVersion } from './recipe-version.entity';
 import { RecipeItem } from './recipe-item.entity';
+import { RecipeCostView } from './recipe-cost-view.entity';
 import { Ingredient } from '../ingredients/ingredient.entity';
 import { AuditService } from '../audit/audit.service';
 
@@ -23,6 +24,14 @@ describe('RecipesService', () => {
     find: jest.fn(),
     findOne: jest.fn(),
     save: jest.fn(),
+  };
+
+  const mockRecipeCostViewRepository = {
+    findOne: jest.fn(),
+  };
+
+  const mockIngredientRepository = {
+    findOne: jest.fn(),
   };
 
   const mockAuditService = {
@@ -46,6 +55,14 @@ describe('RecipesService', () => {
         {
           provide: getRepositoryToken(RecipeVersion),
           useValue: mockRecipeVersionRepository,
+        },
+        {
+          provide: getRepositoryToken(RecipeCostView),
+          useValue: mockRecipeCostViewRepository,
+        },
+        {
+          provide: getRepositoryToken(Ingredient),
+          useValue: mockIngredientRepository,
         },
         {
           provide: AuditService,

@@ -64,12 +64,28 @@ describe('SalesMenusService', () => {
   describe('findAll', () => {
     it('should return an array of sales menus', async () => {
       const expectedMenus = [{ id: 'uuid', name: 'Lunch Menu' }];
-      repository.find!.mockResolvedValue(expectedMenus);
+      const total = 1;
+      // Mock findAndCount instead of find
+      repository.findAndCount = jest
+        .fn()
+        .mockResolvedValue([expectedMenus, total]);
 
-      const result = await service.findAll();
-      expect(result).toEqual(expectedMenus);
-      expect(repository.find).toHaveBeenCalledWith({
+      const result = await service.findAll({});
+      expect(result).toEqual({
+        data: expectedMenus,
+        meta: {
+          total,
+          page: 1,
+          limit: 10,
+          totalPages: 1,
+        },
+      });
+      expect(repository.findAndCount).toHaveBeenCalledWith({
         relations: ['items', 'items.recipe'],
+        skip: 0,
+        take: 10,
+        order: { name: 'ASC' },
+        where: {},
       });
     });
   });
