@@ -8,22 +8,26 @@
 
 ```mermaid
 graph TD
-    User[用户浏览器] --> |访问 http://your-domain.com| Nginx[Nginx 服务器]
+    User[用户浏览器] --> |访问 admin.domain.com| Nginx[Nginx 服务器]
+    User --> |访问 www.domain.com| Nginx
 
     subgraph 服务器内部
-        Nginx --> |请求静态资源 (html/css/js)| Frontend[前端文件 (dist目录)]
-        Nginx --> |请求数据接口 (/api)| Backend[后端服务 (NestJS :3000)]
+        Nginx --> |Admin (静态资源)| AdminDist[Admin 前端 (dist目录)]
+        Nginx --> |Portal (SSR)| PortalService[Portal 服务 (Next.js :3001)]
+        Nginx --> |API (数据接口)| Backend[后端服务 (NestJS :3000)]
 
         Backend --> |读写数据| PostgreSQL[PostgreSQL 数据库]
         Backend --> |读写缓存| Redis[Redis 缓存]
+        PortalService --> |服务端请求| Backend
     end
 ```
 
 **简单来说：**
 
-1.  **前端 (Vue)**：编译后就是一堆文件（HTML, CSS, JS），需要用 **Nginx** 这种软件把它们“展示”给用户。
-2.  **后端 (NestJS)**：是一个一直在运行的程序（服务），监听在某个端口（比如 3000），处理数据请求。
-3.  **Nginx**：是守门员。用户要看页面，它给页面文件；用户要数据，它把请求转交给后端。
+1.  **Admin (Vue)**：编译后就是一堆文件（HTML, CSS, JS），需要用 **Nginx** 这种软件把它们“展示”给用户。
+2.  **Portal (Next.js)**：是一个服务端渲染应用，也需要像后端一样运行一个服务（通常在 3001 端口）。
+3.  **Backend (NestJS)**：是一个一直在运行的程序（服务），监听在某个端口（比如 3000），处理数据请求。
+4.  **Nginx**：是守门员。根据域名（admin 或 www）把请求分发给不同的服务或文件。
 
 ---
 
@@ -126,7 +130,56 @@ _如果你是初学者，建议先从 PM2 开始；等你熟悉了 Linux 和基�
 
 ---
 
-## 5. 数据库备份 (PostgreSQL)
+## 5. 门户部署 (Portal - Next.js)
+
+Portal 是一个 SSR (服务端渲染) 应用，它的部署方式更像后端，需要运行一个 Node.js 服务。
+
+### 步骤：
+
+1.  **上传代码**：将 `apps/portal` 目录上传到服务器。
+2.  **安装依赖**：
+    ```bash
+    cd apps/portal
+    npm install
+    ```
+3.  **配置环境变量**：
+    - 复制 `.env.example` 为 `.env`。
+    - 设置 `API_URL` 指向你的后端地址 (例如 `http://localhost:3000`，因为是服务端请求)。
+4.  **构建代码**：
+    ```bash
+    npm run build
+    ```
+    _构建完成后会生成 `.next` 目录。_
+5.  **启动服务**：
+    - **PM2 启动**:
+      ```bash
+      pm2 start npm --name "chef-portal" -- start -- -p 3001
+      ```
+      _这里我们让 Next.js 运行在 3001 端口。_
+
+### Nginx 配置补充：
+
+你需要为 Portal 配置一个新的 `server` 块，或者在同一个域名下用路径区分（不推荐，建议用子域名如 `www.your-domain.com`）。
+
+```nginx
+server {
+    listen 80;
+    server_name www.your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001; # 转发给 Next.js
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+---
+
+## 6. 数据库备份 (PostgreSQL)
 
 数据是无价的，定期备份非常重要。PostgreSQL 提供了 `pg_dump` 工具来导出数据。
 
@@ -169,7 +222,7 @@ _输入命令后通常需要输入数据库密码。_
 
 ---
 
-## 6. 配置 HTTPS (SSL 证书)
+## 7. 配置 HTTPS (SSL 证书)
 
 为了安全，强烈建议使用 HTTPS。我们可以使用 **Certbot** 免费申请 Let's Encrypt 证书。
 

@@ -294,17 +294,18 @@
 
 ### 5.1 Next.js 环境搭建 (`apps/portal`)
 
-- [ ] **初始化项目**：在 `apps/` 目录下运行 `npx create-next-app@latest portal` (选择 TypeScript, Tailwind CSS, App Router)。
-- [ ] **配置代理/跨域**：在 `next.config.js` 中配置 `rewrites`，将 `/api` 请求转发到 NestJS 后端。
-- [ ] **类型共享**：引入 `@chefos/types`，确保前端获取的菜谱数据类型与后端一致。
+- [x] **初始化项目**：在 `apps/` 目录下运行 `npx create-next-app@latest portal` (选择 TypeScript, Tailwind CSS, App Router)。
+- [x] **配置代理/跨域**：在 `next.config.js` 中配置 `rewrites`，将 `/api` 请求转发到 NestJS 后端。
+- [x] **类型共享**：引入 `@chefos/types`，确保前端获取的菜谱数据类型与后端一致。
 
 ### 5.2 核心页面开发
 
-- [ ] **首页 (Home)**：
-  - [ ] 使用 `Server Component` 直接在服务端请求 NestJS 的“热门菜谱”接口。
-  - [ ] 使用 Tailwind CSS 快速构建响应式网格布局。
-- [ ] **菜谱详情页 (Detail)**：
-  - [ ] 创建 动态路由 `app/recipe/[id]/page.tsx`。
+- [x] **首页 (Home)**：
+  - [x] 使用 `Server Component` 直接在服务端请求 NestJS 的“热门菜谱”接口。
+  - [x] 使用 Tailwind CSS 快速构建响应式网格布局。
+  - [x] **动效增强**：集成 `framer-motion` 和 `lenis` 实现平滑滚动与交错入场动画。
+- [x] **菜谱详情页 (Detail)**：
+  - [x] 创建 动态路由 `app/recipe/[id]/page.tsx`。
   - [ ] **SEO 优化**：使用 `generateMetadata` 函数，根据 API 返回的菜谱名称动态生成 `<title>` 和 `<meta description>`。
   - [ ] **结构化数据**：注入 JSON-LD (Schema.org)，让 Google 能识别这是“食谱”并展示富文本搜索结果。
 

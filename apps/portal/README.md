@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChefOS Portal
 
-## Getting Started
+ChefOS 的公开门户网站，面向最终用户提供菜谱浏览、搜索和详情查看功能。
 
-First, run the development server:
+## 🛠️ 技术栈 (Tech Stack)
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Animation**:
+  - [Framer Motion](https://www.framer.com/motion/): 复杂的组件级动画（入场、交错、手势）。
+  - [Lenis](https://lenis.studio/): 平滑滚动 (Smooth Scrolling)，提供类似原生应用的滚动阻尼感。
+- **Data Fetching**: Server Components + Fetch API (ISR/SSG).
+
+## 🚀 快速开始 (Getting Started)
+
+### 1. 环境配置
+
+复制环境变量示例文件：
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+确保 `.env.local` 中包含后端 API 地址：
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+API_URL=http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. 启动开发服务器
 
-## Learn More
+在根目录运行：
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# 启动所有应用
+turbo dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 或者仅启动 Portal
+pnpm --filter @chefos/portal dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+访问 [http://localhost:3001](http://localhost:3001) 查看效果。
 
-## Deploy on Vercel
+## 📂 目录结构
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```text
+src/
+├── app/              # App Router 页面路由
+│   ├── page.tsx      # 首页
+│   ├── layout.tsx    # 全局布局 (Header/Footer/Lenis)
+│   └── recipe/[id]/  # 菜谱详情页 (动态路由)
+├── components/       # UI 组件
+│   ├── MotionWrapper.tsx # 动画封装 (FadeIn, Stagger)
+│   ├── SmoothScrollProvider.tsx # Lenis 滚动封装
+│   └── ...
+└── lib/              # 工具函数
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 动画系统
+
+本项目封装了一套统一的动画组件，位于 `src/components/MotionWrapper.tsx`：
+
+- **`<FadeIn>`**: 元素进入视口时淡入位移。
+- **`<StaggerContainer>` & `<StaggerItem>`**: 用于列表项的交错显示效果。
+
+使用示例：
+
+```tsx
+<StaggerContainer>
+  {items.map((item) => (
+    <StaggerItem key={item.id}>
+      <Card item={item} />
+    </StaggerItem>
+  ))}
+</StaggerContainer>
+```
