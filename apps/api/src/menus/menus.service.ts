@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Menu } from './menu.entity';
-import * as defaultMenus from './default-menus.json';
+import defaultMenus from './default-menus.json';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
