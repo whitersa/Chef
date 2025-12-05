@@ -117,10 +117,16 @@ function handleCancel() {
           />
         </div>
         <div class="actions">
-          <el-button @click="handleCancel">取消</el-button>
-          <el-button type="primary" @click="handleSave" :loading="store.loading"
-            >保存菜单</el-button
+          <el-button @click="handleCancel">
+            取消
+          </el-button>
+          <el-button
+            type="primary"
+            :loading="store.loading"
+            @click="handleSave"
           >
+            保存菜单
+          </el-button>
         </div>
       </div>
 
@@ -136,7 +142,7 @@ function handleCancel() {
       <div class="menu-canvas">
         <h3>菜单内容</h3>
         <div class="menu-items-header">
-          <span class="drag-handle-header"></span>
+          <span class="drag-handle-header" />
           <span class="col-name">菜品名称</span>
           <span class="col-category">分类</span>
           <span class="col-price">售价 (¥)</span>
@@ -153,13 +159,27 @@ function handleCancel() {
         >
           <template #item="{ element, index }">
             <div class="menu-item-row">
-              <div class="drag-handle">⋮⋮</div>
+              <div class="drag-handle">
+                ⋮⋮
+              </div>
               <div class="col-name">
-                <el-input v-model="element.name" size="default" />
+                <el-input
+                  v-model="element.name"
+                  size="default"
+                />
               </div>
               <div class="col-category">
-                <el-select v-model="element.category" size="default" placeholder="选择分类">
-                  <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
+                <el-select
+                  v-model="element.category"
+                  size="default"
+                  placeholder="选择分类"
+                >
+                  <el-option
+                    v-for="c in categories"
+                    :key="c"
+                    :label="c"
+                    :value="c"
+                  />
                 </el-select>
               </div>
               <div class="col-price">
@@ -172,8 +192,14 @@ function handleCancel() {
                     size="default"
                     style="width: 100%"
                   />
-                  <div class="cost-info" v-if="recipeCosts[element.recipeId]">
-                    <el-tooltip content="单份成本 (仅供参考)" placement="top">
+                  <div
+                    v-if="recipeCosts[element.recipeId]"
+                    class="cost-info"
+                  >
+                    <el-tooltip
+                      content="单份成本 (仅供参考)"
+                      placement="top"
+                    >
                       <span class="cost-tag">
                         <el-icon><InfoFilled /></el-icon>
                         ¥{{ recipeCosts[element.recipeId]?.toFixed(2) }}
@@ -195,7 +221,10 @@ function handleCancel() {
           </template>
         </draggable>
 
-        <div v-if="!store.currentMenu.items?.length" class="empty-placeholder">
+        <div
+          v-if="!store.currentMenu.items?.length"
+          class="empty-placeholder"
+        >
           从左侧拖拽菜谱到此处添加
         </div>
       </div>

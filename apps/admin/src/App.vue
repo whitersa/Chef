@@ -38,10 +38,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <el-config-provider :size="elementSize" :locale="zhCn">
-    <div v-if="!isReady" class="app-loading">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">ChefOS Loading...</div>
+  <el-config-provider
+    :size="elementSize"
+    :locale="zhCn"
+  >
+    <div
+      v-if="!isReady"
+      class="app-loading"
+    >
+      <div class="loading-spinner" />
+      <div class="loading-text">
+        ChefOS Loading...
+      </div>
     </div>
     <router-view v-else />
   </el-config-provider>

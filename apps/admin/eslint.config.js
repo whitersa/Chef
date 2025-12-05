@@ -1,15 +1,3 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const rootConfig = require('../../eslint.config.js');
+import { vueConfig } from '@chefos/eslint-config/vue';
 
-export default [
-  ...rootConfig,
-  {
-    languageOptions: {
-      sourceType: 'module',
-    },
-  },
-  {
-    ignores: ['dist/'],
-  },
-];
+export default vueConfig;

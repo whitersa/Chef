@@ -5,15 +5,29 @@
         <div class="card-header">
           <span>采购清单生成</span>
           <div class="header-actions">
-            <el-button @click="showHistory">历史记录</el-button>
-            <el-button type="primary" @click="generateList" :loading="loading">生成清单</el-button>
+            <el-button @click="showHistory">
+              历史记录
+            </el-button>
+            <el-button
+              type="primary"
+              :loading="loading"
+              @click="generateList"
+            >
+              生成清单
+            </el-button>
           </div>
         </div>
       </template>
 
       <div class="input-section">
-        <el-tabs v-model="activeTab" class="demo-tabs">
-          <el-tab-pane label="按菜谱添加" name="recipe">
+        <el-tabs
+          v-model="activeTab"
+          class="demo-tabs"
+        >
+          <el-tab-pane
+            label="按菜谱添加"
+            name="recipe"
+          >
             <el-form :inline="true">
               <el-form-item label="添加菜谱">
                 <el-select
@@ -34,26 +48,57 @@
                 </el-select>
               </el-form-item>
               <el-form-item>
-                <el-button @click="addRecipe" :disabled="!selectedRecipeId">添加</el-button>
+                <el-button
+                  :disabled="!selectedRecipeId"
+                  @click="addRecipe"
+                >
+                  添加
+                </el-button>
               </el-form-item>
             </el-form>
 
-            <el-table :data="requestItems" style="width: 100%; margin-bottom: 20px" border>
-              <el-table-column prop="recipeName" label="菜谱名称" />
-              <el-table-column label="数量 (批次)" width="200">
+            <el-table
+              :data="requestItems"
+              style="width: 100%; margin-bottom: 20px"
+              border
+            >
+              <el-table-column
+                prop="recipeName"
+                label="菜谱名称"
+              />
+              <el-table-column
+                label="数量 (批次)"
+                width="200"
+              >
                 <template #default="scope">
-                  <el-input-number v-model="scope.row.quantity" :min="0.1" :step="0.5" />
+                  <el-input-number
+                    v-model="scope.row.quantity"
+                    :min="0.1"
+                    :step="0.5"
+                  />
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100">
+              <el-table-column
+                label="操作"
+                width="100"
+              >
                 <template #default="scope">
-                  <el-button type="danger" link @click="removeRecipe(scope.$index)">移除</el-button>
+                  <el-button
+                    type="danger"
+                    link
+                    @click="removeRecipe(scope.$index)"
+                  >
+                    移除
+                  </el-button>
                 </template>
               </el-table-column>
             </el-table>
           </el-tab-pane>
 
-          <el-tab-pane label="按销售菜单添加" name="menu">
+          <el-tab-pane
+            label="按销售菜单添加"
+            name="menu"
+          >
             <el-form :inline="true">
               <el-form-item label="添加菜单">
                 <el-select
@@ -71,20 +116,48 @@
                 </el-select>
               </el-form-item>
               <el-form-item>
-                <el-button @click="addMenu" :disabled="!selectedMenuId">添加</el-button>
+                <el-button
+                  :disabled="!selectedMenuId"
+                  @click="addMenu"
+                >
+                  添加
+                </el-button>
               </el-form-item>
             </el-form>
 
-            <el-table :data="menuRequestItems" style="width: 100%; margin-bottom: 20px" border>
-              <el-table-column prop="menuName" label="菜单名称" />
-              <el-table-column label="数量 (份)" width="200">
+            <el-table
+              :data="menuRequestItems"
+              style="width: 100%; margin-bottom: 20px"
+              border
+            >
+              <el-table-column
+                prop="menuName"
+                label="菜单名称"
+              />
+              <el-table-column
+                label="数量 (份)"
+                width="200"
+              >
                 <template #default="scope">
-                  <el-input-number v-model="scope.row.quantity" :min="1" :step="1" />
+                  <el-input-number
+                    v-model="scope.row.quantity"
+                    :min="1"
+                    :step="1"
+                  />
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100">
+              <el-table-column
+                label="操作"
+                width="100"
+              >
                 <template #default="scope">
-                  <el-button type="danger" link @click="removeMenu(scope.$index)">移除</el-button>
+                  <el-button
+                    type="danger"
+                    link
+                    @click="removeMenu(scope.$index)"
+                  >
+                    移除
+                  </el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -92,49 +165,115 @@
         </el-tabs>
       </div>
 
-      <div v-if="resultList.length > 0" class="result-section">
+      <div
+        v-if="resultList.length > 0"
+        class="result-section"
+      >
         <div class="result-header">
-          <el-divider content-position="left">采购清单结果</el-divider>
-          <el-button type="success" @click="saveProcurement" :loading="saving"
-            >保存采购单</el-button
+          <el-divider content-position="left">
+            采购清单结果
+          </el-divider>
+          <el-button
+            type="success"
+            :loading="saving"
+            @click="saveProcurement"
           >
+            保存采购单
+          </el-button>
         </div>
-        <el-table :data="resultList" border show-summary sum-text="总计">
-          <el-table-column prop="name" label="食材名称" />
-          <el-table-column prop="quantity" label="需求数量">
-            <template #default="scope"> {{ scope.row.quantity }} {{ scope.row.unit }} </template>
+        <el-table
+          :data="resultList"
+          border
+          show-summary
+          sum-text="总计"
+        >
+          <el-table-column
+            prop="name"
+            label="食材名称"
+          />
+          <el-table-column
+            prop="quantity"
+            label="需求数量"
+          >
+            <template #default="scope">
+              {{ scope.row.quantity }} {{ scope.row.unit }}
+            </template>
           </el-table-column>
-          <el-table-column prop="estimatedCost" label="预估成本" sortable>
-            <template #default="scope"> ¥{{ scope.row.estimatedCost }} </template>
+          <el-table-column
+            prop="estimatedCost"
+            label="预估成本"
+            sortable
+          >
+            <template #default="scope">
+              ¥{{ scope.row.estimatedCost }}
+            </template>
           </el-table-column>
         </el-table>
       </div>
     </el-card>
 
     <!-- History Dialog -->
-    <el-dialog v-model="historyVisible" title="采购历史" width="900px">
-      <el-table :data="historyList" border stripe v-loading="historyLoading">
-        <el-table-column prop="createdAt" label="创建时间" width="180">
-          <template #default="{ row }">{{ new Date(row.createdAt).toLocaleString() }}</template>
-        </el-table-column>
-        <el-table-column prop="totalPrice" label="总金额">
-          <template #default="{ row }">¥{{ row.totalPrice }}</template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态">
+    <el-dialog
+      v-model="historyVisible"
+      title="采购历史"
+      width="900px"
+    >
+      <el-table
+        v-loading="historyLoading"
+        :data="historyList"
+        border
+        stripe
+      >
+        <el-table-column
+          prop="createdAt"
+          label="创建时间"
+          width="180"
+        >
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
+            {{ new Date(row.createdAt).toLocaleString() }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column
+          prop="totalPrice"
+          label="总金额"
+        >
           <template #default="{ row }">
-            <el-button size="small" @click="viewDetail(row)">详情</el-button>
+            ¥{{ row.totalPrice }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="status"
+          label="状态"
+        >
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)">
+              {{ row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="操作"
+          width="200"
+        >
+          <template #default="{ row }">
+            <el-button
+              size="small"
+              @click="viewDetail(row)"
+            >
+              详情
+            </el-button>
             <el-popconfirm
+              v-if="row.status === 'PENDING'"
               title="确认完成采购？这将更新库存。"
               @confirm="completeProcurement(row)"
-              v-if="row.status === 'PENDING'"
             >
               <template #reference>
-                <el-button size="small" type="success">完成</el-button>
+                <el-button
+                  size="small"
+                  type="success"
+                >
+                  完成
+                </el-button>
               </template>
             </el-popconfirm>
           </template>
@@ -143,14 +282,35 @@
     </el-dialog>
 
     <!-- Detail Dialog -->
-    <el-dialog v-model="detailVisible" title="采购单详情" width="700px">
-      <el-table :data="currentDetail?.items || []" border show-summary>
-        <el-table-column prop="ingredient.name" label="食材" />
-        <el-table-column prop="quantity" label="数量">
-          <template #default="{ row }"> {{ row.quantity }} {{ row.unit }} </template>
+    <el-dialog
+      v-model="detailVisible"
+      title="采购单详情"
+      width="700px"
+    >
+      <el-table
+        :data="currentDetail?.items || []"
+        border
+        show-summary
+      >
+        <el-table-column
+          prop="ingredient.name"
+          label="食材"
+        />
+        <el-table-column
+          prop="quantity"
+          label="数量"
+        >
+          <template #default="{ row }">
+            {{ row.quantity }} {{ row.unit }}
+          </template>
         </el-table-column>
-        <el-table-column prop="cost" label="成本">
-          <template #default="{ row }">¥{{ row.cost }}</template>
+        <el-table-column
+          prop="cost"
+          label="成本"
+        >
+          <template #default="{ row }">
+            ¥{{ row.cost }}
+          </template>
         </el-table-column>
       </el-table>
     </el-dialog>

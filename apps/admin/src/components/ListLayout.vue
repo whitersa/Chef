@@ -1,30 +1,43 @@
 <template>
   <div class="page-container">
     <!-- Search Section -->
-    <el-card v-if="$slots.search" class="search-card" shadow="never">
-      <slot name="search"></slot>
+    <el-card
+      v-if="$slots.search"
+      class="search-card"
+      shadow="never"
+    >
+      <slot name="search" />
     </el-card>
 
     <!-- List Section -->
-    <el-card class="list-card" shadow="never">
+    <el-card
+      class="list-card"
+      shadow="never"
+    >
       <!-- Toolbar -->
-      <div v-if="$slots.toolbar" class="toolbar">
-        <slot name="toolbar"></slot>
+      <div
+        v-if="$slots.toolbar"
+        class="toolbar"
+      >
+        <slot name="toolbar" />
       </div>
 
       <!-- Main Content (Table) -->
       <div class="table-wrapper">
-        <slot></slot>
+        <slot />
       </div>
 
       <!-- Pagination -->
-      <div v-if="$slots.pagination" class="pagination-container">
-        <slot name="pagination"></slot>
+      <div
+        v-if="$slots.pagination"
+        class="pagination-container"
+      >
+        <slot name="pagination" />
       </div>
     </el-card>
 
     <!-- Dialogs etc -->
-    <slot name="extra"></slot>
+    <slot name="extra" />
   </div>
 </template>
 

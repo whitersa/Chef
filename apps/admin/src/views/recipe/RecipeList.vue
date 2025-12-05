@@ -1,7 +1,10 @@
 <template>
   <ListLayout>
     <template #search>
-      <el-form :inline="true" class="search-form">
+      <el-form
+        :inline="true"
+        class="search-form"
+      >
         <el-form-item label="菜谱名称">
           <el-input
             v-model="searchQuery"
@@ -11,27 +14,47 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch(searchQuery)">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button
+            type="primary"
+            @click="handleSearch(searchQuery)"
+          >
+            查询
+          </el-button>
+          <el-button @click="handleReset">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </template>
 
     <template #toolbar>
       <div class="toolbar-right">
-        <el-button type="primary" @click="handleCreate">新建菜谱</el-button>
+        <el-button
+          type="primary"
+          @click="handleCreate"
+        >
+          新建菜谱
+        </el-button>
       </div>
     </template>
 
     <el-table
+      v-loading="loading"
       :data="recipes"
       style="width: 100%; height: 100%"
-      v-loading="loading"
-      @sort-change="handleSortChange"
       border
+      @sort-change="handleSortChange"
     >
-      <el-table-column prop="name" label="菜谱名称" width="200" sortable="custom" />
-      <el-table-column label="预估成本" width="120">
+      <el-table-column
+        prop="name"
+        label="菜谱名称"
+        width="200"
+        sortable="custom"
+      />
+      <el-table-column
+        label="预估成本"
+        width="120"
+      >
         <template #default>
           <!-- Cost calculation might be complex if not returned by API directly. 
                  For now let's assume API returns it or we calculate it. 
@@ -44,10 +67,21 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button link type="primary" size="small" @click="handleEdit(scope.row.id)"
-            >编辑</el-button
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="handleEdit(scope.row.id)"
           >
-          <el-button link type="danger" size="small">删除</el-button>
+            编辑
+          </el-button>
+          <el-button
+            link
+            type="danger"
+            size="small"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>

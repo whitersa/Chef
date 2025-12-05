@@ -4,15 +4,19 @@
     <div class="login-visual">
       <div class="visual-content">
         <div class="brand">
-          <img src="/chef-logo.svg" alt="ChefOS Logo" class="brand-logo" />
+          <img
+            src="/chef-logo.svg"
+            alt="ChefOS Logo"
+            class="brand-logo"
+          >
           <span class="brand-text">ChefOS</span>
         </div>
         <div class="slogan">
-          <h1>智能后厨<br />数字化管理专家</h1>
+          <h1>智能后厨<br>数字化管理专家</h1>
           <p>Smart Kitchen Operating System</p>
         </div>
       </div>
-      <div class="visual-bg"></div>
+      <div class="visual-bg" />
     </div>
 
     <!-- Right Side: Login Form -->
@@ -20,13 +24,15 @@
       <div class="form-content">
         <div class="form-header">
           <h2>欢迎回来</h2>
-          <p class="sub-text">请输入您的账号密码以继续</p>
+          <p class="sub-text">
+            请输入您的账号密码以继续
+          </p>
         </div>
 
         <el-form
+          ref="formRef"
           :model="form"
           :rules="rules"
-          ref="formRef"
           class="custom-form"
           size="large"
           @submit.prevent
@@ -53,10 +59,17 @@
           </el-form-item>
 
           <div class="form-actions">
-            <el-checkbox v-model="rememberMe">记住我</el-checkbox>
+            <el-checkbox v-model="rememberMe">
+              记住我
+            </el-checkbox>
           </div>
 
-          <el-button type="primary" class="submit-btn" :loading="loading" @click="handleLogin">
+          <el-button
+            type="primary"
+            class="submit-btn"
+            :loading="loading"
+            @click="handleLogin"
+          >
             登 录
           </el-button>
         </el-form>

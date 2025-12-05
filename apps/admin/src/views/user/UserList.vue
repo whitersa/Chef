@@ -2,19 +2,43 @@
   <ListLayout>
     <template #toolbar>
       <div class="toolbar-right">
-        <el-button type="primary" @click="dialogVisible = true">添加员工</el-button>
+        <el-button
+          type="primary"
+          @click="dialogVisible = true"
+        >
+          添加员工
+        </el-button>
       </div>
     </template>
 
-    <el-table :data="users" style="width: 100%; height: 100%" v-loading="loading" border>
-      <el-table-column prop="hireDate" label="入职日期" width="180">
+    <el-table
+      v-loading="loading"
+      :data="users"
+      style="width: 100%; height: 100%"
+      border
+    >
+      <el-table-column
+        prop="hireDate"
+        label="入职日期"
+        width="180"
+      >
         <template #default="scope">
           {{ formatDate(scope.row.hireDate) }}
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="姓名" width="180" />
-      <el-table-column prop="role" label="角色" />
-      <el-table-column prop="status" label="状态">
+      <el-table-column
+        prop="name"
+        label="姓名"
+        width="180"
+      />
+      <el-table-column
+        prop="role"
+        label="角色"
+      />
+      <el-table-column
+        prop="status"
+        label="状态"
+      >
         <template #default="scope">
           <el-tag :type="scope.row.status === 'Active' ? 'success' : 'info'">
             {{ scope.row.status }}
@@ -23,10 +47,25 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button link type="primary" size="small">编辑</el-button>
-          <el-popconfirm title="确定要删除吗?" @confirm="handleDelete(scope.row.id)">
+          <el-button
+            link
+            type="primary"
+            size="small"
+          >
+            编辑
+          </el-button>
+          <el-popconfirm
+            title="确定要删除吗?"
+            @confirm="handleDelete(scope.row.id)"
+          >
             <template #reference>
-              <el-button link type="danger" size="small">删除</el-button>
+              <el-button
+                link
+                type="danger"
+                size="small"
+              >
+                删除
+              </el-button>
             </template>
           </el-popconfirm>
         </template>
@@ -46,24 +85,58 @@
     </template>
 
     <template #extra>
-      <el-dialog v-model="dialogVisible" title="添加员工" width="30%">
-        <el-form :model="form" label-width="80px">
+      <el-dialog
+        v-model="dialogVisible"
+        title="添加员工"
+        width="30%"
+      >
+        <el-form
+          :model="form"
+          label-width="80px"
+        >
           <el-form-item label="姓名">
             <el-input v-model="form.name" />
           </el-form-item>
           <el-form-item label="角色">
-            <el-select v-model="form.role" placeholder="请选择角色">
-              <el-option label="Head Chef" value="Head Chef" />
-              <el-option label="Sous Chef" value="Sous Chef" />
-              <el-option label="Chef de Partie" value="Chef de Partie" />
-              <el-option label="Kitchen Porter" value="Kitchen Porter" />
+            <el-select
+              v-model="form.role"
+              placeholder="请选择角色"
+            >
+              <el-option
+                label="Head Chef"
+                value="Head Chef"
+              />
+              <el-option
+                label="Sous Chef"
+                value="Sous Chef"
+              />
+              <el-option
+                label="Chef de Partie"
+                value="Chef de Partie"
+              />
+              <el-option
+                label="Kitchen Porter"
+                value="Kitchen Porter"
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="状态">
-            <el-select v-model="form.status" placeholder="请选择状态">
-              <el-option label="Active" value="Active" />
-              <el-option label="Inactive" value="Inactive" />
-              <el-option label="On Leave" value="On Leave" />
+            <el-select
+              v-model="form.status"
+              placeholder="请选择状态"
+            >
+              <el-option
+                label="Active"
+                value="Active"
+              />
+              <el-option
+                label="Inactive"
+                value="Inactive"
+              />
+              <el-option
+                label="On Leave"
+                value="On Leave"
+              />
             </el-select>
           </el-form-item>
           <el-form-item label="入职日期">
@@ -78,7 +151,10 @@
         <template #footer>
           <span class="dialog-footer">
             <el-button @click="dialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="handleAddUser">确定</el-button>
+            <el-button
+              type="primary"
+              @click="handleAddUser"
+            >确定</el-button>
           </span>
         </template>
       </el-dialog>
