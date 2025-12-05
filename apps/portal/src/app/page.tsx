@@ -6,9 +6,9 @@ import { RecipeCard } from '../components/RecipeCard';
 async function getRecipes(): Promise<Recipe[]> {
   // Fetch from the API (running on localhost:4000)
   // Note: In Docker/K8s this would be the service name, but for local dev localhost is fine.
-  // We use 'no-store' to ensure dynamic data fetching (SSR)
+  // We use ISR (Incremental Static Regeneration) to cache the result for 60 seconds
   try {
-    const res = await fetch(`${API_URL}/api/recipes`, { cache: 'no-store' });
+    const res = await fetch(`${API_URL}/api/recipes`, { next: { revalidate: 60 } });
 
     if (!res.ok) {
       console.error('Failed to fetch recipes:', res.status, res.statusText);
@@ -53,7 +53,7 @@ export default async function Home() {
             <div className="text-6xl mb-4">👨‍🍳</div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">No recipes found</h3>
             <p className="text-gray-500">
-              It seems we haven't added any recipes yet. Check back soon!
+              It seems we haven&apos;t added any recipes yet. Check back soon!
             </p>
           </div>
         )}

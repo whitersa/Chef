@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Header() {
   return (
@@ -6,9 +7,18 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-orange-600">ChefOS</span>
-              <span className="ml-2 text-gray-600 font-medium hidden sm:block">Portal</span>
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/chef-logo.svg"
+                alt="ChefOS Logo"
+                width={40}
+                height={40}
+                className="w-10 h-10"
+              />
+              <div className="flex items-baseline">
+                <span className="text-2xl font-bold text-orange-600">ChefOS</span>
+                <span className="ml-2 text-gray-600 font-medium hidden sm:block">Portal</span>
+              </div>
             </Link>
           </div>
           <nav className="hidden md:flex space-x-8">
