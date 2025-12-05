@@ -13,22 +13,22 @@ export class Recipe {
   @PrimaryGeneratedColumn('uuid', {
     comment: 'Unique identifier for the recipe',
   })
-  id: string;
+  id!: string;
 
   @Column({ comment: 'Name of the recipe' })
-  name: string;
+  name!: string;
 
   @Column('jsonb', {
     nullable: true,
     comment: 'Step-by-step cooking instructions',
   })
-  steps: string[];
+  steps!: string[];
 
   @Column('jsonb', {
     nullable: true,
     comment: 'Pre-processing steps required before cooking',
   })
-  preProcessing: string[];
+  preProcessing!: string[];
 
   @Column('decimal', {
     precision: 10,
@@ -36,13 +36,13 @@ export class Recipe {
     default: 1,
     comment: 'Quantity produced by this recipe (e.g., 4 portions, 2 kg)',
   })
-  yieldQuantity: number;
+  yieldQuantity!: number;
 
   @Column({
     default: 'portion',
     comment: 'Unit of the yield (e.g., portion, kg, l)',
   })
-  yieldUnit: string;
+  yieldUnit!: string;
 
   @Column('decimal', {
     precision: 10,
@@ -50,17 +50,17 @@ export class Recipe {
     default: 0,
     comment: 'Estimated labor cost for this recipe',
   })
-  laborCost: number;
+  laborCost!: number;
 
   @VersionColumn({
     comment: 'Version number for optimistic locking',
     default: 1,
   })
-  version: number;
+  version!: number;
 
   @OneToMany(() => RecipeItem, (item) => item.recipe, { cascade: true })
-  items: RecipeItem[];
+  items!: RecipeItem[];
 
   @DeleteDateColumn({ comment: 'Deletion timestamp for soft delete' })
-  deletedAt: Date;
+  deletedAt!: Date;
 }

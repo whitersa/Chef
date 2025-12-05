@@ -21,12 +21,12 @@ export class CreateSalesMenuItemDto {
   @ApiProperty({ description: 'Display name' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiProperty({ description: 'Selling price' })
   @IsNumber()
   @Min(0)
-  price: number;
+  price!: number;
 
   @ApiProperty({ description: 'Category (Starter, Main, etc.)' })
   @IsString()
@@ -38,12 +38,11 @@ export class CreateSalesMenuItemDto {
   @IsOptional()
   order?: number;
 }
-
 export class CreateSalesMenuDto {
   @ApiProperty({ example: 'Lunch Menu' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiProperty({ required: false })
   @IsString()

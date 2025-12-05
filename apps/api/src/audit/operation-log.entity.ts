@@ -1,30 +1,25 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
 @Entity()
 export class OperationLog {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ nullable: true })
-  userId: string;
+  userId!: string;
 
   @Column()
-  action: string; // CREATE, UPDATE, DELETE
+  action!: string; // CREATE, UPDATE, DELETE
 
   @Column()
-  resource: string; // Recipe, Ingredient
+  resource!: string; // Recipe, Ingredient
 
   @Column()
-  resourceId: string;
+  resourceId!: string;
 
   @Column('jsonb', { nullable: true })
   details: any;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

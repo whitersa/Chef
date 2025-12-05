@@ -8,7 +8,7 @@
     "dev": "tsc -w"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@chefos/typescript-config": "workspace:*",
     "typescript": "5.9.2"
   },
   "dependencies": {

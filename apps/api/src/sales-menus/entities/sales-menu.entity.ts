@@ -1,29 +1,23 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  OneToMany,
-  DeleteDateColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, DeleteDateColumn } from 'typeorm';
 import { SalesMenuItem } from './sales-menu-item.entity';
 
 @Entity({ comment: 'Restaurant sales menus (e.g., Lunch, Dinner)' })
 export class SalesMenu {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column({ nullable: true })
-  description: string;
+  description!: string;
 
   @Column({ default: true })
-  active: boolean;
+  active!: boolean;
 
   @OneToMany(() => SalesMenuItem, (item) => item.menu, { cascade: true })
-  items: SalesMenuItem[];
+  items!: SalesMenuItem[];
 
   @DeleteDateColumn({ comment: 'Deletion timestamp for soft delete' })
-  deletedAt: Date;
+  deletedAt!: Date;
 }

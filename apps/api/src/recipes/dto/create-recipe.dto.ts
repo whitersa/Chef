@@ -15,7 +15,7 @@ export class CreateRecipeItemDto {
   @ApiProperty({ example: 1.5, description: 'Quantity required' })
   @IsNumber()
   @Min(0)
-  quantity: number;
+  quantity!: number;
 
   @ApiProperty({
     example: 1.0,
@@ -51,7 +51,7 @@ export class CreateRecipeDto {
   @ApiProperty({ example: 'Tomato Soup', description: 'Name of the recipe' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @ApiProperty({
     example: ['Chop tomatoes', 'Boil water'],

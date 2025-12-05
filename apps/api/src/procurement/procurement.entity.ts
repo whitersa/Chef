@@ -17,26 +17,26 @@ export enum ProcurementStatus {
 @Entity()
 export class Procurement {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({
     type: 'enum',
     enum: ProcurementStatus,
     default: ProcurementStatus.PENDING,
   })
-  status: ProcurementStatus;
+  status!: ProcurementStatus;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
-  totalPrice: number;
+  totalPrice!: number;
 
   @OneToMany(() => ProcurementItem, (item) => item.procurement, {
     cascade: true,
   })
-  items: ProcurementItem[];
+  items!: ProcurementItem[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -21,11 +21,11 @@ import { Ingredient } from '../ingredients/ingredient.entity';
 })
 export class RecipeCostView {
   @ViewColumn()
-  recipeId: string;
+  recipeId!: string;
 
   @ViewColumn()
-  recipeName: string;
+  recipeName!: string;
 
   @ViewColumn()
-  totalCost: number;
+  totalCost!: number;
 }

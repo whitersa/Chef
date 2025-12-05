@@ -1,10 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Recipe } from './recipe.entity';
 import { Ingredient } from '../ingredients/ingredient.entity';
 
@@ -13,10 +7,10 @@ export class RecipeItem {
   @PrimaryGeneratedColumn('uuid', {
     comment: 'Unique identifier for the recipe item',
   })
-  id: string;
+  id!: string;
 
   @Column('decimal', { precision: 10, scale: 4, comment: 'Quantity required' })
-  quantity: number;
+  quantity!: number;
 
   // 出品率 (例如 0.8 代表损耗 20%)
   @Column('decimal', {
@@ -25,29 +19,29 @@ export class RecipeItem {
     default: 1.0,
     comment: 'Yield rate (e.g., 0.8 means 20% loss)',
   })
-  yieldRate: number;
+  yieldRate!: number;
 
   @Column({ nullable: true, comment: 'ID of the parent recipe' })
-  recipeId: string;
+  recipeId!: string;
 
   // 属于哪个父菜谱
   @ManyToOne(() => Recipe, (recipe) => recipe.items, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'recipeId' })
-  recipe: Recipe;
+  recipe!: Recipe;
 
   @Column({ nullable: true, comment: 'ID of the ingredient (if applicable)' })
-  ingredientId: string;
+  ingredientId!: string;
 
   // 选项 A: 这是一个原材料 (Ingredient)
   @ManyToOne(() => Ingredient, { nullable: true })
   @JoinColumn({ name: 'ingredientId' })
-  ingredient: Ingredient;
+  ingredient!: Ingredient;
 
   @Column({ nullable: true, comment: 'ID of the child recipe (if applicable)' })
-  childRecipeId: string;
+  childRecipeId!: string;
 
   // 选项 B: 这是一个半成品 (Sub-Recipe)
   @ManyToOne(() => Recipe, { nullable: true })
   @JoinColumn({ name: 'childRecipeId' })
-  childRecipe: Recipe;
+  childRecipe!: Recipe;
 }

@@ -13,26 +13,26 @@ export class Ingredient {
   @PrimaryGeneratedColumn('uuid', {
     comment: 'Unique identifier for the ingredient',
   })
-  id: string;
+  id!: string;
 
   @Column({ comment: 'Name of the ingredient' })
-  name: string;
+  name!: string;
 
   @Column('decimal', {
     precision: 10,
     scale: 6,
     comment: 'Cost price per unit',
   })
-  price: number;
+  price!: number;
 
   @Column({ comment: 'Unit of measurement (e.g., kg, g, ml)' })
-  unit: string;
+  unit!: string;
 
   @Column('jsonb', {
     nullable: true,
     comment: 'Nutritional information (e.g., protein, carbs)',
   })
-  nutrition: Record<string, number>; // e.g., { protein: 10, carbs: 20 }
+  nutrition!: Record<string, number>; // e.g., { protein: 10, carbs: 20 }
 
   @Column('decimal', {
     precision: 10,
@@ -40,26 +40,26 @@ export class Ingredient {
     default: 0,
     comment: 'Current stock quantity',
   })
-  stockQuantity: number;
+  stockQuantity!: number;
 
   @Column({
     nullable: true,
     comment: 'Unit for stock (usually same as unit)',
   })
-  stockUnit: string;
+  stockUnit!: string;
 
   @VersionColumn({
     comment: 'Version number for optimistic locking',
     default: 1,
   })
-  version: number;
+  version!: number;
 
   @CreateDateColumn({ comment: 'Record creation timestamp' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ comment: 'Record last update timestamp' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn({ comment: 'Deletion timestamp for soft delete' })
-  deletedAt: Date;
+  deletedAt!: Date;
 }

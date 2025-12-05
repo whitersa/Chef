@@ -11,33 +11,33 @@ import { Ingredient } from './ingredient.entity';
 @Entity({ comment: 'Historical versions of ingredients' })
 export class IngredientVersion {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  ingredientId: string;
+  ingredientId!: string;
 
   @ManyToOne(() => Ingredient, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ingredientId' })
-  ingredient: Ingredient;
+  ingredient!: Ingredient;
 
   @Column({ comment: 'Version number of this snapshot' })
-  version: number;
+  version!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column('decimal', { precision: 10, scale: 6 })
-  price: number;
+  price!: number;
 
   @Column()
-  unit: string;
+  unit!: string;
 
   @Column('jsonb', { nullable: true })
   nutrition: any;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ nullable: true, comment: 'Reason for change' })
-  changeLog: string;
+  changeLog!: string;
 }

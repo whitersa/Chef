@@ -45,7 +45,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/types
       '@chefos/utils':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../packages/utils
       '@element-plus/icons-vue':
         specifier: ^2.3.2
@@ -75,6 +75,9 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0(vue@3.5.25(typescript@5.9.3))
     devDependencies:
+      '@chefos/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -211,6 +214,9 @@ importers:
         specifier: ^0.3.27
         version: 0.3.27(pg@8.16.3)(redis@4.7.1)(reflect-metadata@0.2.2)(ts-node@10.9.2(@types/node@22.19.1)(typescript@5.9.2))
     devDependencies:
+      '@chefos/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       '@eslint/eslintrc':
         specifier: ^3.2.0
         version: 3.3.1
@@ -311,6 +317,9 @@ importers:
         specifier: 19.2.0
         version: 19.2.0(react@19.2.0)
     devDependencies:
+      '@chefos/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.17
@@ -348,7 +357,7 @@ importers:
       '@chefos/types':
         specifier: workspace:*
         version: link:../types
-      '@repo/typescript-config':
+      '@chefos/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       typescript:
@@ -400,7 +409,7 @@ importers:
         specifier: ^0.14.2
         version: 0.14.2
     devDependencies:
-      '@repo/typescript-config':
+      '@chefos/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       typescript:
@@ -418,10 +427,10 @@ importers:
         specifier: ^19.2.0
         version: 19.2.0(react@19.2.0)
     devDependencies:
-      '@repo/eslint-config':
+      '@chefos/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/typescript-config':
+      '@chefos/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       '@types/node':
@@ -442,10 +451,10 @@ importers:
 
   packages/utils:
     devDependencies:
-      '@repo/eslint-config':
+      '@chefos/eslint-config':
         specifier: workspace:^
         version: link:../eslint-config
-      '@repo/typescript-config':
+      '@chefos/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
       eslint:

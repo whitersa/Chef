@@ -17,8 +17,8 @@
     "lint": "eslint . --fix"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:^",
-    "@repo/typescript-config": "workspace:*",
+    "@chefos/eslint-config": "workspace:^",
+    "@chefos/typescript-config": "workspace:*",
     "eslint": "^9.18.0",
     "typescript": "5.9.2"
   }

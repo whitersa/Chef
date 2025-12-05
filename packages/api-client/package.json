@@ -18,7 +18,7 @@
     "axios": "^1.6.0"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
+    "@chefos/typescript-config": "workspace:*",
     "typescript": "5.9.2",
     "@chefos/types": "workspace:*"
   }

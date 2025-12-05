@@ -1,33 +1,27 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Procurement } from './procurement.entity';
 import { Ingredient } from '../ingredients/ingredient.entity';
 
 @Entity()
 export class ProcurementItem {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @ManyToOne(() => Procurement, (procurement) => procurement.items, {
     onDelete: 'CASCADE',
   })
-  procurement: Procurement;
+  procurement!: Procurement;
 
   @ManyToOne(() => Ingredient)
   @JoinColumn({ name: 'ingredientId' })
-  ingredient: Ingredient;
+  ingredient!: Ingredient;
 
   @Column('decimal', { precision: 10, scale: 3 })
-  quantity: number;
+  quantity!: number;
 
   @Column()
-  unit: string;
+  unit!: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  cost: number;
+  cost!: number;
 }

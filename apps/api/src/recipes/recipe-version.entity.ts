@@ -11,42 +11,42 @@ import { Recipe } from './recipe.entity';
 @Entity({ comment: 'Historical versions of recipes' })
 export class RecipeVersion {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  recipeId: string;
+  recipeId!: string;
 
   @ManyToOne(() => Recipe, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'recipeId' })
-  recipe: Recipe;
+  recipe!: Recipe;
 
   @Column({ comment: 'Version number of this snapshot' })
-  version: number;
+  version!: number;
 
   @Column()
-  name: string;
+  name!: string;
 
   @Column('jsonb', { nullable: true })
-  steps: string[];
+  steps!: string[];
 
   @Column('jsonb', { nullable: true })
-  preProcessing: string[];
+  preProcessing!: string[];
 
   @Column('decimal', { precision: 10, scale: 4, nullable: true })
-  yieldQuantity: number;
+  yieldQuantity!: number;
 
   @Column({ nullable: true })
-  yieldUnit: string;
+  yieldUnit!: string;
 
   @Column('decimal', { precision: 10, scale: 2, nullable: true })
-  laborCost: number;
+  laborCost!: number;
 
   @Column('jsonb', { comment: 'Snapshot of ingredients and sub-recipes' })
-  itemsSnapshot: any[];
+  itemsSnapshot!: any[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @Column({ nullable: true, comment: 'Reason for change or commit message' })
-  changeLog: string;
+  changeLog!: string;
 }
