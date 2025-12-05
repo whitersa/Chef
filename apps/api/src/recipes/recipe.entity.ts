@@ -5,8 +5,11 @@ import {
   OneToMany,
   VersionColumn,
   DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { RecipeItem } from './recipe-item.entity';
+import { Dish } from '../dishes/dish.entity';
 
 @Entity({ comment: 'Recipes containing instructions and ingredients' })
 export class Recipe {
@@ -15,7 +18,17 @@ export class Recipe {
   })
   id!: string;
 
-  @Column({ comment: 'Name of the recipe' })
+  @Column({ nullable: true, comment: 'ID of the parent dish' })
+  dishId!: string;
+
+  @ManyToOne(() => Dish, (dish) => dish.recipes, { nullable: true })
+  @JoinColumn({ name: 'dishId' })
+  dish!: Dish;
+
+  @Column({ default: 'Standard', comment: 'Variation name (e.g., Spicy, Homestyle)' })
+  variantName!: string;
+
+  @Column({ comment: 'Name of the recipe (can be auto-generated from Dish + Variant)' })
   name!: string;
 
   @Column('jsonb', {

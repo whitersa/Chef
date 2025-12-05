@@ -8,7 +8,6 @@ import { config as baseConfig } from './base.js';
 export const vueConfig = [
   ...baseConfig,
   js.configs.recommended,
-  eslintConfigPrettier,
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
   {
@@ -18,6 +17,15 @@ export const vueConfig = [
         parser: tseslint.parser,
       },
     },
+    rules: {
+      'vue/max-attributes-per-line': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/multiline-html-element-content-newline': 'off',
+      'vue/html-self-closing': 'off',
+      'vue/html-indent': 'off',
+      'vue/first-attribute-linebreak': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+    },
   },
   {
     languageOptions: {
@@ -26,4 +34,5 @@ export const vueConfig = [
       },
     },
   },
+  eslintConfigPrettier,
 ];

@@ -1,9 +1,19 @@
 <template>
   <el-container class="layout-container">
-    <el-aside :width="isCollapse ? '48px' : '160px'" class="aside-transition">
+    <el-aside
+      :width="isCollapse ? '48px' : '160px'"
+      class="aside-transition"
+    >
       <div class="aside-flex-column">
-        <div class="logo" :class="{ 'logo-collapsed': isCollapse }">
-          <img src="/chef-logo.svg" alt="ChefOS Logo" class="logo-img" />
+        <div
+          class="logo"
+          :class="{ 'logo-collapsed': isCollapse }"
+        >
+          <img
+            src="/chef-logo.svg"
+            alt="ChefOS Logo"
+            class="logo-img"
+          >
           <span v-show="!isCollapse">ChefOS Admin</span>
         </div>
 
@@ -14,9 +24,15 @@
             router
             :collapse="isCollapse"
           >
-            <template v-for="menu in menuStore.menus" :key="menu.id">
+            <template
+              v-for="menu in menuStore.menus"
+              :key="menu.id"
+            >
               <!-- Submenu -->
-              <el-sub-menu v-if="menu.children && menu.children.length > 0" :index="menu.id">
+              <el-sub-menu
+                v-if="menu.children && menu.children.length > 0"
+                :index="menu.id"
+              >
                 <template #title>
                   <el-icon v-if="menu.icon">
                     <component :is="menu.icon" />
@@ -37,7 +53,11 @@
               </el-sub-menu>
 
               <!-- Single Menu Item -->
-              <el-menu-item v-else :index="menu.path || ''" :disabled="!menu.path">
+              <el-menu-item
+                v-else
+                :index="menu.path || ''"
+                :disabled="!menu.path"
+              >
                 <el-icon v-if="menu.icon">
                   <component :is="menu.icon" />
                 </el-icon>
@@ -47,8 +67,15 @@
           </el-menu>
         </el-scrollbar>
 
-        <div class="aside-footer" :class="{ collapsed: isCollapse }" @click="syncMenus">
-          <el-icon class="sync-icon" :class="{ 'is-loading': isSyncing }">
+        <div
+          class="aside-footer"
+          :class="{ collapsed: isCollapse }"
+          @click="syncMenus"
+        >
+          <el-icon
+            class="sync-icon"
+            :class="{ 'is-loading': isSyncing }"
+          >
             <Refresh />
           </el-icon>
           <span v-show="!isCollapse">同步菜单</span>
@@ -59,17 +86,26 @@
       <el-header height="48px">
         <div class="header-content">
           <div class="left-section">
-            <el-icon class="collapse-btn" @click="toggleCollapse">
+            <el-icon
+              class="collapse-btn"
+              @click="toggleCollapse"
+            >
               <component :is="isCollapse ? Expand : Fold" />
             </el-icon>
             <el-breadcrumb separator="/">
-              <el-breadcrumb-item :to="{ path: '/' }"> 首页 </el-breadcrumb-item>
+              <el-breadcrumb-item :to="{ path: '/' }">
+                首页
+              </el-breadcrumb-item>
               <el-breadcrumb-item>{{ route.meta.title }}</el-breadcrumb-item>
             </el-breadcrumb>
           </div>
           <div class="user-info">
             <el-dropdown trigger="click">
-              <el-button circle :icon="Setting" size="small" />
+              <el-button
+                circle
+                :icon="Setting"
+                size="small"
+              />
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item>
@@ -88,10 +124,28 @@
                   <el-dropdown-item divided>
                     <div class="density-select">
                       <span>布局密度</span>
-                      <el-radio-group v-model="themeStore.density" size="small">
-                        <el-radio-button label="compact" value="compact"> 紧凑 </el-radio-button>
-                        <el-radio-button label="default" value="default"> 默认 </el-radio-button>
-                        <el-radio-button label="loose" value="loose"> 宽松 </el-radio-button>
+                      <el-radio-group
+                        v-model="themeStore.density"
+                        size="small"
+                      >
+                        <el-radio-button
+                          label="compact"
+                          value="compact"
+                        >
+                          紧凑
+                        </el-radio-button>
+                        <el-radio-button
+                          label="default"
+                          value="default"
+                        >
+                          默认
+                        </el-radio-button>
+                        <el-radio-button
+                          label="loose"
+                          value="loose"
+                        >
+                          宽松
+                        </el-radio-button>
                       </el-radio-group>
                     </div>
                   </el-dropdown-item>
@@ -99,7 +153,10 @@
               </template>
             </el-dropdown>
 
-            <el-dropdown trigger="click" @command="handleUserCommand">
+            <el-dropdown
+              trigger="click"
+              @command="handleUserCommand"
+            >
               <div class="user-profile-trigger">
                 <el-avatar
                   :size="24"
@@ -109,7 +166,9 @@
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item command="logout"> 退出登录 </el-dropdown-item>
+                  <el-dropdown-item command="logout">
+                    退出登录
+                  </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -118,7 +177,10 @@
       </el-header>
       <el-main>
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
+          <transition
+            name="fade"
+            mode="out-in"
+          >
             <component :is="Component" />
           </transition>
         </router-view>

@@ -177,7 +177,7 @@ export class RecipesService implements OnModuleInit {
 
     const [items, total] = await this.recipesRepository.findAndCount({
       where: search ? { name: Like(`%${search}%`) } : {},
-      relations: ['items', 'items.ingredient', 'items.childRecipe'],
+      relations: ['items', 'items.ingredient', 'items.childRecipe', 'dish', 'dish.cuisine'],
       skip,
       take: limit,
       order: orderOption,
@@ -197,7 +197,7 @@ export class RecipesService implements OnModuleInit {
   findOne(id: string) {
     return this.recipesRepository.findOne({
       where: { id },
-      relations: ['items', 'items.ingredient', 'items.childRecipe'],
+      relations: ['items', 'items.ingredient', 'items.childRecipe', 'dish', 'dish.cuisine'],
     });
   }
 

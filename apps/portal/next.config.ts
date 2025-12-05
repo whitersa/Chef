@@ -3,7 +3,7 @@ import { API_URL } from '@chefos/utils';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  reactCompiler: true,
+  // reactCompiler: true,
   async rewrites() {
     return [
       {

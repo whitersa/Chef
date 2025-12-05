@@ -19,8 +19,26 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Cuisine {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface Dish {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  cuisineId?: string;
+  cuisine?: Cuisine;
+}
+
 export interface Recipe {
   id: string;
+  dishId?: string;
+  dish?: Dish;
+  variantName: string;
   name: string;
   steps: string[];
   preProcessing: string[];

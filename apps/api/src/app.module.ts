@@ -19,6 +19,8 @@ import { HealthModule } from './health/health.module';
 import { AuditModule } from './audit/audit.module';
 import { ProcurementModule } from './procurement/procurement.module';
 import { SalesMenusModule } from './sales-menus/sales-menus.module';
+import { CuisinesModule } from './cuisines/cuisines.module';
+import { DishesModule } from './dishes/dishes.module';
 
 @Module({
   imports: [
@@ -105,6 +107,8 @@ import { SalesMenusModule } from './sales-menus/sales-menus.module';
     AuditModule,
     ProcurementModule,
     SalesMenusModule,
+    CuisinesModule,
+    DishesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

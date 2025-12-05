@@ -27,6 +27,18 @@ const routes: Array<RouteRecordRaw> = [
         meta: { title: '预处理管理' },
       },
       {
+        path: 'cuisines',
+        name: 'CuisineList',
+        component: () => import('../views/cuisines/CuisineList.vue'),
+        meta: { title: '菜系管理' },
+      },
+      {
+        path: 'dishes',
+        name: 'DishList',
+        component: () => import('../views/dishes/DishList.vue'),
+        meta: { title: '菜品管理' },
+      },
+      {
         path: 'recipe',
         meta: { title: '菜谱管理' },
         children: [

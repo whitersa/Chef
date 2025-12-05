@@ -17,22 +17,34 @@
         "order": 2
       },
       {
+        "title": "菜系管理",
+        "path": "/cuisines",
+        "icon": "Collection",
+        "order": 3
+      },
+      {
+        "title": "菜品管理",
+        "path": "/dishes",
+        "icon": "Bowl",
+        "order": 4
+      },
+      {
         "title": "菜谱管理",
         "path": "/recipe/list",
         "icon": "Notebook",
-        "order": 3
+        "order": 5
       },
       {
         "title": "销售菜单",
         "path": "/sales-menu/list",
         "icon": "Menu",
-        "order": 4
+        "order": 6
       },
       {
         "title": "采购清单",
         "path": "/procurement",
         "icon": "ShoppingCart",
-        "order": 5
+        "order": 7
       }
     ]
   },

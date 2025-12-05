@@ -2,6 +2,7 @@ import { Recipe } from '@chefos/types';
 import { API_URL } from '@chefos/utils';
 import { Hero } from '../components/Hero';
 import { RecipeCard } from '../components/RecipeCard';
+import { FadeIn, StaggerContainer, StaggerItem } from '../components/MotionWrapper';
 
 async function getRecipes(): Promise<Recipe[]> {
   // Fetch from the API (running on localhost:4000)
@@ -35,27 +36,31 @@ export default async function Home() {
     <>
       <Hero />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex justify-between items-center mb-8">
+        <FadeIn delay={0.2} className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Latest Recipes</h2>
           <a href="#" className="text-orange-600 hover:text-orange-700 font-medium">
             View All &rarr;
           </a>
-        </div>
+        </FadeIn>
 
         {recipes.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
+              <StaggerItem key={recipe.id} className="h-full">
+                <RecipeCard recipe={recipe} />
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         ) : (
-          <div className="text-center py-20 bg-white rounded-xl shadow-sm">
-            <div className="text-6xl mb-4">👨‍🍳</div>
-            <h3 className="text-xl font-medium text-gray-900 mb-2">No recipes found</h3>
-            <p className="text-gray-500">
-              It seems we haven&apos;t added any recipes yet. Check back soon!
-            </p>
-          </div>
+          <FadeIn delay={0.3}>
+            <div className="text-center py-20 bg-white rounded-xl shadow-sm">
+              <div className="text-6xl mb-4">👨‍🍳</div>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">No recipes found</h3>
+              <p className="text-gray-500">
+                It seems we haven&apos;t added any recipes yet. Check back soon!
+              </p>
+            </div>
+          </FadeIn>
         )}
       </div>
     </>

@@ -1,27 +1,39 @@
 import { Recipe } from '@chefos/types';
+import Link from 'next/link';
 
 interface RecipeCardProps {
   recipe: Recipe;
 }
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
-  // Helper to get a description from steps or preProcessing
+  // Helper to get a description from dish, steps or preProcessing
   const description =
-    recipe.steps && recipe.steps.length > 0
+    recipe.dish?.description ||
+    (recipe.steps && recipe.steps.length > 0
       ? recipe.steps[0]
       : recipe.preProcessing && recipe.preProcessing.length > 0
         ? recipe.preProcessing[0]
-        : 'No description available.';
+        : 'No description available.');
 
   return (
-    <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full border border-gray-100 overflow-hidden transform hover:-translate-y-1">
+    <Link
+      href={`/recipe/${recipe.id}`}
+      className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full border border-gray-100 overflow-hidden transform hover:-translate-y-1"
+    >
       <div className="relative h-56 w-full overflow-hidden bg-gray-100">
-        {/* Placeholder for recipe image - in a real app, this would be a dynamic URL */}
-        <div className="absolute inset-0 flex items-center justify-center text-gray-300 bg-gray-50 group-hover:scale-105 transition-transform duration-500">
-          <span className="text-6xl filter grayscale group-hover:grayscale-0 transition-all duration-500">
-            🥘
-          </span>
-        </div>
+        {recipe.dish?.imageUrl ? (
+          <img
+            src={recipe.dish.imageUrl}
+            alt={recipe.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-300 bg-gray-50 group-hover:scale-105 transition-transform duration-500">
+            <span className="text-6xl filter grayscale group-hover:grayscale-0 transition-all duration-500">
+              🥘
+            </span>
+          </div>
+        )}
         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-xs font-bold text-gray-700 shadow-sm">
           30 min
         </div>
@@ -84,6 +96,6 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
