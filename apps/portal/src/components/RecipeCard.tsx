@@ -12,7 +12,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     (recipe.steps && recipe.steps.length > 0
       ? recipe.steps[0]
       : recipe.preProcessing && recipe.preProcessing.length > 0
-        ? recipe.preProcessing[0].description
+        ? recipe.preProcessing[0]?.description
         : 'No description available.');
 
   return (
