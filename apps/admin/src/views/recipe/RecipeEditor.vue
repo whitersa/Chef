@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useIngredientsStore } from '@/stores/ingredients';
-import { useRecipeStore } from '@/stores/recipe';
-import { useProcessingStore } from '@/stores/processing';
+import { useIngredientsStore } from '../../stores/ingredients';
+import { useRecipeStore, type RecipeItem } from '../../stores/recipe';
+import { useProcessingStore } from '../../stores/processing';
 import draggable from 'vuedraggable';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { Delete } from '@element-plus/icons-vue';
-import BaseChart from '@/components/BaseChart.vue';
+import BaseChart from '../../components/BaseChart.vue';
+import IconTrash from '../../components/icons/IconTrash.vue';
 
 const route = useRoute();
 const ingredientsStore = useIngredientsStore();
@@ -17,7 +17,7 @@ const activeTab = ref('ingredients');
 
 // Dialog state
 const dialogVisible = ref(false);
-const currentIngredient = ref<any>(null);
+const currentIngredient = ref<RecipeItem | null>(null);
 const selectedProcessingId = ref<string>('');
 
 onMounted(() => {
@@ -30,7 +30,21 @@ onMounted(() => {
   }
 });
 
-function handleIngredientAdd(evt: any) {
+interface DraggableChangeEvent {
+  added?: {
+    element: {
+      id: string;
+      name: string;
+      unit: string;
+      price: number;
+      nutrition?: { protein: number; fat: number; carbs: number };
+      items?: unknown[];
+    };
+    newIndex: number;
+  };
+}
+
+function handleIngredientAdd(evt: DraggableChangeEvent) {
   if (evt.added) {
     const { element, newIndex } = evt.added;
     const isRecipe = element.items !== undefined;
@@ -123,11 +137,23 @@ const nutritionOptions = computed(() => {
         },
         data: hasData
           ? [
-              { value: parseFloat(protein.toFixed(2)), name: '蛋白质' },
-              { value: parseFloat(fat.toFixed(2)), name: '脂肪' },
-              { value: parseFloat(carbs.toFixed(2)), name: '碳水' },
+              {
+                value: parseFloat(protein.toFixed(2)),
+                name: '蛋白质',
+                itemStyle: { color: '#18181b' }, // Zinc 900
+              },
+              {
+                value: parseFloat(fat.toFixed(2)),
+                name: '脂肪',
+                itemStyle: { color: '#71717a' }, // Zinc 500
+              },
+              {
+                value: parseFloat(carbs.toFixed(2)),
+                name: '碳水',
+                itemStyle: { color: '#d4d4d8' }, // Zinc 300
+              },
             ]
-          : [{ value: 0, name: '无数据' }],
+          : [{ value: 0, name: '无数据', itemStyle: { color: '#f4f4f5' } }], // Zinc 100
       },
     ],
   };
@@ -281,10 +307,9 @@ const nutritionOptions = computed(() => {
                       />
                     </div>
                     <el-button
-                      type="danger"
-                      circle
+                      link
                       size="small"
-                      :icon="Delete"
+                      :icon="IconTrash"
                       class="delete-btn"
                       @click="recipeStore.removeItem(index)"
                     />
@@ -320,12 +345,12 @@ const nutritionOptions = computed(() => {
                   </el-radio-group>
                 </div>
                 <el-button
-                  type="danger"
-                  circle
+                  link
                   size="small"
+                  class="delete-btn"
                   @click="recipeStore.removePreProcessing(index)"
                 >
-                  <el-icon><Delete /></el-icon>
+                  <el-icon><IconTrash /></el-icon>
                 </el-button>
               </div>
               <el-button
@@ -350,8 +375,13 @@ const nutritionOptions = computed(() => {
                   placeholder="请输入步骤描述"
                   class="step-input"
                 />
-                <el-button type="danger" circle size="small" @click="recipeStore.removeStep(index)">
-                  <el-icon><Delete /></el-icon>
+                <el-button
+                  link
+                  size="small"
+                  class="delete-btn"
+                  @click="recipeStore.removeStep(index)"
+                >
+                  <el-icon><IconTrash /></el-icon>
                 </el-button>
               </div>
               <el-button
@@ -499,26 +529,26 @@ const nutritionOptions = computed(() => {
   padding: 8px 10px;
   margin-bottom: 8px;
   background-color: white;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
   cursor: move;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 13px;
-  color: #606266;
+  color: var(--el-text-color-regular);
   transition: all 0.2s;
 }
 
 .ingredient-item:hover {
-  background-color: #ecf5ff;
-  border-color: #c6e2ff;
-  color: #409eff;
+  background-color: var(--el-fill-color-light);
+  border-color: var(--el-border-color);
+  color: var(--el-color-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .ingredient-item .price {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 
@@ -538,8 +568,8 @@ const nutritionOptions = computed(() => {
   margin-bottom: 15px;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
-  border-left: 3px solid #409eff;
+  color: var(--el-text-color-primary);
+  border-left: 3px solid var(--el-color-primary);
   padding-left: 10px;
   line-height: 1.2;
 }
@@ -568,8 +598,8 @@ const nutritionOptions = computed(() => {
 
 .recipe-canvas {
   min-height: 150px;
-  background-color: #fafafa;
-  border: 1px dashed #dcdfe6;
+  background-color: var(--el-fill-color-lighter);
+  border: 1px dashed var(--el-border-color);
   border-radius: 4px;
   padding: 10px;
 }
@@ -578,7 +608,7 @@ const nutritionOptions = computed(() => {
   padding: 12px;
   margin-bottom: 8px;
   background-color: white;
-  border-left: 3px solid #409eff;
+  border-left: 3px solid var(--el-color-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border-radius: 2px;
   display: flex;
@@ -594,7 +624,7 @@ const nutritionOptions = computed(() => {
 
 .drag-handle {
   cursor: move;
-  color: #dcdfe6;
+  color: var(--el-text-color-placeholder);
   margin-right: 12px;
   font-size: 14px;
   line-height: 1;
@@ -609,12 +639,12 @@ const nutritionOptions = computed(() => {
 
 .recipe-item .name {
   font-weight: 600;
-  color: #303133;
+  color: var(--el-text-color-primary);
   font-size: 14px;
 }
 
 .recipe-item .cost {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 
@@ -622,7 +652,7 @@ const nutritionOptions = computed(() => {
   display: flex;
   gap: 20px;
   align-items: center;
-  background-color: #f5f7fa;
+  background-color: var(--el-fill-color-light);
   padding: 15px;
   border-radius: 4px;
 }
@@ -635,7 +665,7 @@ const nutritionOptions = computed(() => {
 
 .form-item label {
   font-size: 13px;
-  color: #606266;
+  color: var(--el-text-color-regular);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -645,7 +675,7 @@ const nutritionOptions = computed(() => {
   align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
-  background: #f9fafc;
+  background: var(--el-fill-color-lighter);
   padding: 10px;
   border-radius: 4px;
 }
@@ -655,7 +685,7 @@ const nutritionOptions = computed(() => {
   margin-top: 6px;
   width: 24px;
   font-size: 14px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 
 .step-input {
@@ -675,18 +705,30 @@ const nutritionOptions = computed(() => {
 }
 
 .control-group .label {
-  color: #909399;
+  color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 
 .unit-text {
-  color: #606266;
+  color: var(--el-text-color-regular);
   font-size: 12px;
   width: 30px;
 }
 
 .delete-btn {
   margin-left: 8px;
+  color: var(--el-text-color-placeholder) !important;
+  transition: color 0.2s;
+}
+
+.delete-btn:hover {
+  color: var(--el-color-danger) !important;
+  background-color: transparent !important;
+}
+
+/* Hide textarea resize handle */
+:deep(.el-textarea__inner) {
+  resize: none;
 }
 
 .chart-wrapper {
@@ -697,15 +739,15 @@ const nutritionOptions = computed(() => {
 .nutrition-summary {
   margin-top: 12px;
   padding: 8px;
-  background-color: #f0f9eb;
+  background-color: var(--el-fill-color-light);
   border-radius: 2px;
-  border: 1px solid #e1f3d8;
+  border: 1px solid var(--el-border-color);
 }
 
 .nutrition-summary p {
   margin: 4px 0;
   font-size: 12px;
-  color: #67c23a;
+  color: var(--el-text-color-regular);
   font-weight: 600;
   display: flex;
   justify-content: space-between;

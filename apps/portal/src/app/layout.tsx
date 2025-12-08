@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'ChefOS Portal',
   description: 'Your culinary command center',
+  icons: {
+    icon: '/chef-logo.svg',
+  },
 };
 
 export default function RootLayout({

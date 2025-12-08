@@ -7,9 +7,26 @@ import {
   Min,
   ValidateNested,
   IsUUID,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { ProcessingStep, ProcessingStepType } from '@chefos/types';
+
+export class ProcessingStepDto implements ProcessingStep {
+  @ApiProperty({ example: 'Wash vegetables', description: 'Description of the step' })
+  @IsString()
+  @IsNotEmpty()
+  description!: string;
+
+  @ApiProperty({
+    example: 'mandatory',
+    description: 'Type of the step',
+    enum: ['recommended', 'mandatory', 'optional'],
+  })
+  @IsEnum(['recommended', 'mandatory', 'optional'])
+  type!: ProcessingStepType;
+}
 
 export class CreateRecipeItemDto {
   @ApiProperty({ example: 1.5, description: 'Quantity required' })
@@ -64,14 +81,15 @@ export class CreateRecipeDto {
   steps?: string[];
 
   @ApiProperty({
-    example: ['Wash vegetables'],
+    type: [ProcessingStepDto],
     description: 'Pre-processing steps required before cooking',
     required: false,
   })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  preProcessing?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => ProcessingStepDto)
+  preProcessing?: ProcessingStepDto[];
 
   @ApiProperty({
     example: 4,

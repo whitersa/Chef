@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Recipe } from './recipe.entity';
+import { ProcessingStep } from '@chefos/types';
 
 @Entity({ comment: 'Historical versions of recipes' })
 export class RecipeVersion {
@@ -30,7 +31,7 @@ export class RecipeVersion {
   steps!: string[];
 
   @Column('jsonb', { nullable: true })
-  preProcessing!: string[];
+  preProcessing!: ProcessingStep[];
 
   @Column('decimal', { precision: 10, scale: 4, nullable: true })
   yieldQuantity!: number;

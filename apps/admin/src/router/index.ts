@@ -51,7 +51,7 @@ const routes: Array<RouteRecordRaw> = [
           {
             path: 'editor/:id?',
             name: 'RecipeEditor',
-            component: () => import('../views/recipe/Editor.vue'),
+            component: () => import('../views/recipe/RecipeEditor.vue'),
             meta: { title: '可视化编辑器' },
           },
         ],

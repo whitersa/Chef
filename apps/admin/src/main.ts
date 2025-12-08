@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus';
 import 'element-plus/dist/index.css'; // Keep styles or use unplugin-element-plus for on-demand styles too, but keeping this is safer for now
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import './style.css';
+import './styles/shadcn.scss'; // Import last to override everything
 import App from './App.vue';
 import router from './router';
 import { api } from './api-client';

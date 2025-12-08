@@ -43,7 +43,10 @@ export class RecipesService implements OnModuleInit {
         const recipe = this.recipesRepository.create({
           name: '番茄炒蛋',
           steps: ['切番茄', '打鸡蛋', '炒鸡蛋', '炒番茄', '混合翻炒', '出锅'],
-          preProcessing: ['洗番茄', '洗鸡蛋'],
+          preProcessing: [
+            { description: '洗番茄', type: 'mandatory' },
+            { description: '洗鸡蛋', type: 'recommended' },
+          ],
           yieldQuantity: 2,
           yieldUnit: 'portion',
           laborCost: 5.0,

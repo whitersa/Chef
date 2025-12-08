@@ -1,0 +1,173 @@
+/* Increase specificity to override Element Plus defaults */
+html:root {
+  /* --- Shadcn UI Design Tokens (Zinc Theme) --- */
+
+  /* Colors */
+  --el-color-primary: #18181b; /* Zinc 900 */
+  --el-color-primary-light-3: #27272a; /* Zinc 800 */
+  --el-color-primary-light-5: #3f3f46; /* Zinc 700 */
+  --el-color-primary-light-7: #52525b; /* Zinc 600 */
+  --el-color-primary-light-8: #71717a; /* Zinc 500 */
+  --el-color-primary-light-9: #a1a1aa; /* Zinc 400 */
+  --el-color-primary-dark-2: #09090b; /* Zinc 950 */
+  --el-color-success: #22c55e;
+  --el-color-warning: #f59e0b;
+  --el-color-danger: #ef4444;
+  --el-color-error: #ef4444;
+  --el-color-info: #3b82f6;
+
+  /* Text */
+  --el-text-color-primary: #09090b; /* Zinc 950 */
+  --el-text-color-regular: #3f3f46; /* Zinc 700 */
+  --el-text-color-secondary: #71717a; /* Zinc 500 */
+  --el-text-color-placeholder: #a1a1aa; /* Zinc 400 */
+  --el-text-color-disabled: #d4d4d8; /* Zinc 300 */
+
+  /* Borders */
+  --el-border-color: #e4e4e7; /* Zinc 200 */
+  --el-border-color-light: #f4f4f5; /* Zinc 100 */
+  --el-border-color-lighter: #fafafa; /* Zinc 50 */
+  --el-border-color-extra-light: #fafafa;
+  --el-border-color-dark: #d4d4d8; /* Zinc 300 */
+  --el-border-color-darker: #a1a1aa; /* Zinc 400 */
+
+  /* Backgrounds */
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f4f4f5; /* Zinc 100 - Page background */
+  --el-bg-color-overlay: #ffffff;
+  --el-fill-color: #f4f4f5; /* Zinc 100 */
+  --el-fill-color-light: #fafafa; /* Zinc 50 */
+  --el-fill-color-lighter: #fafafa;
+  --el-fill-color-extra-light: #ffffff;
+  --el-fill-color-dark: #e4e4e7; /* Zinc 200 */
+  --el-fill-color-darker: #d4d4d8; /* Zinc 300 */
+  --el-fill-color-blank: #ffffff;
+
+  /* Radius - Small & Crisp */
+  --el-border-radius-base: 4px;
+  --el-border-radius-small: 2px;
+  --el-border-radius-round: 9999px;
+  --el-border-radius-circle: 100%;
+
+  /* Shadows - Subtle */
+  --el-box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --el-box-shadow-light: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --el-box-shadow-lighter: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --el-box-shadow-dark: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* --- Component Overrides for Shadcn Look --- */
+
+/* Button */
+.el-button {
+  font-weight: 500;
+}
+
+.el-button--primary {
+  --el-button-bg-color: #18181b;
+  --el-button-border-color: #18181b;
+  --el-button-hover-bg-color: #27272a;
+  --el-button-hover-border-color: #27272a;
+  --el-button-active-bg-color: #3f3f46;
+  --el-button-active-border-color: #3f3f46;
+  color: #ffffff;
+}
+
+/* Default button (Secondary in shadcn) */
+.el-button--default:not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(
+    .el-button--danger
+  ):not(.el-button--info) {
+  --el-button-bg-color: #ffffff;
+  --el-button-border-color: #e4e4e7;
+  --el-button-text-color: #09090b;
+  --el-button-hover-text-color: #09090b;
+  --el-button-hover-bg-color: #f4f4f5;
+  --el-button-hover-border-color: #e4e4e7;
+  --el-button-active-bg-color: #f4f4f5;
+  --el-button-active-border-color: #e4e4e7;
+}
+
+/* Card - Flat with border */
+.el-card {
+  --el-card-border-color: #e4e4e7;
+  --el-card-border-radius: 6px; /* Slightly larger for cards */
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; /* Force subtle shadow */
+  border: 1px solid #e4e4e7 !important;
+}
+
+.el-card.is-always-shadow,
+.el-card.is-hover-shadow:focus,
+.el-card.is-hover-shadow:hover {
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Input */
+.el-input__wrapper {
+  box-shadow: 0 0 0 1px #e4e4e7 inset !important;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #18181b inset !important; /* Black border on focus */
+  /* Optional: Add ring */
+  /* box-shadow: 0 0 0 1px #18181b inset, 0 0 0 3px rgba(24, 24, 27, 0.1) !important; */
+}
+
+/* Select */
+.el-select .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #18181b inset !important;
+}
+
+/* Dialog/Modal */
+.el-dialog {
+  --el-dialog-border-radius: 6px;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Menu */
+.el-menu {
+  --el-menu-bg-color: #ffffff;
+  --el-menu-border-color: #e4e4e7;
+  border-right: 1px solid #e4e4e7;
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none;
+}
+
+.el-menu-item,
+.el-sub-menu__title {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.el-menu-item.is-active {
+  background-color: #f4f4f5; /* Zinc 100 */
+  color: #18181b; /* Zinc 900 */
+  font-weight: 500;
+}
+
+/* Table */
+.el-table {
+  --el-table-header-bg-color: #ffffff;
+  --el-table-border-color: #e4e4e7;
+  --el-table-row-hover-bg-color: #f4f4f5;
+}
+
+.el-table th.el-table__cell {
+  background-color: #ffffff;
+  font-weight: 500;
+  color: #71717a; /* Zinc 500 */
+}
+
+/* Tag */
+.el-tag {
+  --el-tag-border-radius: 4px;
+}
+
+/* Pagination */
+.el-pagination.is-background .el-pager li.is-active {
+  background-color: #18181b;
+  color: #ffffff;
+}
