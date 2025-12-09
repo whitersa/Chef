@@ -149,7 +149,7 @@ const fetchConfig = async () => {
   loading.value = true;
   try {
     const res = await getPluginConfig();
-    config.value = res.data;
+    config.value = res;
   } catch (error) {
     ElMessage.error('Failed to load configuration');
   } finally {

@@ -6,16 +6,48 @@ import { PluginConfigDto } from '../dtos/plugin-config.dto';
 @Injectable()
 export class PluginManagerService {
   private readonly logger = new Logger(PluginManagerService.name);
-  private readonly pluginPath = path.join(
-    process.cwd(),
-    'tools',
-    'dita-plugins',
-    'com.chefos.pdf',
-    'cfg',
-    'fo',
-    'attrs',
-    'custom.xsl',
-  );
+  private readonly pluginPath: string;
+
+  constructor() {
+    // Handle different CWD contexts (monorepo root vs app root)
+    const possibleRoots = [
+      process.cwd(),
+      path.join(process.cwd(), '../..'), // If running from apps/api
+    ];
+
+    let foundPath = '';
+    for (const root of possibleRoots) {
+      const p = path.join(
+        root,
+        'tools',
+        'dita-plugins',
+        'com.chefos.pdf',
+        'cfg',
+        'fo',
+        'attrs',
+        'custom.xsl',
+      );
+      if (fs.existsSync(p)) {
+        foundPath = p;
+        break;
+      }
+    }
+
+    this.pluginPath =
+      foundPath ||
+      path.join(
+        process.cwd(),
+        'tools',
+        'dita-plugins',
+        'com.chefos.pdf',
+        'cfg',
+        'fo',
+        'attrs',
+        'custom.xsl',
+      );
+
+    this.logger.log(`Initialized PluginManagerService with path: ${this.pluginPath}`);
+  }
 
   async getConfig(): Promise<PluginConfigDto> {
     if (!(await fs.pathExists(this.pluginPath))) {
