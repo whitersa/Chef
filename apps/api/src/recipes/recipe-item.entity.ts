@@ -21,6 +21,9 @@ export class RecipeItem {
   })
   yieldRate!: number;
 
+  @Column('int', { default: 0, comment: 'Display order of the item' })
+  order!: number;
+
   @Column({ nullable: true, comment: 'ID of the parent recipe' })
   recipeId!: string;
 

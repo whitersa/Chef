@@ -22,6 +22,7 @@ import { SalesMenusModule } from './sales-menus/sales-menus.module';
 import { CuisinesModule } from './cuisines/cuisines.module';
 import { DishesModule } from './dishes/dishes.module';
 import { UnitsModule } from './units/units.module';
+import { PublisherModule } from './publisher/publisher.module';
 
 @Module({
   imports: [
@@ -111,6 +112,7 @@ import { UnitsModule } from './units/units.module';
     CuisinesModule,
     DishesModule,
     UnitsModule,
+    PublisherModule,
   ],
   controllers: [AppController],
   providers: [AppService],

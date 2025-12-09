@@ -271,8 +271,11 @@ export class RecipesService implements OnModuleInit {
           // Nutrition is per 100g
           const factor = itemWeightInGrams.dividedBy(100);
           const n = item.ingredient.nutrition;
+          // Calculate calories if not present (4-4-9 rule)
+          const calculatedCalories = (n.protein || 0) * 4 + (n.carbs || 0) * 4 + (n.fat || 0) * 9;
+
           itemNutrition = {
-            calories: new Decimal(n.calories || 0).times(factor),
+            calories: new Decimal(calculatedCalories).times(factor),
             protein: new Decimal(n.protein || 0).times(factor),
             fat: new Decimal(n.fat || 0).times(factor),
             carbs: new Decimal(n.carbs || 0).times(factor),

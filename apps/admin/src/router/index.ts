@@ -87,6 +87,18 @@ const routes: Array<RouteRecordRaw> = [
         meta: { title: '采购清单' },
       },
       {
+        path: 'publisher',
+        meta: { title: '发布管理' },
+        children: [
+          {
+            path: 'artifacts',
+            name: 'RecipeArtifacts',
+            component: () => import('../views/publisher/RecipeArtifacts.vue'),
+            meta: { title: '菜谱产物' },
+          },
+        ],
+      },
+      {
         path: 'user',
         name: 'UserList',
         component: () => import('../views/user/UserList.vue'),

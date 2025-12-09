@@ -66,5 +66,18 @@
         "order": 1
       }
     ]
+  },
+  {
+    "title": "发布管理",
+    "icon": "Printer",
+    "order": 3,
+    "children": [
+      {
+        "title": "菜谱产物",
+        "path": "/publisher/artifacts",
+        "icon": "Document",
+        "order": 1
+      }
+    ]
   }
 ]

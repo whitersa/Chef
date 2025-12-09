@@ -32,7 +32,11 @@ export class Ingredient {
     nullable: true,
     comment: 'Nutritional information (e.g., protein, carbs)',
   })
-  nutrition!: Record<string, number>; // e.g., { protein: 10, carbs: 20 }
+  nutrition!: {
+    protein: number;
+    fat: number;
+    carbs: number;
+  };
 
   @Column('decimal', {
     precision: 10,

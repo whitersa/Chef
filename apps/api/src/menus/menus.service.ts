@@ -13,10 +13,8 @@ export class MenusService implements OnModuleInit {
 
   async onModuleInit() {
     console.log('MenusService: onModuleInit started');
-    const count = await this.repo.count();
-    if (count === 0) {
-      await this.seed();
-    }
+    // Always sync in dev to pick up changes
+    await this.sync();
     console.log('MenusService: onModuleInit completed');
   }
 
