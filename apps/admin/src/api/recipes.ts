@@ -1,25 +1,8 @@
 import { api } from '../api-client';
 import type { PaginatedResponse, PaginationQuery } from './common';
-import type { Ingredient } from './ingredients';
-import type { ProcessingStep } from '@chefos/types';
+import type { Recipe, RecipeItem, ProcessingStep } from '@chefos/types';
 
-export interface RecipeItem {
-  id: string;
-  quantity: number;
-  yieldRate: number;
-  ingredient?: Ingredient;
-  childRecipe?: Recipe;
-  ingredientId?: string;
-  childRecipeId?: string;
-}
-
-export interface Recipe {
-  id: string;
-  name: string;
-  steps?: string[];
-  preProcessing?: ProcessingStep[];
-  items: RecipeItem[];
-}
+export type { Recipe, RecipeItem };
 
 export interface CreateRecipeItemRequest {
   quantity: number;

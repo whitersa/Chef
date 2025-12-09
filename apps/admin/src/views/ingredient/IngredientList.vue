@@ -230,7 +230,11 @@ const handleEdit = (row: Ingredient) => {
   form.name = row.name;
   form.price = row.price;
   form.unit = row.unit;
-  form.nutrition = { ...row.nutrition };
+  form.nutrition = {
+    protein: row.nutrition?.protein || 0,
+    fat: row.nutrition?.fat || 0,
+    carbs: row.nutrition?.carbs || 0,
+  };
   dialogVisible.value = true;
 };
 

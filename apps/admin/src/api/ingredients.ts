@@ -1,19 +1,8 @@
 import { api } from '../api-client';
 import type { PaginatedResponse, PaginationQuery } from './common';
+import type { Ingredient } from '@chefos/types';
 
-export interface Ingredient {
-  id: string;
-  name: string;
-  price: number;
-  unit: string;
-  nutrition: {
-    protein: number;
-    fat: number;
-    carbs: number;
-  };
-  stockQuantity?: number;
-  stockUnit?: string;
-}
+export type { Ingredient };
 
 export const ingredientsApi = {
   getAll: (query?: PaginationQuery) =>
