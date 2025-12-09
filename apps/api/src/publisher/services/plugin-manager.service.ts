@@ -6,7 +6,7 @@ import { PluginConfigDto } from '../dtos/plugin-config.dto';
 @Injectable()
 export class PluginManagerService {
   private readonly logger = new Logger(PluginManagerService.name);
-  private readonly pluginPath: string;
+  private readonly pluginsRoot: string;
 
   constructor() {
     // Handle different CWD contexts (monorepo root vs app root)
@@ -15,46 +15,38 @@ export class PluginManagerService {
       path.join(process.cwd(), '../..'), // If running from apps/api
     ];
 
-    let foundPath = '';
+    let foundRoot = '';
     for (const root of possibleRoots) {
-      const p = path.join(
-        root,
-        'tools',
-        'dita-plugins',
-        'com.chefos.pdf',
-        'cfg',
-        'fo',
-        'attrs',
-        'custom.xsl',
-      );
+      const p = path.join(root, 'tools', 'dita-plugins');
       if (fs.existsSync(p)) {
-        foundPath = p;
+        foundRoot = p;
         break;
       }
     }
 
-    this.pluginPath =
-      foundPath ||
-      path.join(
-        process.cwd(),
-        'tools',
-        'dita-plugins',
-        'com.chefos.pdf',
-        'cfg',
-        'fo',
-        'attrs',
-        'custom.xsl',
-      );
-
-    this.logger.log(`Initialized PluginManagerService with path: ${this.pluginPath}`);
+    this.pluginsRoot = foundRoot || path.join(process.cwd(), 'tools', 'dita-plugins');
+    this.logger.log(`Initialized PluginManagerService with plugins root: ${this.pluginsRoot}`);
   }
 
-  async getConfig(): Promise<PluginConfigDto> {
-    if (!(await fs.pathExists(this.pluginPath))) {
-      throw new Error('Plugin configuration file not found');
+  async listPlugins(): Promise<string[]> {
+    if (!(await fs.pathExists(this.pluginsRoot))) {
+      return [];
+    }
+    const files = await fs.readdir(this.pluginsRoot, { withFileTypes: true });
+    return files.filter((f) => f.isDirectory()).map((f) => f.name);
+  }
+
+  private getPluginPath(pluginName: string): string {
+    return path.join(this.pluginsRoot, pluginName, 'cfg', 'fo', 'attrs', 'custom.xsl');
+  }
+
+  async getConfig(pluginName: string): Promise<PluginConfigDto> {
+    const pluginPath = this.getPluginPath(pluginName);
+    if (!(await fs.pathExists(pluginPath))) {
+      throw new Error(`Plugin configuration file not found for ${pluginName}`);
     }
 
-    const content = await fs.readFile(this.pluginPath, 'utf-8');
+    const content = await fs.readFile(pluginPath, 'utf-8');
 
     // Simple regex extraction (robust enough for this specific file structure)
     const extract = (pattern: RegExp, defaultVal: string): string => {
@@ -83,7 +75,12 @@ export class PluginManagerService {
     };
   }
 
-  async saveConfig(config: PluginConfigDto): Promise<void> {
+  async saveConfig(pluginName: string, config: PluginConfigDto): Promise<void> {
+    const pluginPath = this.getPluginPath(pluginName);
+
+    // Ensure directory exists
+    await fs.ensureDir(path.dirname(pluginPath));
+
     // We generate the file from a template to ensure consistency
     // Note: We calculate lighter background colors based on the accent/secondary colors
     // For simplicity, we'll just use fixed light variants or the same color with opacity if we were using CSS,
@@ -151,7 +148,7 @@ export class PluginManagerService {
 
 </xsl:stylesheet>`;
 
-    await fs.writeFile(this.pluginPath, content, 'utf-8');
+    await fs.writeFile(pluginPath, content, 'utf-8');
     this.logger.log('Plugin configuration updated');
   }
 }

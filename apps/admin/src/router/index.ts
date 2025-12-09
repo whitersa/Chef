@@ -100,9 +100,21 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'plugins',
-        name: 'PluginManager',
-        component: () => import('../views/plugin/PluginManager.vue'),
         meta: { title: '插件管理' },
+        children: [
+          {
+            path: '',
+            name: 'PluginList',
+            component: () => import('../views/plugin/PluginList.vue'),
+            meta: { title: '插件列表' },
+          },
+          {
+            path: ':name',
+            name: 'PluginConfig',
+            component: () => import('../views/plugin/PluginManager.vue'),
+            meta: { title: '插件配置', hidden: true },
+          },
+        ],
       },
       {
         path: 'user',

@@ -8,10 +8,14 @@ export interface PluginConfig {
   secondaryColor: string;
 }
 
-export const getPluginConfig = () => {
-  return apiClient.get<PluginConfig>('/plugins/config');
+export const getPlugins = () => {
+  return apiClient.get<string[]>('/plugins');
 };
 
-export const updatePluginConfig = (data: PluginConfig) => {
-  return apiClient.put('/plugins/config', data);
+export const getPluginConfig = (name: string) => {
+  return apiClient.get<PluginConfig>(`/plugins/${name}/config`);
+};
+
+export const updatePluginConfig = (name: string, data: PluginConfig) => {
+  return apiClient.put(`/plugins/${name}/config`, data);
 };

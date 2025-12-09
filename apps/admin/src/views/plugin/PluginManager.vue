@@ -1,52 +1,65 @@
 <template>
   <div class="plugin-manager">
-    <el-card header="PDF 样式插件配置 (com.chefos.pdf)">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>插件配置 ({{ pluginName }})</span>
+          <el-button link @click="goBack">返回列表</el-button>
+        </div>
+      </template>
       <el-row :gutter="20">
         <!-- Configuration Form -->
         <el-col :span="8">
           <el-form v-loading="loading" :model="config" label-position="top">
-            <el-divider content-position="left">字体设置</el-divider>
+            <el-collapse v-model="activeNames">
+              <!-- Cover / Title Section -->
+              <el-collapse-item title="封面与标题 (Cover & Title)" name="cover">
+                <el-form-item label="标题字体 (Title Font)">
+                  <el-select v-model="config.titleFontFamily" placeholder="Select font">
+                    <el-option label="Sans (无衬线 - 推荐)" value="Sans" />
+                    <el-option label="Serif (衬线)" value="Serif" />
+                    <el-option label="SimHei (黑体)" value="SimHei" />
+                    <el-option label="Microsoft YaHei (微软雅黑)" value="Microsoft YaHei" />
+                  </el-select>
+                </el-form-item>
 
-            <el-form-item label="标题字体 (Title Font)">
-              <el-select v-model="config.titleFontFamily" placeholder="Select font">
-                <el-option label="Sans (无衬线 - 推荐)" value="Sans" />
-                <el-option label="Serif (衬线)" value="Serif" />
-                <el-option label="SimHei (黑体)" value="SimHei" />
-                <el-option label="Microsoft YaHei (微软雅黑)" value="Microsoft YaHei" />
-              </el-select>
-            </el-form-item>
+                <el-form-item label="标题颜色 (Title Color)">
+                  <el-color-picker v-model="config.titleColor" />
+                  <span class="color-text">{{ config.titleColor }}</span>
+                </el-form-item>
+              </el-collapse-item>
 
-            <el-form-item label="正文字体 (Body Font)">
-              <el-select v-model="config.baseFontFamily" placeholder="Select font">
-                <el-option label="Serif (衬线 - 推荐)" value="Serif" />
-                <el-option label="Sans (无衬线)" value="Sans" />
-                <el-option label="SimSun (宋体)" value="SimSun" />
-              </el-select>
-            </el-form-item>
+              <!-- Paragraph / Body Section -->
+              <el-collapse-item title="正文与段落 (Body & Paragraph)" name="body">
+                <el-form-item label="正文字体 (Body Font)">
+                  <el-select v-model="config.baseFontFamily" placeholder="Select font">
+                    <el-option label="Serif (衬线 - 推荐)" value="Serif" />
+                    <el-option label="Sans (无衬线)" value="Sans" />
+                    <el-option label="SimSun (宋体)" value="SimSun" />
+                  </el-select>
+                </el-form-item>
+              </el-collapse-item>
 
-            <el-divider content-position="left">颜色主题</el-divider>
+              <!-- List / Table Section -->
+              <el-collapse-item title="列表与表格 (List & Table)" name="components">
+                <el-form-item label="强调色 (Accent Color)">
+                  <div class="help-text">用于标题下划线、配料表边框</div>
+                  <el-color-picker v-model="config.accentColor" />
+                  <span class="color-text">{{ config.accentColor }}</span>
+                </el-form-item>
 
-            <el-form-item label="标题颜色 (Title Color)">
-              <el-color-picker v-model="config.titleColor" />
-              <span class="color-text">{{ config.titleColor }}</span>
-            </el-form-item>
+                <el-form-item label="次要色 (Secondary Color)">
+                  <div class="help-text">用于准备工作边框</div>
+                  <el-color-picker v-model="config.secondaryColor" />
+                  <span class="color-text">{{ config.secondaryColor }}</span>
+                </el-form-item>
+              </el-collapse-item>
+            </el-collapse>
 
-            <el-form-item label="强调色 (Accent Color)">
-              <div class="help-text">用于标题下划线、配料表边框</div>
-              <el-color-picker v-model="config.accentColor" />
-              <span class="color-text">{{ config.accentColor }}</span>
-            </el-form-item>
-
-            <el-form-item label="次要色 (Secondary Color)">
-              <div class="help-text">用于准备工作边框</div>
-              <el-color-picker v-model="config.secondaryColor" />
-              <span class="color-text">{{ config.secondaryColor }}</span>
-            </el-form-item>
-
-            <el-form-item>
+            <div class="form-actions">
               <el-button type="primary" :loading="saving" @click="save">保存配置</el-button>
               <el-button @click="fetchConfig">重置</el-button>
-            </el-form-item>
+            </div>
           </el-form>
         </el-col>
 
@@ -98,9 +111,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { getPluginConfig, updatePluginConfig, type PluginConfig } from '../../api/plugins';
 
+const route = useRoute();
+const router = useRouter();
+const pluginName = computed(() => route.params.name as string);
+
+const activeNames = ref(['cover', 'body', 'components']);
 const loading = ref(false);
 const saving = ref(false);
 
@@ -146,9 +165,10 @@ const getFontFamily = (logical: string) => {
 };
 
 const fetchConfig = async () => {
+  if (!pluginName.value) return;
   loading.value = true;
   try {
-    const res = await getPluginConfig();
+    const res = await getPluginConfig(pluginName.value);
     config.value = res;
   } catch {
     ElMessage.error('Failed to load configuration');
@@ -158,9 +178,10 @@ const fetchConfig = async () => {
 };
 
 const save = async () => {
+  if (!pluginName.value) return;
   saving.value = true;
   try {
-    await updatePluginConfig(config.value);
+    await updatePluginConfig(pluginName.value, config.value);
     ElMessage.success('Configuration saved. It will be applied on next PDF export.');
   } catch {
     ElMessage.error('Failed to save configuration');
@@ -169,12 +190,32 @@ const save = async () => {
   }
 };
 
+const goBack = () => {
+  router.push('/plugins');
+};
+
 onMounted(() => {
   fetchConfig();
 });
 </script>
 
 <style scoped>
+.plugin-manager {
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
 .help-text {
   font-size: 12px;
   color: #909399;
