@@ -11,7 +11,9 @@ export class MenusController {
   }
 
   @Post('sync')
-  sync() {
-    return this.service.sync();
+  async sync() {
+    // Trigger sync
+    const result = await this.service.sync();
+    return { ...result, controllerCheck: 'active' };
   }
 }

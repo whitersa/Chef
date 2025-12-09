@@ -2,7 +2,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Menu } from './menu.entity';
-import defaultMenus from './default-menus.json';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 
 @Injectable()
 export class MenusService implements OnModuleInit {
@@ -41,7 +42,53 @@ export class MenusService implements OnModuleInit {
   }
 
   async sync() {
-    const menuData = defaultMenus as any[];
+    console.log('Current process.cwd():', process.cwd());
+
+    const potentialPaths = [
+      // Monorepo root structure
+      path.join(process.cwd(), 'apps/api/src/menus/default-menus.json'),
+      // Service root structure
+      path.join(process.cwd(), 'src/menus/default-menus.json'),
+      // Relative to current file (source)
+      path.join(__dirname, '../../../../apps/api/src/menus/default-menus.json'),
+      // Relative to current file (dist)
+      path.join(__dirname, 'default-menus.json'),
+    ];
+
+    let menuData: any[] = [];
+    let loadedPath = '';
+    const debugInfo = {
+      cwd: process.cwd(),
+      checkedPaths: [] as string[],
+      loadedPath: '',
+      error: '',
+      dataCount: 0,
+    };
+
+    for (const p of potentialPaths) {
+      debugInfo.checkedPaths.push(p);
+      if (await fs.pathExists(p)) {
+        try {
+          console.log(`Attempting to load menus from: ${p}`);
+          menuData = await fs.readJSON(p);
+          loadedPath = p;
+          debugInfo.loadedPath = p;
+          break;
+        } catch (e: any) {
+          console.error(`Error reading ${p}`, e);
+          debugInfo.error = e.message;
+        }
+      }
+    }
+
+    if (!loadedPath) {
+      console.error('Could not find default-menus.json in any expected location');
+      return { status: 'failed', debugInfo };
+    }
+
+    console.log(`Successfully loaded menus from: ${loadedPath}`);
+    console.log('Syncing menus with data count:', menuData.length);
+    debugInfo.dataCount = menuData.length;
 
     // Clear existing menus
     const allMenus = await this.repo.find();
@@ -66,5 +113,7 @@ export class MenusService implements OnModuleInit {
         await this.repo.save(childrenEntities);
       }
     }
+
+    return { status: 'success', debugInfo };
   }
 }

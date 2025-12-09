@@ -2,17 +2,17 @@ import { IsString, IsHexColor } from 'class-validator';
 
 export class PluginConfigDto {
   @IsString()
-  baseFontFamily: string;
+  baseFontFamily!: string;
 
   @IsString()
-  titleFontFamily: string;
+  titleFontFamily!: string;
 
   @IsHexColor()
-  titleColor: string;
+  titleColor!: string;
 
   @IsHexColor()
-  accentColor: string; // Used for title border and ingredients
+  accentColor!: string; // Used for title border and ingredients
 
   @IsHexColor()
-  secondaryColor: string; // Used for preparation context
+  secondaryColor!: string; // Used for preparation context
 }
