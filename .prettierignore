@@ -1,0 +1,9 @@
+# Ignore artifacts:
+build
+coverage
+dist
+.turbo
+node_modules
+
+# Ignore tools
+tools

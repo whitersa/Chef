@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -25,9 +23,10 @@ export class DitaRunnerService {
 
   private resolveJavaPath() {
     // Try to find local Java in tools directory
+    const javaBin = process.platform === 'win32' ? 'java.exe' : 'java';
     const potentialPaths = [
-      path.join(process.cwd(), 'tools', 'java-17', 'bin', 'java.exe'),
-      path.join(process.cwd(), '..', '..', 'tools', 'java-17', 'bin', 'java.exe'),
+      path.join(process.cwd(), 'tools', 'java-17', 'bin', javaBin),
+      path.join(process.cwd(), '..', '..', 'tools', 'java-17', 'bin', javaBin),
     ];
 
     for (const p of potentialPaths) {
@@ -147,10 +146,9 @@ export class DitaRunnerService {
   }
 
   async publishRecipeToPdf(recipe: Recipe): Promise<string> {
-    const r = recipe as any;
     await this.syncPlugin();
 
-    const buildId = `build_${Date.now()}_${r.id}`;
+    const buildId = `build_${Date.now()}_${recipe.id}`;
     const buildDir = path.join(this.tempDir, buildId);
     const outDir = path.join(buildDir, 'out');
 
@@ -160,12 +158,12 @@ export class DitaRunnerService {
     try {
       // 1. Generate DITA Topic
       const ditaContent = this.ditaGenerator.generateRecipeTopic(recipe);
-      const ditaFileName = `recipe_${r.id}.dita`;
+      const ditaFileName = `recipe_${recipe.id}.dita`;
       const ditaFilePath = path.join(buildDir, ditaFileName);
       await fs.writeFile(ditaFilePath, ditaContent);
 
       // 2. Generate DITA Map (Single topic map)
-      const mapContent = this.ditaGenerator.generateMap([recipe], r.name as string);
+      const mapContent = this.ditaGenerator.generateMap([recipe], recipe.name);
       const mapFileName = 'book.ditamap';
       const mapFilePath = path.join(buildDir, mapFileName);
       await fs.writeFile(mapFilePath, mapContent);

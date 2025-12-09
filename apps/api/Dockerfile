@@ -29,6 +29,15 @@ RUN pnpm exec turbo run build --filter=@chefos/api
 FROM base AS runner
 WORKDIR /app
 
+# 安装 Java (DITA-OT 需要)
+RUN apk add --no-cache openjdk17 curl unzip
+
+# 安装 DITA-OT
+RUN curl -L https://github.com/dita-ot/dita-ot/releases/download/4.2/dita-ot-4.2.zip -o /tmp/dita.zip && \
+    unzip /tmp/dita.zip -d /opt && \
+    rm /tmp/dita.zip
+ENV PATH="/opt/dita-ot-4.2/bin:${PATH}"
+
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/src ./apps/api/src

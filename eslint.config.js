@@ -11,7 +11,7 @@ module.exports = [
       ecmaVersion: 'latest',
       sourceType: 'commonjs',
     },
-    ignores: ['**/dist/', '**/node_modules/', '**/.turbo/'],
+    ignores: ['**/dist/', '**/node_modules/', '**/.turbo/', '**/tools/'],
   },
   {
     files: ['packages/eslint-config/**/*.js'],

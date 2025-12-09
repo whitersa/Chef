@@ -3,6 +3,47 @@
 > **使用说明**：本项目采用 Monorepo 架构。任务按里程碑（Milestone）排序，建议按顺序执行。
 > 每个里程碑下增加了 **🧠 涉及知识点** 章节，列出了完成该阶段任务需要掌握或补充学习的核心概念。
 
+## 🚀 快速开始 (Quick Start)
+
+### 环境准备
+
+1. 安装 [Node.js](https://nodejs.org/) (v18+) 和 [pnpm](https://pnpm.io/)。
+2. 安装 [Docker Desktop](https://www.docker.com/products/docker-desktop/) 并启动。
+3. (可选) 如果需要在本地运行 PDF 生成功能，请安装 [Java 17+](https://adoptium.net/) 和 [DITA-OT](https://www.dita-ot.org/)，或者直接使用 Docker 运行。
+
+### 启动步骤
+
+1. **安装依赖**
+
+   ```bash
+   pnpm install
+   ```
+
+2. **启动基础设施 (DB & Redis)**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **配置环境变量**
+   复制 `apps/api/.env.example` 到 `apps/api/.env`。
+
+   ```bash
+   cp apps/api/.env.example apps/api/.env
+   ```
+
+4. **启动开发服务器**
+   ```bash
+   pnpm dev
+   ```
+
+访问:
+
+- Admin: http://localhost:3000
+- API: http://localhost:4000
+
+---
+
 ## 🧭 技术选型与决策 (Tech Stack Analysis)
 
 在开始之前，我们需要明确**为什么**选择这套技术栈。这些选择均基于“行业标准”与“企业级应用场景”，旨在培养架构师视角的决策能力。
