@@ -11,6 +11,12 @@
         "order": 1
       },
       {
+        "title": "单位管理",
+        "path": "/units",
+        "icon": "ScaleToOriginal",
+        "order": 2
+      },
+      {
         "title": "预处理管理",
         "path": "/processing",
         "icon": "MagicStick",

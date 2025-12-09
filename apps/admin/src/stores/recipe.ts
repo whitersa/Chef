@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { recipesApi } from '../api/recipes';
 import { ElMessage } from 'element-plus';
-import type { ProcessingStep } from '@chefos/types';
+import type { ProcessingStep, Recipe, Ingredient } from '@chefos/types';
 
 export interface RecipeItem {
   id: string; // temporary UI ID
@@ -21,7 +21,7 @@ export interface RecipeItem {
 }
 
 export const useRecipeStore = defineStore('recipe', () => {
-  const recipes = ref<any[]>([]);
+  const recipes = ref<Recipe[]>([]);
   const loading = ref(false);
   const pagination = ref({
     page: 1,
@@ -111,14 +111,14 @@ export const useRecipeStore = defineStore('recipe', () => {
   async function fetchRecipe(id: string) {
     loading.value = true;
     try {
-      const recipe: any = await recipesApi.getById(id);
+      const recipe = await recipesApi.getById(id);
       name.value = recipe.name;
       steps.value = recipe.steps || [];
       preProcessing.value = recipe.preProcessing || [];
       yieldQuantity.value = Number(recipe.yieldQuantity) || 1;
       yieldUnit.value = recipe.yieldUnit || 'portion';
       laborCost.value = Number(recipe.laborCost) || 0;
-      items.value = recipe.items.map((item: any) => ({
+      items.value = (recipe.items || []).map((item) => ({
         id: crypto.randomUUID(),
         ingredientId: item.ingredient?.id,
         childRecipeId: item.childRecipe?.id,
@@ -136,17 +136,17 @@ export const useRecipeStore = defineStore('recipe', () => {
     }
   }
 
-  function addItem(item: any, isRecipe = false) {
+  function addItem(item: Ingredient | Recipe, isRecipe = false) {
     items.value.push({
       id: crypto.randomUUID(), // 临时 ID
       ingredientId: isRecipe ? undefined : item.id,
       childRecipeId: isRecipe ? item.id : undefined,
       name: item.name,
       quantity: 1,
-      unit: isRecipe ? 'batch' : item.unit,
-      price: isRecipe ? 0 : item.price, // Sub-recipe cost is calculated dynamically on backend usually, or we fetch it
+      unit: isRecipe ? 'batch' : (item as Ingredient).unit,
+      price: isRecipe ? 0 : (item as Ingredient).price, // Sub-recipe cost is calculated dynamically on backend usually, or we fetch it
       yieldRate: 1.0,
-      nutrition: item.nutrition || { protein: 0, fat: 0, carbs: 0 },
+      nutrition: (item as Ingredient).nutrition || { protein: 0, fat: 0, carbs: 0 },
     });
   }
 

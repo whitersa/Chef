@@ -2,7 +2,9 @@
 import { useIngredientsStore } from '../../stores/ingredients';
 import { useRecipeStore, type RecipeItem } from '../../stores/recipe';
 import { useProcessingStore } from '../../stores/processing';
-import draggable from 'vuedraggable';
+import { getUnits } from '../../api/units';
+import type { Unit } from '@chefos/types';
+import type { EChartsOption } from 'echarts';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import BaseChart from '../../components/BaseChart.vue';
@@ -14,15 +16,22 @@ const recipeStore = useRecipeStore();
 const processingStore = useProcessingStore();
 
 const activeTab = ref('ingredients');
+const units = ref<Unit[]>([]);
 
 // Dialog state
 const dialogVisible = ref(false);
 const currentIngredient = ref<RecipeItem | null>(null);
 const selectedProcessingId = ref<string>('');
 
-onMounted(() => {
+onMounted(async () => {
   ingredientsStore.fetchIngredients();
   processingStore.fetchMethods();
+  try {
+    units.value = await getUnits();
+  } catch (error) {
+    console.error('Failed to fetch units:', error);
+  }
+
   if (route.params.id) {
     recipeStore.fetchRecipe(route.params.id as string);
   } else {
@@ -94,7 +103,7 @@ function confirmProcessing() {
   currentIngredient.value = null;
 }
 
-const nutritionOptions = computed(() => {
+const nutritionOptions = computed<EChartsOption>(() => {
   const { protein, fat, carbs } = recipeStore.totalNutrition;
   // 如果没有数据，显示默认值避免空图表
   const hasData = protein > 0 || fat > 0 || carbs > 0;
@@ -235,12 +244,22 @@ const nutritionOptions = computed(() => {
               </div>
               <div class="form-item">
                 <label>单位</label>
-                <el-input
+                <el-select
                   v-model="recipeStore.yieldUnit"
                   placeholder="份/kg"
                   size="default"
                   style="width: 100px"
-                />
+                  filterable
+                  allow-create
+                  default-first-option
+                >
+                  <el-option
+                    v-for="item in units"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.name"
+                  />
+                </el-select>
               </div>
               <div class="form-item">
                 <label>预估人工(¥)</label>

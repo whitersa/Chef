@@ -1,5 +1,6 @@
 import { Recipe } from '@chefos/types';
 import Link from 'next/link';
+import Image from 'next/image';
 import { API_URL } from '@chefos/utils';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/MotionWrapper';
 
@@ -51,10 +52,12 @@ export default async function RecipeDetail({ params }: { params: Promise<{ id: s
               delay={0.2}
               className="mb-8 rounded-xl overflow-hidden h-64 md:h-96 w-full relative bg-gray-100"
             >
-              <img
+              <Image
                 src={recipe.dish.imageUrl}
                 alt={recipe.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
               />
             </FadeIn>
           )}
@@ -85,7 +88,7 @@ export default async function RecipeDetail({ params }: { params: Promise<{ id: s
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">Ingredients</h2>
               {recipe.items && recipe.items.length > 0 ? (
                 <StaggerContainer className="space-y-3">
-                  {recipe.items.map((item: any) => (
+                  {recipe.items.map((item) => (
                     <StaggerItem
                       key={item.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"

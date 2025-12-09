@@ -25,9 +25,7 @@
       </div>
       <div class="toolbar-right">
         <el-button type="primary" @click="handleAdd">
-          <el-icon class="el-icon--left">
-            <Plus /> </el-icon
-          >添加食材
+          <el-icon class="el-icon--left"> <Plus /> </el-icon>添加食材
         </el-button>
       </div>
     </template>
@@ -136,12 +134,19 @@
             <el-input-number v-model="form.price" :min="0" :precision="2" />
           </el-form-item>
           <el-form-item label="单位">
-            <el-select v-model="form.unit" placeholder="请选择单位">
-              <el-option label="kg" value="kg" />
-              <el-option label="g" value="g" />
-              <el-option label="L" value="L" />
-              <el-option label="ml" value="ml" />
-              <el-option label="个" value="个" />
+            <el-select
+              v-model="form.unit"
+              placeholder="请选择单位"
+              filterable
+              allow-create
+              default-first-option
+            >
+              <el-option
+                v-for="item in units"
+                :key="item.id"
+                :label="item.name"
+                :value="item.name"
+              />
             </el-select>
           </el-form-item>
           <el-divider content-position="left"> 营养成分 </el-divider>
@@ -172,6 +177,8 @@ import { useIngredientsStore, type Ingredient } from '@/stores/ingredients';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
 import { useListFilter } from '@/composables/useListFilter';
+import { getUnits } from '@/api/units';
+import type { Unit } from '@chefos/types';
 
 const ingredientsStore = useIngredientsStore();
 const { ingredients, loading, pagination } = storeToRefs(ingredientsStore);
@@ -184,6 +191,8 @@ const {
   handleSizeChange,
   handleSortChange,
 } = useListFilter(ingredientsStore);
+
+const units = ref<Unit[]>([]);
 
 const dialogVisible = ref(false);
 const isEdit = ref(false);
@@ -200,8 +209,13 @@ const form = reactive({
   },
 });
 
-onMounted(() => {
+onMounted(async () => {
   ingredientsStore.fetchIngredients();
+  try {
+    units.value = await getUnits();
+  } catch (error) {
+    console.error('Failed to fetch units:', error);
+  }
 });
 
 const handleAdd = () => {
@@ -225,6 +239,7 @@ const handleDelete = async (id: string) => {
     await ingredientsStore.deleteIngredient(id);
     ElMessage.success('删除成功');
   } catch (error) {
+    console.error(error);
     ElMessage.error('删除失败');
   }
 };
@@ -245,6 +260,7 @@ const handleSubmit = async () => {
     }
     dialogVisible.value = false;
   } catch (error) {
+    console.error(error);
     ElMessage.error(isEdit.value ? '更新失败' : '添加失败');
   }
 };

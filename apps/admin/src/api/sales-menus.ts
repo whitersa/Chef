@@ -37,7 +37,7 @@ export interface CreateSalesMenuRequest {
   items?: CreateSalesMenuItemRequest[];
 }
 
-export interface UpdateSalesMenuRequest extends Partial<CreateSalesMenuRequest> {}
+export type UpdateSalesMenuRequest = Partial<CreateSalesMenuRequest>;
 
 export const salesMenusApi = {
   getAll: (query?: PaginationQuery) =>

@@ -1,12 +1,10 @@
 <template>
-  <div
-    ref="chartRef"
-    class="chart-container"
-  />
+  <div ref="chartRef" class="chart-container" />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, type PropType } from 'vue';
+import type { EChartsOption } from 'echarts';
 // Import ECharts core
 import * as echarts from 'echarts/core';
 // Import charts
@@ -35,7 +33,7 @@ echarts.use([
 
 const props = defineProps({
   options: {
-    type: Object as PropType<any>, // Use any or specific EChartsOption type if available from echarts/types/dist/shared
+    type: Object as PropType<EChartsOption>,
     required: true,
   },
 });

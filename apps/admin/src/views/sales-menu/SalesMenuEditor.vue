@@ -6,6 +6,7 @@ import { useRecipeStore } from '@/stores/recipe';
 import { recipesApi } from '@/api/recipes';
 import draggable from 'vuedraggable';
 import { Delete, InfoFilled } from '@element-plus/icons-vue';
+import type { Recipe } from '@chefos/types';
 
 const route = useRoute();
 const router = useRouter();
@@ -41,7 +42,14 @@ async function fetchCost(recipeId: string) {
   }
 }
 
-function handleRecipeAdd(evt: any) {
+interface DraggableEvent {
+  added?: {
+    element: Recipe;
+    newIndex: number;
+  };
+}
+
+function handleRecipeAdd(evt: DraggableEvent) {
   if (evt.added) {
     const recipe = evt.added.element;
 
@@ -63,6 +71,7 @@ async function handleSave() {
     await store.saveMenu();
     router.push('/sales-menu/list');
   } catch (error) {
+    console.error(error);
     // Error handled in store
   }
 }
@@ -117,14 +126,8 @@ function handleCancel() {
           />
         </div>
         <div class="actions">
-          <el-button @click="handleCancel">
-            取消
-          </el-button>
-          <el-button
-            type="primary"
-            :loading="store.loading"
-            @click="handleSave"
-          >
+          <el-button @click="handleCancel"> 取消 </el-button>
+          <el-button type="primary" :loading="store.loading" @click="handleSave">
             保存菜单
           </el-button>
         </div>
@@ -159,27 +162,13 @@ function handleCancel() {
         >
           <template #item="{ element, index }">
             <div class="menu-item-row">
-              <div class="drag-handle">
-                ⋮⋮
-              </div>
+              <div class="drag-handle">⋮⋮</div>
               <div class="col-name">
-                <el-input
-                  v-model="element.name"
-                  size="default"
-                />
+                <el-input v-model="element.name" size="default" />
               </div>
               <div class="col-category">
-                <el-select
-                  v-model="element.category"
-                  size="default"
-                  placeholder="选择分类"
-                >
-                  <el-option
-                    v-for="c in categories"
-                    :key="c"
-                    :label="c"
-                    :value="c"
-                  />
+                <el-select v-model="element.category" size="default" placeholder="选择分类">
+                  <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
                 </el-select>
               </div>
               <div class="col-price">
@@ -192,14 +181,8 @@ function handleCancel() {
                     size="default"
                     style="width: 100%"
                   />
-                  <div
-                    v-if="recipeCosts[element.recipeId]"
-                    class="cost-info"
-                  >
-                    <el-tooltip
-                      content="单份成本 (仅供参考)"
-                      placement="top"
-                    >
+                  <div v-if="recipeCosts[element.recipeId]" class="cost-info">
+                    <el-tooltip content="单份成本 (仅供参考)" placement="top">
                       <span class="cost-tag">
                         <el-icon><InfoFilled /></el-icon>
                         ¥{{ recipeCosts[element.recipeId]?.toFixed(2) }}
@@ -221,10 +204,7 @@ function handleCancel() {
           </template>
         </draggable>
 
-        <div
-          v-if="!store.currentMenu.items?.length"
-          class="empty-placeholder"
-        >
+        <div v-if="!store.currentMenu.items?.length" class="empty-placeholder">
           从左侧拖拽菜谱到此处添加
         </div>
       </div>

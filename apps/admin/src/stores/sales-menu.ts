@@ -43,9 +43,9 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
 
       menus.value = res.data;
       pagination.total = res.meta.total;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to fetch sales menus:', error);
-      ElMessage.error(error.message || '获取菜单列表失败');
+      ElMessage.error('获取菜单列表失败');
     } finally {
       loading.value = false;
     }

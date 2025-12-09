@@ -1,5 +1,6 @@
 import { Recipe } from '@chefos/types';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -22,10 +23,12 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     >
       <div className="relative h-56 w-full overflow-hidden bg-gray-100">
         {recipe.dish?.imageUrl ? (
-          <img
+          <Image
             src={recipe.dish.imageUrl}
             alt={recipe.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            unoptimized
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-gray-300 bg-gray-50 group-hover:scale-105 transition-transform duration-500">

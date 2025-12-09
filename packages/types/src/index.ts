@@ -52,9 +52,44 @@ export interface Recipe {
   yieldQuantity: number;
   yieldUnit: string;
   laborCost: number;
-  items?: any[];
+  items?: RecipeItem[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface Unit {
+  id: string;
+  name: string;
+  abbreviation?: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Ingredient {
+  id: string;
+  name: string;
+  price: number;
+  unit: string;
+  nutrition?: {
+    protein: number;
+    fat: number;
+    carbs: number;
+  };
+  stockQuantity?: number;
+  stockUnit?: string;
+}
+
+export interface RecipeItem {
+  id: string;
+  recipeId: string;
+  ingredientId?: string;
+  childRecipeId?: string;
+  quantity: number;
+  yieldRate: number;
+  order: number;
+  ingredient?: Ingredient;
+  childRecipe?: Recipe;
 }
 
 export * from './dtos/create-ingredient.dto';

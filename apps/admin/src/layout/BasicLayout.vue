@@ -4,7 +4,7 @@
       <div class="aside-flex-column">
         <div class="logo" :class="{ 'logo-collapsed': isCollapse }">
           <div class="logo-icon">C</div>
-          <span class="logo-text" v-show="!isCollapse">ChefOS</span>
+          <span v-show="!isCollapse" class="logo-text">ChefOS</span>
         </div>
 
         <el-scrollbar class="flex-1">

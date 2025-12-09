@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import BasicLayout from '../layout/BasicLayout.vue';
-import Login from '../views/Login.vue';
+import LoginView from '../views/LoginView.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'Login',
-    component: Login,
+    component: LoginView,
     meta: { title: 'Login', public: true },
   },
   {
@@ -19,6 +19,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'IngredientList',
         component: () => import('../views/ingredient/IngredientList.vue'),
         meta: { title: '食材管理' },
+      },
+      {
+        path: 'units',
+        name: 'UnitList',
+        component: () => import('../views/unit/UnitList.vue'),
+        meta: { title: '单位管理' },
       },
       {
         path: 'processing',
@@ -77,7 +83,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'procurement',
         name: 'Procurement',
-        component: () => import('../views/procurement/Procurement.vue'),
+        component: () => import('../views/procurement/ProcurementList.vue'),
         meta: { title: '采购清单' },
       },
       {
