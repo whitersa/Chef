@@ -197,7 +197,7 @@ export class DitaRunnerService {
         throw new Error('PDF file not found in output directory');
       }
     } catch (error) {
-      const err = error as any;
+      const err = error as { message?: string; stdout?: string; stderr?: string };
       const stdout = err.stdout || '';
       const stderr = err.stderr || '';
       const message = err.message || 'Unknown error';

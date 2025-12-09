@@ -70,13 +70,18 @@ export class MenusService implements OnModuleInit {
       if (await fs.pathExists(p)) {
         try {
           console.log(`Attempting to load menus from: ${p}`);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           menuData = await fs.readJSON(p);
           loadedPath = p;
           debugInfo.loadedPath = p;
           break;
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error(`Error reading ${p}`, e);
-          debugInfo.error = e.message;
+          if (e instanceof Error) {
+            debugInfo.error = e.message;
+          } else {
+            debugInfo.error = String(e);
+          }
         }
       }
     }

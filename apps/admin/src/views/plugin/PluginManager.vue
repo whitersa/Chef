@@ -150,7 +150,7 @@ const fetchConfig = async () => {
   try {
     const res = await getPluginConfig();
     config.value = res;
-  } catch (error) {
+  } catch {
     ElMessage.error('Failed to load configuration');
   } finally {
     loading.value = false;
@@ -162,7 +162,7 @@ const save = async () => {
   try {
     await updatePluginConfig(config.value);
     ElMessage.success('Configuration saved. It will be applied on next PDF export.');
-  } catch (error) {
+  } catch {
     ElMessage.error('Failed to save configuration');
   } finally {
     saving.value = false;
