@@ -1,14 +1,7 @@
 import { api } from '../api-client';
-import type { Cuisine } from './cuisines';
+import type { Dish } from '@chefos/types';
 
-export interface Dish {
-  id: string;
-  name: string;
-  description?: string;
-  imageUrl?: string;
-  cuisineId?: string;
-  cuisine?: Cuisine;
-}
+export type { Dish };
 
 export const dishesApi = {
   getAll: () => api.get<Dish[]>('/dishes'),
