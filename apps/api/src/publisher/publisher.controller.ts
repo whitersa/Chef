@@ -35,8 +35,10 @@ export class PublisherController {
           }
         }
       });
-    } catch {
-      throw new InternalServerErrorException('Failed to generate PDF');
+    } catch (error) {
+      const err = error as Error;
+      console.error(err);
+      throw new InternalServerErrorException(`Failed to generate PDF: ${err.message}`);
     }
   }
 }

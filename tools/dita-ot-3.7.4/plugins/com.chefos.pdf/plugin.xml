@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin id="com.chefos.pdf">
+    <require plugin="org.dita.pdf2" />
+    <feature extension="dita.conductor.transtype.check" value="chefos-pdf" />
+    <feature extension="dita.transtype.print" value="chefos-pdf" />
+    <transtype name="chefos-pdf" extends="pdf" desc="ChefOS PDF">
+        <param name="customization.dir" value="${dita.plugin.com.chefos.pdf.dir}/cfg" />
+    </transtype>
+    <feature extension="dita.conductor.target.relative" value="build.xml" type="file" />
+    <feature extension="dita.xsl.xslfo" value="cfg/fo/xsl/custom.xsl" type="file" />
+    <feature extension="dita.xsl.xslfo" value="cfg/fo/attrs/custom.xsl" type="file" />
+    <feature extension="depend.org.dita.pdf2.init.pre" value="chefos.pdf.init" type="text" />
+</plugin>

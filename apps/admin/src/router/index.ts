@@ -99,6 +99,12 @@ const routes: Array<RouteRecordRaw> = [
         ],
       },
       {
+        path: 'plugins',
+        name: 'PluginManager',
+        component: () => import('../views/plugin/PluginManager.vue'),
+        meta: { title: '插件管理' },
+      },
+      {
         path: 'user',
         name: 'UserList',
         component: () => import('../views/user/UserList.vue'),

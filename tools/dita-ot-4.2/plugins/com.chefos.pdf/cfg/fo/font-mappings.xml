@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<font-mappings>
+    <font-table>
+        <logical-font name="Sans">
+            <physical-font char-set="default">
+                <font-face>Arial</font-face>
+            </physical-font>
+            <physical-font char-set="Simplified Chinese">
+                <font-face>Microsoft YaHei</font-face>
+                <font-face>SimHei</font-face>
+                <font-face>SimSun</font-face>
+            </physical-font>
+        </logical-font>
+
+        <logical-font name="Serif">
+            <physical-font char-set="default">
+                <font-face>Times New Roman</font-face>
+            </physical-font>
+            <physical-font char-set="Simplified Chinese">
+                <font-face>SimSun</font-face>
+            </physical-font>
+        </logical-font>
+        <logical-font name="Monospaced">
+            <physical-font char-set="default">
+                <font-face>Courier New</font-face>
+            </physical-font>
+            <physical-font char-set="Simplified Chinese">
+                <font-face>SimSun</font-face>
+            </physical-font>
+        </logical-font>
+
+        <logical-font name="SimHei">
+            <physical-font char-set="default">
+                <font-face>SimHei</font-face>
+                <font-face>Microsoft YaHei</font-face>
+            </physical-font>
+        </logical-font>
+
+        <logical-font name="SimSun">
+            <physical-font char-set="default">
+                <font-face>SimSun</font-face>
+            </physical-font>
+        </logical-font>
+    </font-table>
+</font-mappings>
