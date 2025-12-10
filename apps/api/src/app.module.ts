@@ -1,3 +1,5 @@
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -26,6 +28,14 @@ import { PublisherModule } from './publisher/publisher.module';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/static',
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', '..', 'tools', 'dita-plugins'),
+      serveRoot: '/plugins-static',
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -61,15 +71,25 @@ import { PublisherModule } from './publisher/publisher.module';
             ? {
                 target: 'pino-pretty',
                 options: {
-                  singleLine: false,
+                  singleLine: true,
                   colorize: true,
                   translateTime: 'SYS:standard',
-                  ignore: 'pid,hostname',
+                  ignore: 'pid,hostname,req,res,responseTime',
                   messageFormat: '{msg}',
                 },
               }
             : undefined,
         level: process.env.LOG_LEVEL || 'info',
+        serializers: {
+          req: (req) => ({ method: req.method, url: req.url }),
+          res: (res) => ({ statusCode: res.statusCode }),
+        },
+        customSuccessMessage: (req, res) => {
+          return `[${req.method}] ${req.url}`;
+        },
+        customErrorMessage: (req, res, err) => {
+          return `[${req.method}] ${req.url} - ${res.statusCode}`;
+        },
         ...(process.env.NODE_ENV === 'production' && {
           formatters: {
             level: (label) => {

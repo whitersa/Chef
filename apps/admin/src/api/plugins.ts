@@ -6,6 +6,9 @@ export interface PluginConfig {
   titleColor: string;
   accentColor: string;
   secondaryColor: string;
+  pageWidth?: string;
+  pageHeight?: string;
+  coverImage?: string;
 }
 
 export const getPlugins = () => {

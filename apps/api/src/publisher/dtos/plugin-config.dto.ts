@@ -1,4 +1,4 @@
-import { IsString, IsHexColor } from 'class-validator';
+import { IsString, IsHexColor, IsOptional } from 'class-validator';
 
 export class PluginConfigDto {
   @IsString()
@@ -15,4 +15,14 @@ export class PluginConfigDto {
 
   @IsHexColor()
   secondaryColor!: string; // Used for preparation context
+
+  @IsString()
+  pageWidth!: string;
+
+  @IsString()
+  pageHeight!: string;
+
+  @IsOptional()
+  @IsString()
+  coverImage?: string;
 }

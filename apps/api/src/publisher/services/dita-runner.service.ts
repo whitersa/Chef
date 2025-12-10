@@ -100,16 +100,25 @@ export class DitaRunnerService {
     }
 
     const ditaHome = path.dirname(path.dirname(this.ditaExecutable));
-    const pluginSource = path.join(process.cwd(), 'tools', 'dita-plugins', 'com.chefos.pdf');
+    // Resolve tools directory relative to CWD or Monorepo Root
+    let toolsDir = path.join(process.cwd(), 'tools');
+    if (!fs.existsSync(toolsDir)) {
+      toolsDir = path.join(process.cwd(), '..', '..', 'tools');
+    }
+
+    const pluginSource = path.join(toolsDir, 'dita-plugins', 'com.chefos.pdf');
     const pluginTarget = path.join(ditaHome, 'plugins', 'com.chefos.pdf');
 
     if (!(await fs.pathExists(pluginSource))) {
       return;
     }
 
-    // Check if plugin.xml has changed to decide if we need full integration
+    // Check if plugin.xml OR custom.xsl has changed to decide if we need full integration
     const sourceXml = path.join(pluginSource, 'plugin.xml');
     const targetXml = path.join(pluginTarget, 'plugin.xml');
+    const sourceCustom = path.join(pluginSource, 'cfg', 'fo', 'attrs', 'custom.xsl');
+    const targetCustom = path.join(pluginTarget, 'cfg', 'fo', 'attrs', 'custom.xsl');
+
     let needIntegration = false;
 
     if (await fs.pathExists(targetXml)) {
@@ -117,14 +126,33 @@ export class DitaRunnerService {
       const targetContent = await fs.readFile(targetXml, 'utf-8');
       if (sourceContent !== targetContent) {
         needIntegration = true;
+        this.logger.log('plugin.xml changed, integration required');
       }
     } else {
       needIntegration = true;
+      this.logger.log('plugin.xml missing, integration required');
+    }
+
+    // Check custom.xsl changes (optional, but good for debugging)
+    if (
+      !needIntegration &&
+      (await fs.pathExists(targetCustom)) &&
+      (await fs.pathExists(sourceCustom))
+    ) {
+      const sourceCustomContent = await fs.readFile(sourceCustom, 'utf-8');
+      const targetCustomContent = await fs.readFile(targetCustom, 'utf-8');
+      if (sourceCustomContent !== targetCustomContent) {
+        this.logger.log('custom.xsl changed, syncing files...');
+      }
     }
 
     // Copy files
-    this.logger.debug(`Syncing plugin files to ${pluginTarget}`);
-    await fs.copy(pluginSource, pluginTarget, { overwrite: true });
+    try {
+      this.logger.debug(`Syncing plugin files from ${pluginSource} to ${pluginTarget}`);
+      await fs.copy(pluginSource, pluginTarget, { overwrite: true });
+    } catch (err) {
+      this.logger.error(`Failed to sync plugin files: ${err}`);
+    }
 
     // Run integration if needed
     if (needIntegration) {

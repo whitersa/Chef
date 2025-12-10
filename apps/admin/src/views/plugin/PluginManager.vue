@@ -1,6 +1,6 @@
 <template>
-  <div class="plugin-manager">
-    <el-card>
+  <div class="page-container">
+    <el-card shadow="never" class="main-card">
       <template #header>
         <div class="card-header">
           <span>插件配置 ({{ pluginName }})</span>
@@ -14,6 +14,37 @@
             <el-collapse v-model="activeNames">
               <!-- Cover / Title Section -->
               <el-collapse-item title="封面与标题 (Cover & Title)" name="cover">
+                <el-form-item label="页面尺寸 (Page Size)">
+                  <el-row :gutter="10">
+                    <el-col :span="12">
+                      <el-input v-model="config.pageWidth" placeholder="Width (e.g. 210mm)">
+                        <template #prepend>宽</template>
+                      </el-input>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-input v-model="config.pageHeight" placeholder="Height (e.g. 297mm)">
+                        <template #prepend>高</template>
+                      </el-input>
+                    </el-col>
+                  </el-row>
+                </el-form-item>
+
+                <el-form-item label="封面图片 (Cover Image)">
+                  <el-upload
+                    class="cover-uploader"
+                    :action="uploadUrl"
+                    :show-file-list="false"
+                    :on-success="handleCoverSuccess"
+                    :before-upload="beforeCoverUpload"
+                  >
+                    <img v-if="config.coverImage" :src="coverImageUrl" class="cover-image" />
+                    <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
+                  </el-upload>
+                  <div v-if="config.coverImage" class="help-text">
+                    已上传: {{ config.coverImage }}
+                  </div>
+                </el-form-item>
+
                 <el-form-item label="标题字体 (Title Font)">
                   <el-select v-model="config.titleFontFamily" placeholder="Select font">
                     <el-option label="Sans (无衬线 - 推荐)" value="Sans" />
@@ -112,7 +143,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
+import { ElMessage, type UploadProps } from 'element-plus';
+import { Plus } from '@element-plus/icons-vue';
+import { API_URL } from '@chefos/utils';
 import { getPluginConfig, updatePluginConfig, type PluginConfig } from '../../api/plugins';
 
 const route = useRoute();
@@ -129,12 +162,57 @@ const config = ref<PluginConfig>({
   titleColor: '#2c3e50',
   accentColor: '#e67e22',
   secondaryColor: '#3498db',
+  pageWidth: '297mm',
+  pageHeight: '210mm',
+  coverImage: '',
 });
 
+const uploadUrl = computed(() => `${API_URL}/api/plugins/${pluginName.value}/cover`);
+const coverImageUrl = computed(() => {
+  if (config.value.coverImage) {
+    if (config.value.coverImage.startsWith('http')) return config.value.coverImage;
+    return `${API_URL}/plugins-static/${pluginName.value}/cfg/common/artwork/${config.value.coverImage}`;
+  }
+  return `${API_URL}/static/default-cover.jpg`;
+});
+const handleCoverSuccess: UploadProps['onSuccess'] = (response) => {
+  config.value.coverImage = response.url;
+  ElMessage.success('Cover image uploaded successfully');
+};
+
+const beforeCoverUpload: UploadProps['beforeUpload'] = (rawFile) => {
+  if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
+    ElMessage.error('Cover image must be JPG or PNG format!');
+    return false;
+  } else if (rawFile.size / 1024 / 1024 > 2) {
+    ElMessage.error('Cover image size can not exceed 2MB!');
+    return false;
+  }
+  return true;
+};
+
+// Helper to parse length to mm
+const parseLength = (val: string | undefined, defaultVal: number): number => {
+  if (!val) return defaultVal;
+  const num = parseFloat(val);
+  if (isNaN(num)) return defaultVal;
+  if (val.endsWith('in')) return num * 25.4;
+  if (val.endsWith('cm')) return num * 10;
+  if (val.endsWith('pt')) return num * 0.352778;
+  if (val.endsWith('px')) return num * 0.264583;
+  return num; // assume mm
+};
+
 // Computed Styles for Preview
-const paperStyle = computed(() => ({
-  fontFamily: getFontFamily(config.value.baseFontFamily),
-}));
+const paperStyle = computed(() => {
+  const w = parseLength(config.value.pageWidth, 210);
+  const h = parseLength(config.value.pageHeight, 297);
+  return {
+    fontFamily: getFontFamily(config.value.baseFontFamily),
+    width: '100%', // Scale to container
+    aspectRatio: `${w}/${h}`,
+  };
+});
 
 const titleStyle = computed(() => ({
   fontFamily: getFontFamily(config.value.titleFontFamily),
@@ -200,8 +278,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.plugin-manager {
-  padding: 20px;
+.page-container {
+  height: 100%;
+  /* padding: 16px; Removed to avoid double padding with BasicLayout */
+  box-sizing: border-box;
+  /* background-color: var(--el-bg-color-page); Handled by BasicLayout */
+  overflow: auto;
+}
+
+.main-card {
+  min-height: 100%;
 }
 
 .card-header {

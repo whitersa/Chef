@@ -33,6 +33,7 @@ export class Ingredient {
     comment: 'Nutritional information (e.g., protein, carbs)',
   })
   nutrition!: {
+    calories?: number;
     protein: number;
     fat: number;
     carbs: number;

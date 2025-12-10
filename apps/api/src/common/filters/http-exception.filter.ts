@@ -45,11 +45,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
         `[${request.method}] ${request.url}`,
         exception instanceof Error ? exception.stack : String(exception),
       );
-    } else {
-      this.logger.warn(
-        `[${request.method}] ${request.url} - ${status} - ${JSON.stringify(errorResponse.message)}`,
-      );
     }
+    // else {
+    //   this.logger.warn(
+    //     `[${request.method}] ${request.url} - ${status} - ${JSON.stringify(errorResponse.message)}`,
+    //   );
+    // }
 
     response.status(status).json(errorResponse);
   }

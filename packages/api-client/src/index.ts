@@ -7,7 +7,7 @@ export class ApiClient {
   constructor(baseURL: string) {
     this.client = axios.create({
       baseURL,
-      timeout: 10000,
+      timeout: 60000, // Increased timeout for PDF generation
       headers: {
         'Content-Type': 'application/json',
       },
