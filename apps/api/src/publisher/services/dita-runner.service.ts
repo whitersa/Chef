@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { Recipe } from '@chefos/types';
+import { Recipe } from '../types/recipe.interface';
 import { DitaGeneratorService } from './dita-generator.service';
 
 const execAsync = promisify(exec);
@@ -151,7 +151,9 @@ export class DitaRunnerService {
       this.logger.debug(`Syncing plugin files from ${pluginSource} to ${pluginTarget}`);
       await fs.copy(pluginSource, pluginTarget, { overwrite: true });
     } catch (err) {
-      this.logger.error(`Failed to sync plugin files: ${err}`);
+      this.logger.error(
+        `Failed to sync plugin files: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
 
     // Run integration if needed

@@ -2,9 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DitaRunnerService } from './services/dita-runner.service';
 import { DitaGeneratorService } from './services/dita-generator.service';
 import * as fs from 'fs';
+import { Recipe } from './types/recipe.interface';
 
 // Mock Recipe Interface locally to avoid import issues
-const mockRecipe: any = {
+const mockRecipe: Recipe = {
   id: 'test-layout-recipe',
   name: 'Test Layout Recipe',
   variantName: 'Standard Variant',
@@ -12,10 +13,10 @@ const mockRecipe: any = {
   yieldUnit: 'Loaf',
   laborCost: 0,
   items: [
-    { quantity: 500, ingredient: { name: 'Flour', unit: 'g' } },
-    { quantity: 300, ingredient: { name: 'Water', unit: 'ml' } },
-    { quantity: 10, ingredient: { name: 'Salt', unit: 'g' } },
-    { quantity: 7, ingredient: { name: 'Yeast', unit: 'g' } },
+    { quantity: 500, ingredient: { id: '1', name: 'Flour', unit: 'g' } },
+    { quantity: 300, ingredient: { id: '2', name: 'Water', unit: 'ml' } },
+    { quantity: 10, ingredient: { id: '3', name: 'Salt', unit: 'g' } },
+    { quantity: 7, ingredient: { id: '4', name: 'Yeast', unit: 'g' } },
   ],
   preProcessing: [
     { type: 'Mix', description: 'Mix dry ingredients' },

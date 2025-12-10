@@ -6,6 +6,7 @@ import * as path from 'path';
 import { create } from 'xmlbuilder2';
 import { PluginConfigDto } from '../dtos/plugin-config.dto';
 import { PluginConfig } from '../entities/plugin-config.entity';
+import { XslDoc, XslStylesheet, XslAttributeSet, XslVariable } from '../types/xslt.types';
 
 @Injectable()
 export class PluginManagerService {
@@ -82,51 +83,53 @@ export class PluginManagerService {
     const content = await fs.readFile(pluginPath, 'utf-8');
 
     try {
-      const doc = create(content).toObject() as any;
+      const doc = create(content).toObject() as unknown as XslDoc;
       const stylesheet = doc['xsl:stylesheet'];
 
       // Helper to extract all elements of a certain type from the mixed content structure
-      const getElements = (tagName: string) => {
-        const elements: any[] = [];
+      const getElements = <T>(tagName: string): T[] => {
+        const elements: T[] = [];
         // Handle mixed content array (comments + elements)
         const children = Array.isArray(stylesheet['#']) ? stylesheet['#'] : [stylesheet];
 
-        children.forEach((child: any) => {
-          if (child[tagName]) {
-            const items = Array.isArray(child[tagName]) ? child[tagName] : [child[tagName]];
-            elements.push(...items);
+        children?.forEach((child: any) => {
+          if (child && typeof child === 'object' && tagName in child) {
+            const typedChild = child as Record<string, any>;
+            const items = Array.isArray(typedChild[tagName])
+              ? typedChild[tagName]
+              : [typedChild[tagName]];
+            elements.push(...(items as T[]));
           }
         });
 
         // Also handle case where they are direct properties (if no mixed content)
-        if (stylesheet[tagName]) {
-          const items = Array.isArray(stylesheet[tagName])
-            ? stylesheet[tagName]
-            : [stylesheet[tagName]];
-          elements.push(...items);
+        if (tagName in stylesheet) {
+          const val = stylesheet[tagName as keyof XslStylesheet] as unknown;
+          const items = Array.isArray(val) ? val : [val];
+          elements.push(...(items as T[]));
         }
 
         return elements;
       };
 
-      const allAttributeSets = getElements('xsl:attribute-set');
-      const allVariables = getElements('xsl:variable');
+      const allAttributeSets = getElements<XslAttributeSet>('xsl:attribute-set');
+      const allVariables = getElements<XslVariable>('xsl:variable');
 
       // Helper to find variable value
       const getVar = (name: string, defaultVal: string) => {
-        const found = allVariables.find((v: any) => v['@name'] === name);
+        const found = allVariables.find((v) => v['@name'] === name);
         return found ? found['#'] : defaultVal;
       };
 
       // Helper to find attribute value in a specific attribute-set
       const getAttr = (setName: string, attrName: string, defaultVal: string, regex?: RegExp) => {
-        const set = allAttributeSets.find((s: any) => s['@name'] === setName);
+        const set = allAttributeSets.find((s) => s['@name'] === setName);
         if (!set) return defaultVal;
 
         const attrs = set['xsl:attribute'];
         if (!attrs) return defaultVal;
         const attrList = Array.isArray(attrs) ? attrs : [attrs];
-        const attr = attrList.find((a: any) => a['@name'] === attrName);
+        const attr = attrList.find((a) => a['@name'] === attrName);
 
         if (!attr) return defaultVal;
         const val = attr['#'];
@@ -162,7 +165,9 @@ export class PluginManagerService {
       return config;
     } catch (e) {
       this.logger.error(`Failed to parse XML config for ${pluginName}`, e);
-      throw new Error(`Failed to parse configuration file: ${e}`);
+      throw new Error(
+        `Failed to parse configuration file: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 

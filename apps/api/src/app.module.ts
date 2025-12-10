@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { IncomingMessage, ServerResponse } from 'http';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import * as Joi from 'joi';
@@ -81,13 +82,15 @@ import { PublisherModule } from './publisher/publisher.module';
             : undefined,
         level: process.env.LOG_LEVEL || 'info',
         serializers: {
-          req: (req) => ({ method: req.method, url: req.url }),
-          res: (res) => ({ statusCode: res.statusCode }),
+          req: (req: IncomingMessage) => ({ method: req.method, url: req.url }),
+          res: (res: ServerResponse) => ({ statusCode: res.statusCode }),
         },
-        customSuccessMessage: (req, res) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        customSuccessMessage: (req: IncomingMessage, _res: ServerResponse) => {
           return `[${req.method}] ${req.url}`;
         },
-        customErrorMessage: (req, res, err) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        customErrorMessage: (req: IncomingMessage, res: ServerResponse, _err: Error) => {
           return `[${req.method}] ${req.url} - ${res.statusCode}`;
         },
         ...(process.env.NODE_ENV === 'production' && {
