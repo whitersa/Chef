@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { Recipe } from '../types/recipe.interface';
+import { Recipe } from '@chefos/types';
 import { DitaGeneratorService } from './dita-generator.service';
 
 const execAsync = promisify(exec);

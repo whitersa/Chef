@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DitaRunnerService } from './services/dita-runner.service';
 import { DitaGeneratorService } from './services/dita-generator.service';
 import * as fs from 'fs';
-import { Recipe } from './types/recipe.interface';
+import { Recipe } from '@chefos/types';
 
 // Mock Recipe Interface locally to avoid import issues
-const mockRecipe: Recipe = {
+const mockRecipe = {
   id: 'test-layout-recipe',
   name: 'Test Layout Recipe',
   variantName: 'Standard Variant',
@@ -19,8 +19,8 @@ const mockRecipe: Recipe = {
     { quantity: 7, ingredient: { id: '4', name: 'Yeast', unit: 'g' } },
   ],
   preProcessing: [
-    { type: 'Mix', description: 'Mix dry ingredients' },
-    { type: 'Rest', description: 'Let it rest for 30 mins' },
+    { type: 'recommended', description: 'Mix dry ingredients' },
+    { type: 'optional', description: 'Let it rest for 30 mins' },
   ],
   steps: [
     'Mix all ingredients together.',
@@ -28,7 +28,7 @@ const mockRecipe: Recipe = {
     'Let it rise for 1 hour.',
     'Bake at 200C for 30 minutes.',
   ],
-};
+} as unknown as Recipe;
 
 describe('Manual Layout Test', () => {
   let service: DitaRunnerService;

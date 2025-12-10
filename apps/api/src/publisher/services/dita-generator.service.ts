@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { create } from 'xmlbuilder2';
-import { Recipe } from '../types/recipe.interface';
+import { Recipe } from '@chefos/types';
 
 @Injectable()
 export class DitaGeneratorService {
