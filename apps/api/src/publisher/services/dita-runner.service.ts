@@ -85,6 +85,18 @@ export class DitaRunnerService {
 
           this.ditaExecutable = resolved;
           this.logger.log(`Using local DITA-OT: ${this.ditaExecutable}`);
+
+          // Ensure executable permission on Linux/macOS
+          if (process.platform !== 'win32') {
+            try {
+              fs.chmodSync(this.ditaExecutable, '755');
+            } catch (e) {
+              this.logger.warn(
+                `Failed to set executable permission for DITA-OT: ${e instanceof Error ? e.message : String(e)}`,
+              );
+            }
+          }
+
           return;
         }
       }
