@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { ProcessingStep, ProcessingStepType } from '@chefos/types';
+import type { ProcessingStep, ProcessingStepType } from '@chefos/types';
 
 export class ProcessingStepDto implements ProcessingStep {
   @ApiProperty({ example: 'Wash vegetables', description: 'Description of the step' })

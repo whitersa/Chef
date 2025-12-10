@@ -2,7 +2,7 @@ import { Inject, Injectable, OnModuleInit, NotFoundException } from '@nestjs/com
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, DataSource } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { Ingredient } from './ingredient.entity';
 import { IngredientVersion } from './ingredient-version.entity';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';

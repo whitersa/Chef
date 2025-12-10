@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { DitaRunnerService } from './services/dita-runner.service';
-import { DitaGeneratorService } from './services/dita-generator.service';
+import { DitaRunnerService, DitaGeneratorService } from '@chefos/publisher';
 import * as fs from 'fs';
 import { Recipe } from '@chefos/types';
 

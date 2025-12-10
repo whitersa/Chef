@@ -6,7 +6,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { DitaRunnerService } from '@chefos/publisher';
 import { RecipesService } from '../recipes/recipes.service'; // Assuming this exists and is exported
 
