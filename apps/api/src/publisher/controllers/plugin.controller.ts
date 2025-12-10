@@ -12,8 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { PluginManagerService } from '../services/plugin-manager.service';
-import { PluginConfigDto } from '../dtos/plugin-config.dto';
+import { PluginManagerService, PluginConfigDto } from '@chefos/publisher';
 
 @Controller('plugins')
 export class PluginController {

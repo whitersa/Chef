@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import * as path from 'path';
 import { create } from 'xmlbuilder2';
-import { PluginConfigDto } from '../dtos/plugin-config.dto';
-import { PluginConfig } from '../entities/plugin-config.entity';
-import { XslDoc, XslStylesheet, XslAttributeSet, XslVariable } from '../types/xslt.types';
+import { PluginConfigDto } from '../dtos/plugin-config.dto.js';
+import { PluginConfig } from '../entities/plugin-config.entity.js';
+import { XslDoc, XslStylesheet, XslAttributeSet, XslVariable } from '../types/xslt.types.js';
 
 @Injectable()
 export class PluginManagerService {

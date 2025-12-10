@@ -7,7 +7,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { DitaRunnerService } from './services/dita-runner.service';
+import { DitaRunnerService } from '@chefos/publisher';
 import { RecipesService } from '../recipes/recipes.service'; // Assuming this exists and is exported
 
 @Controller('publisher')

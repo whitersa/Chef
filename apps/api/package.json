@@ -28,6 +28,7 @@
     "migration:show": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:show -d src/config/typeorm.config.ts"
   },
   "dependencies": {
+    "@chefos/publisher": "workspace:^",
     "@chefos/types": "workspace:^",
     "@chefos/utils": "workspace:^",
     "@nestjs/axios": "^4.0.1",

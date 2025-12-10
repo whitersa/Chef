@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { Recipe } from '@chefos/types';
-import { DitaGeneratorService } from './dita-generator.service';
+import { DitaGeneratorService } from './dita-generator.service.js';
 
 const execAsync = promisify(exec);
 
