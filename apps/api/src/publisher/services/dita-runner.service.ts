@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { exec } from 'child_process';
@@ -15,14 +16,29 @@ export class DitaRunnerService {
   private ditaExecutable = 'dita'; // Default to global PATH
   private javaExecutable: string | undefined;
 
-  constructor(private readonly ditaGenerator: DitaGeneratorService) {
+  constructor(
+    private readonly ditaGenerator: DitaGeneratorService,
+    private readonly configService: ConfigService,
+  ) {
     fs.ensureDirSync(this.tempDir);
     this.resolveJavaPath();
     this.resolveDitaPath();
   }
 
   private resolveJavaPath() {
-    // Try to find local Java in tools directory
+    // 1. Try environment variable from ConfigService
+    const envJava = this.configService.get<string>('JAVA_HOME');
+    if (envJava) {
+      const javaBin = process.platform === 'win32' ? 'bin/java.exe' : 'bin/java';
+      const resolved = path.resolve(envJava, javaBin);
+      if (fs.existsSync(resolved)) {
+        this.javaExecutable = resolved;
+        this.logger.log(`Using Java from config (JAVA_HOME): ${this.javaExecutable}`);
+        return;
+      }
+    }
+
+    // 2. Try to find local Java in tools directory
     const javaBin = process.platform === 'win32' ? 'java.exe' : 'java';
     const potentialPaths = [
       path.join(process.cwd(), 'tools', 'java-17', 'bin', javaBin),
@@ -42,6 +58,19 @@ export class DitaRunnerService {
 
   private resolveDitaPath() {
     this.logger.log(`Resolving DITA-OT path. CWD: ${process.cwd()}`);
+
+    // 1. Try environment variable from ConfigService
+    const envDita = this.configService.get<string>('DITA_OT_PATH');
+    if (envDita) {
+      const ditaBin = process.platform === 'win32' ? 'bin/dita.bat' : 'bin/dita';
+      const resolved = path.resolve(envDita, ditaBin);
+      if (fs.existsSync(resolved)) {
+        this.ditaExecutable = resolved;
+        this.logger.log(`Using DITA-OT from config (DITA_OT_PATH): ${this.ditaExecutable}`);
+        this.ensureExecutablePermission();
+        return;
+      }
+    }
 
     // Define versions and their Java requirements (optional, for now just preference)
     // We prefer 4.2 if we have Java 17 (local or system - though we only check local for now to be safe)
@@ -85,24 +114,26 @@ export class DitaRunnerService {
 
           this.ditaExecutable = resolved;
           this.logger.log(`Using local DITA-OT: ${this.ditaExecutable}`);
-
-          // Ensure executable permission on Linux/macOS
-          if (process.platform !== 'win32') {
-            try {
-              fs.chmodSync(this.ditaExecutable, '755');
-            } catch (e) {
-              this.logger.warn(
-                `Failed to set executable permission for DITA-OT: ${e instanceof Error ? e.message : String(e)}`,
-              );
-            }
-          }
-
+          this.ensureExecutablePermission();
           return;
         }
       }
     }
 
     this.logger.log('Using global DITA-OT from PATH');
+  }
+
+  private ensureExecutablePermission() {
+    // Ensure executable permission on Linux/macOS
+    if (process.platform !== 'win32' && this.ditaExecutable) {
+      try {
+        fs.chmodSync(this.ditaExecutable, '755');
+      } catch (e) {
+        this.logger.warn(
+          `Failed to set executable permission for DITA-OT: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
   }
 
   private async syncPlugin() {

@@ -10,7 +10,7 @@ import { UpdateRecipeDto } from './dto/update-recipe.dto';
 import { NutritionDto } from './dto/nutrition.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { AuditService } from '../audit/audit.service';
-import { UnitConversionUtil } from '../common/utils/unit-conversion.util';
+import { UnitConversionUtil } from '@chefos/utils';
 import Decimal from 'decimal.js';
 
 @Injectable()

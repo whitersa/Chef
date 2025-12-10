@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { DitaRunnerService } from './services/dita-runner.service';
 import { DitaGeneratorService } from './services/dita-generator.service';
 import * as fs from 'fs';
@@ -35,7 +36,16 @@ describe('Manual Layout Test', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DitaRunnerService, DitaGeneratorService],
+      providers: [
+        DitaRunnerService,
+        DitaGeneratorService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue(null),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<DitaRunnerService>(DitaRunnerService);

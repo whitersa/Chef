@@ -482,6 +482,10 @@ importers:
         version: 5.9.2
 
   packages/utils:
+    dependencies:
+      decimal.js:
+        specifier: ^10.6.0
+        version: 10.6.0
     devDependencies:
       '@chefos/eslint-config':
         specifier: workspace:^
