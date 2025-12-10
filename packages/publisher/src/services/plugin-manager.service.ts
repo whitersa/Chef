@@ -92,9 +92,9 @@ export class PluginManagerService {
         // Handle mixed content array (comments + elements)
         const children = Array.isArray(stylesheet['#']) ? stylesheet['#'] : [stylesheet];
 
-        children?.forEach((child: any) => {
+        children?.forEach((child: unknown) => {
           if (child && typeof child === 'object' && tagName in child) {
-            const typedChild = child as Record<string, any>;
+            const typedChild = child as Record<string, unknown>;
             const items = Array.isArray(typedChild[tagName])
               ? typedChild[tagName]
               : [typedChild[tagName]];

@@ -16,8 +16,8 @@ export interface XslVariable {
 export interface XslStylesheet {
   'xsl:attribute-set'?: XslAttributeSet | XslAttributeSet[];
   'xsl:variable'?: XslVariable | XslVariable[];
-  '#'?: any[]; // Mixed content
-  [key: string]: any;
+  '#'?: unknown[]; // Mixed content
+  [key: string]: unknown;
 }
 
 export interface XslDoc {
