@@ -53,6 +53,30 @@ export class DitaGeneratorService {
     return doc.end({ prettyPrint: true });
   }
 
+  generateBookMap(chapters: { title: string; recipes: Recipe[] }[], title: string): string {
+    const doc = create({ version: '1.0', encoding: 'UTF-8' });
+    doc.dtd({ pubID: '-//OASIS//DTD DITA BookMap//EN', sysID: 'bookmap.dtd' });
+
+    const root = doc.ele('bookmap', { 'xml:lang': 'zh-CN' });
+
+    const bookTitle = root.ele('booktitle');
+    bookTitle.ele('mainbooktitle').txt(title);
+
+    const frontmatter = root.ele('frontmatter');
+    const booklists = frontmatter.ele('booklists');
+    booklists.ele('toc');
+
+    chapters.forEach((chapter) => {
+      // Use navtitle for chapter title if no href is provided (which acts as a container)
+      const chapterNode = root.ele('chapter', { navtitle: chapter.title });
+      chapter.recipes.forEach((recipe) => {
+        chapterNode.ele('topicref', { href: `recipe_${recipe.id}.dita` });
+      });
+    });
+
+    return doc.end({ prettyPrint: true });
+  }
+
   generateMap(recipes: Recipe[], title: string): string {
     const doc = create({ version: '1.0', encoding: 'UTF-8' });
     doc.dtd({ pubID: '-//OASIS//DTD DITA Map//EN', sysID: 'map.dtd' });

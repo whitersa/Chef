@@ -3,7 +3,17 @@
   <renderers>
     <renderer mime="application/pdf">
       <fonts>
-        <auto-detect/>
+        <!-- Register Alibaba PuHuiTi -->
+        <!-- Using absolute path for testing -->
+        <font
+          embed-url="file:///c:/Users/lilong.bai/Documents/develop/chef/tools/dita-plugins/com.chefos.pdf/cfg/fonts/AlibabaPuHuiTi-3-55-Regular/AlibabaPuHuiTi-3-55-Regular.ttf">
+          <font-triplet name="Alibaba" style="normal" weight="normal" />
+        </font>
+        <font
+          embed-url="file:///c:/Users/lilong.bai/Documents/develop/chef/tools/dita-plugins/com.chefos.pdf/cfg/fonts/AlibabaPuHuiTi-3-85-Bold/AlibabaPuHuiTi-3-85-Bold.ttf">
+          <font-triplet name="Alibaba" style="normal" weight="bold" />
+        </font>
+        <auto-detect />
       </fonts>
     </renderer>
   </renderers>

@@ -184,14 +184,39 @@ export class DitaRunnerService {
     await fs.ensureDir(outDir);
 
     try {
-      // 1. Generate DITA Topic
-      const ditaContent = this.ditaGenerator.generateRecipeTopic(recipe);
-      const ditaFileName = `recipe_${recipe.id}.dita`;
-      const ditaFilePath = path.join(buildDir, ditaFileName);
-      await fs.writeFile(ditaFilePath, ditaContent);
+      // 1. Generate DITA Topics (Duplicate for testing multiple pages/TOC)
+      const recipes: Recipe[] = [];
+      const chapter1Recipes: Recipe[] = [];
+      const chapter2Recipes: Recipe[] = [];
 
-      // 2. Generate DITA Map (Single topic map)
-      const mapContent = this.ditaGenerator.generateMap([recipe], recipe.name);
+      // Create 5 copies of the recipe to simulate a larger book
+      for (let i = 1; i <= 5; i++) {
+        // Clone the recipe and modify ID and Name
+        const clonedRecipe = {
+          ...recipe,
+          id: `${recipe.id}_${i}`,
+          name: `${recipe.name} - Variation ${i}`,
+        };
+        recipes.push(clonedRecipe);
+
+        if (i <= 3) {
+          chapter1Recipes.push(clonedRecipe);
+        } else {
+          chapter2Recipes.push(clonedRecipe);
+        }
+
+        const ditaContent = this.ditaGenerator.generateRecipeTopic(clonedRecipe);
+        const ditaFileName = `recipe_${clonedRecipe.id}.dita`;
+        const ditaFilePath = path.join(buildDir, ditaFileName);
+        await fs.writeFile(ditaFilePath, ditaContent);
+      }
+
+      // 2. Generate DITA Map (Multi-topic map)
+      const chapters = [
+        { title: 'Chapter 1: First Course', recipes: chapter1Recipes },
+        { title: 'Chapter 2: Second Course', recipes: chapter2Recipes },
+      ];
+      const mapContent = this.ditaGenerator.generateBookMap(chapters, `${recipe.name} Collection`);
       const mapFileName = 'book.ditamap';
       const mapFilePath = path.join(buildDir, mapFileName);
       await fs.writeFile(mapFilePath, mapContent);

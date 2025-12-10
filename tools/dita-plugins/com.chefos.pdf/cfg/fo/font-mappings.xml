@@ -6,6 +6,7 @@
                 <font-face>Arial</font-face>
             </physical-font>
             <physical-font char-set="Simplified Chinese">
+                <font-face>Alibaba</font-face>
                 <font-face>Microsoft YaHei</font-face>
                 <font-face>SimHei</font-face>
                 <font-face>SimSun</font-face>
@@ -17,6 +18,7 @@
                 <font-face>Times New Roman</font-face>
             </physical-font>
             <physical-font char-set="Simplified Chinese">
+                <font-face>Alibaba</font-face>
                 <font-face>SimSun</font-face>
             </physical-font>
         </logical-font>
