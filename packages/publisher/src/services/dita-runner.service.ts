@@ -267,8 +267,11 @@ export class DitaRunnerService {
       await fs.writeFile(mapFilePath, mapContent);
 
       // 3. Run DITA-OT
-      // Command: dita -i <input> -f chefos-pdf -o <output>
-      const command = `"${this.ditaExecutable}" -i "${mapFilePath}" -f chefos-pdf -o "${outDir}" --verbose`;
+      // Command: dita -i <input> -f chefos-pdf -o <output> -Dargs.fo.userconfig=<config>
+      // We explicitly point to the fop.xconf that our plugin will generate in the output directory.
+      // Note: The plugin's build.xml is responsible for copying the template to this location.
+      const fopConfigPath = path.join(outDir, 'fop.xconf');
+      const command = `"${this.ditaExecutable}" -i "${mapFilePath}" -f chefos-pdf -o "${outDir}" -Dargs.fo.userconfig="${fopConfigPath}" --verbose`;
       this.logger.log(`Executing DITA-OT: ${command}`);
 
       const env = { ...process.env };
@@ -279,6 +282,14 @@ export class DitaRunnerService {
 
       // Increase maxBuffer to 10MB to handle verbose output
       const { stdout, stderr } = await execAsync(command, { env, maxBuffer: 1024 * 1024 * 10 });
+
+      // FORCE LOG TO CONSOLE FOR DEBUGGING
+      console.log('--- DITA-OT STDOUT ---');
+      console.log(stdout);
+      console.log('--- DITA-OT STDERR ---');
+      console.log(stderr);
+      console.log('----------------------');
+
       this.logger.log(`DITA-OT Output: ${stdout}`);
       if (stderr) {
         this.logger.warn(`DITA-OT Stderr: ${stderr}`);
