@@ -7,28 +7,36 @@
           <el-button link @click="goBack">返回列表</el-button>
         </div>
       </template>
-      <el-row :gutter="20">
+      <el-row :gutter="20" class="full-height-row">
         <!-- Configuration Form -->
-        <el-col :span="8">
-          <el-form v-loading="loading" :model="config" label-position="top">
-            <el-collapse v-model="activeNames">
-              <!-- Cover / Title Section -->
-              <el-collapse-item title="封面与标题 (Cover & Title)" name="cover">
+        <el-col :span="12" class="left-panel">
+          <div class="config-scroll-area">
+            <el-form v-loading="loading" :model="config" label-position="top">
+              <!-- Block 1: Page Settings -->
+              <div class="config-block" @click="scrollToPreview('cover')">
+                <div class="block-title">页面设置 (Page Settings)</div>
                 <el-form-item label="页面尺寸 (Page Size)">
                   <el-row :gutter="10">
                     <el-col :span="12">
-                      <el-input v-model="config.pageWidth" placeholder="Width (e.g. 210mm)">
+                      <el-input v-model="config.layout.pageWidth" placeholder="Width (e.g. 210mm)">
                         <template #prepend>宽</template>
                       </el-input>
                     </el-col>
                     <el-col :span="12">
-                      <el-input v-model="config.pageHeight" placeholder="Height (e.g. 297mm)">
+                      <el-input
+                        v-model="config.layout.pageHeight"
+                        placeholder="Height (e.g. 297mm)"
+                      >
                         <template #prepend>高</template>
                       </el-input>
                     </el-col>
                   </el-row>
                 </el-form-item>
+              </div>
 
+              <!-- Block 2: Cover Design -->
+              <div class="config-block" @click="scrollToPreview('cover')">
+                <div class="block-title">封面设计 (Cover Design)</div>
                 <el-form-item label="封面图片 (Cover Image)">
                   <el-upload
                     class="cover-uploader"
@@ -37,16 +45,20 @@
                     :on-success="handleCoverSuccess"
                     :before-upload="beforeCoverUpload"
                   >
-                    <img v-if="config.coverImage" :src="coverImageUrl" class="cover-image" />
+                    <img
+                      v-if="config.components.cover.image"
+                      :src="coverImageUrl"
+                      class="cover-image"
+                    />
                     <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
                   </el-upload>
-                  <div v-if="config.coverImage" class="help-text">
-                    已上传: {{ config.coverImage }}
+                  <div v-if="config.components.cover.image" class="help-text">
+                    已上传: {{ config.components.cover.image }}
                   </div>
                 </el-form-item>
 
                 <el-form-item label="标题字体 (Title Font)">
-                  <el-select v-model="config.titleFontFamily" placeholder="Select font">
+                  <el-select v-model="config.typography.titleFont" placeholder="Select font">
                     <el-option label="Sans (无衬线 - 推荐)" value="Sans" />
                     <el-option label="Serif (衬线)" value="Serif" />
                     <el-option label="SimHei (黑体)" value="SimHei" />
@@ -55,59 +67,110 @@
                 </el-form-item>
 
                 <el-form-item label="标题颜色 (Title Color)">
-                  <el-color-picker v-model="config.titleColor" />
-                  <span class="color-text">{{ config.titleColor }}</span>
+                  <el-color-picker v-model="config.palette.title" />
+                  <span class="color-text">{{ config.palette.title }}</span>
                 </el-form-item>
-              </el-collapse-item>
+              </div>
 
-              <!-- Paragraph / Body Section -->
-              <el-collapse-item title="正文与段落 (Body & Paragraph)" name="body">
+              <!-- Block 3: TOC Design -->
+              <div class="config-block" @click="scrollToPreview('toc')">
+                <div class="block-title">目录设计 (TOC Design)</div>
+                <el-form-item label="目录标题 (TOC Title)">
+                  <el-input v-model="config.components.toc.title" placeholder="Default: 目录" />
+                </el-form-item>
+              </div>
+
+              <!-- Block 4: Content Style -->
+              <div class="config-block" @click="scrollToPreview('content')">
+                <div class="block-title">正文样式 (Content Style)</div>
                 <el-form-item label="正文字体 (Body Font)">
-                  <el-select v-model="config.baseFontFamily" placeholder="Select font">
+                  <el-select v-model="config.typography.baseFont" placeholder="Select font">
                     <el-option label="Serif (衬线 - 推荐)" value="Serif" />
                     <el-option label="Sans (无衬线)" value="Sans" />
                     <el-option label="SimSun (宋体)" value="SimSun" />
                   </el-select>
                 </el-form-item>
-              </el-collapse-item>
+              </div>
 
-              <!-- List / Table Section -->
-              <el-collapse-item title="列表与表格 (List & Table)" name="components">
+              <!-- Block 5: Component Colors -->
+              <div class="config-block" @click="scrollToPreview('content')">
+                <div class="block-title">组件配色 (Component Colors)</div>
                 <el-form-item label="强调色 (Accent Color)">
                   <div class="help-text">用于标题下划线、配料表边框</div>
-                  <el-color-picker v-model="config.accentColor" />
-                  <span class="color-text">{{ config.accentColor }}</span>
+                  <el-color-picker v-model="config.palette.accent" />
+                  <span class="color-text">{{ config.palette.accent }}</span>
                 </el-form-item>
 
                 <el-form-item label="次要色 (Secondary Color)">
                   <div class="help-text">用于准备工作边框</div>
-                  <el-color-picker v-model="config.secondaryColor" />
-                  <span class="color-text">{{ config.secondaryColor }}</span>
+                  <el-color-picker v-model="config.palette.secondary" />
+                  <span class="color-text">{{ config.palette.secondary }}</span>
                 </el-form-item>
-              </el-collapse-item>
-            </el-collapse>
+              </div>
+            </el-form>
+          </div>
 
-            <div class="form-actions">
-              <el-button type="primary" :loading="saving" @click="save">保存配置</el-button>
-              <el-button @click="fetchConfig">重置</el-button>
-            </div>
-          </el-form>
+          <div class="config-footer">
+            <el-button type="primary" :loading="saving" @click="save">保存配置</el-button>
+            <el-button @click="fetchConfig">重置</el-button>
+          </div>
         </el-col>
 
         <!-- Live Preview -->
-        <el-col :span="16">
-          <div class="preview-container">
-            <div class="preview-header">实时预览 (近似效果)</div>
-            <div class="preview-paper" :style="paperStyle">
+        <el-col ref="rightPanelRef" :span="12" class="scrollable-col right-panel">
+          <div class="preview-container" :style="designTokens">
+            <!-- Page 1: Cover Preview -->
+            <div class="preview-label">封面预览 (Cover Page)</div>
+            <div id="preview-cover" class="preview-paper cover-page">
+              <div class="cover-content">
+                <div class="doc-title-large">
+                  宫保鸡丁
+                  <div class="doc-subtitle">Kung Pao Chicken</div>
+                </div>
+                <div v-if="config.components.cover.image" class="doc-cover-large">
+                  <img :src="coverImageUrl" class="preview-cover-img-large" />
+                </div>
+                <div class="doc-footer">ChefOS Recipe Collection</div>
+              </div>
+            </div>
+
+            <!-- Page 2: TOC Preview -->
+            <div class="preview-label">目录预览 (Table of Contents)</div>
+            <div id="preview-toc" class="preview-paper toc-page">
+              <div class="page-header">Contents</div>
+              <div class="doc-title">
+                {{ config.components.toc.title || '目录' }}
+              </div>
+              <div class="toc-list">
+                <div class="toc-item">
+                  <span class="toc-text">Chapter 1: 宫保鸡丁</span>
+                  <span class="toc-dots">................................................</span>
+                  <span class="toc-page">1</span>
+                </div>
+                <div class="toc-item">
+                  <span class="toc-text">Chapter 2: 麻婆豆腐</span>
+                  <span class="toc-dots">................................................</span>
+                  <span class="toc-page">3</span>
+                </div>
+              </div>
+              <div class="page-footer">i</div>
+            </div>
+
+            <!-- Page 3: Content Preview -->
+            <div class="preview-label">正文预览 (Content Page)</div>
+            <div id="preview-content" class="preview-paper content-page">
+              <!-- Header -->
+              <div class="page-header">Chapter 1</div>
+
               <!-- Title -->
-              <div class="doc-title" :style="titleStyle">宫保鸡丁 (Kung Pao Chicken)</div>
+              <div class="doc-title">宫保鸡丁 (Kung Pao Chicken)</div>
 
               <!-- Task Body -->
               <div class="doc-body">
                 <p>这是一道经典的川菜，以其独特的糊辣荔枝味闻名。</p>
 
                 <!-- Prereq (Ingredients) -->
-                <div class="doc-section doc-prereq" :style="prereqStyle">
+                <div class="doc-section doc-prereq">
                   <div class="section-title">配料 (Ingredients)</div>
                   <ul>
                     <li>鸡胸肉: 300g</li>
@@ -117,7 +180,7 @@
                 </div>
 
                 <!-- Context (Preparation) -->
-                <div class="doc-section doc-context" :style="contextStyle">
+                <div class="doc-section doc-context">
                   <div class="section-title">准备工作 (Preparation)</div>
                   <p>1. 鸡肉切丁，加淀粉腌制。</p>
                   <p>2. 调制碗芡。</p>
@@ -129,9 +192,11 @@
                   <div class="step">
                     <span class="cmd">2. 炒香底料:</span> 放入花椒、干辣椒炒出香味。
                   </div>
-                  <div class="step"><span class="cmd">3. 爆炒鸡丁:</span> 放入鸡丁快速滑散。</div>
                 </div>
               </div>
+
+              <!-- Footer -->
+              <div class="page-footer">Page 1</div>
             </div>
           </div>
         </el-col>
@@ -141,7 +206,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, type UploadProps } from 'element-plus';
 import { Plus } from '@element-plus/icons-vue';
@@ -152,31 +217,56 @@ const route = useRoute();
 const router = useRouter();
 const pluginName = computed(() => route.params.name as string);
 
-const activeNames = ref(['cover', 'body', 'components']);
 const loading = ref(false);
 const saving = ref(false);
 
 const config = ref<PluginConfig>({
-  baseFontFamily: 'Serif',
-  titleFontFamily: 'Sans',
-  titleColor: '#2c3e50',
-  accentColor: '#e67e22',
-  secondaryColor: '#3498db',
-  pageWidth: '297mm',
-  pageHeight: '210mm',
-  coverImage: '',
+  layout: {
+    pageWidth: '297mm',
+    pageHeight: '210mm',
+  },
+  typography: {
+    baseFont: 'Serif',
+    titleFont: 'Sans',
+  },
+  palette: {
+    title: '#2c3e50',
+    accent: '#e67e22',
+    secondary: '#3498db',
+  },
+  components: {
+    cover: {
+      image: '',
+    },
+    toc: {
+      title: '目录 (Table of Contents)',
+    },
+  },
 });
+
+const rightPanelRef = ref<ComponentPublicInstance | null>(null);
+
+const scrollToPreview = (sectionId: string) => {
+  const panel = rightPanelRef.value?.$el || document.querySelector('.right-panel');
+  const target = document.getElementById(`preview-${sectionId}`);
+
+  if (panel && target) {
+    const top = target.offsetTop - panel.offsetTop - 20;
+    panel.scrollTo({ top, behavior: 'smooth' });
+  }
+};
 
 const uploadUrl = computed(() => `${API_URL}/api/plugins/${pluginName.value}/cover`);
 const coverImageUrl = computed(() => {
-  if (config.value.coverImage) {
-    if (config.value.coverImage.startsWith('http')) return config.value.coverImage;
-    return `${API_URL}/plugins-static/${pluginName.value}/cfg/common/artwork/${config.value.coverImage}`;
+  if (config.value.components.cover.image) {
+    if (config.value.components.cover.image.startsWith('http'))
+      return config.value.components.cover.image;
+    return `${API_URL}/plugins-static/${pluginName.value}/cfg/common/artwork/${config.value.components.cover.image}`;
   }
   return `${API_URL}/static/default-cover.jpg`;
 });
 const handleCoverSuccess: UploadProps['onSuccess'] = (response) => {
-  config.value.coverImage = response.url;
+  config.value.components.cover.image = response.url;
   ElMessage.success('Cover image uploaded successfully');
 };
 
@@ -203,33 +293,6 @@ const parseLength = (val: string | undefined, defaultVal: number): number => {
   return num; // assume mm
 };
 
-// Computed Styles for Preview
-const paperStyle = computed(() => {
-  const w = parseLength(config.value.pageWidth, 210);
-  const h = parseLength(config.value.pageHeight, 297);
-  return {
-    fontFamily: getFontFamily(config.value.baseFontFamily),
-    width: '100%', // Scale to container
-    aspectRatio: `${w}/${h}`,
-  };
-});
-
-const titleStyle = computed(() => ({
-  fontFamily: getFontFamily(config.value.titleFontFamily),
-  color: config.value.titleColor,
-  borderBottom: `2px solid ${config.value.accentColor}`,
-}));
-
-const prereqStyle = computed(() => ({
-  borderLeft: `4px solid ${config.value.accentColor}`,
-  backgroundColor: '#fdf2e9', // Fixed in XSLT for now, but could be dynamic
-}));
-
-const contextStyle = computed(() => ({
-  borderLeft: `4px solid ${config.value.secondaryColor}`,
-  backgroundColor: '#f4f6f7',
-}));
-
 // Helper to map logical fonts to CSS fonts
 const getFontFamily = (logical: string) => {
   const map: Record<string, string> = {
@@ -241,6 +304,22 @@ const getFontFamily = (logical: string) => {
   };
   return map[logical] || 'serif';
 };
+
+// --- Design Tokens (CSS Variables) ---
+// This is the bridge between Config and UI.
+// In the future, the backend can generate a .css file with these same variables.
+const designTokens = computed(() => {
+  const c = config.value;
+  return {
+    '--doc-font-title': getFontFamily(c.typography.titleFont),
+    '--doc-font-body': getFontFamily(c.typography.baseFont),
+    '--doc-color-title': c.palette.title,
+    '--doc-color-accent': c.palette.accent,
+    '--doc-color-secondary': c.palette.secondary,
+    // Layout tokens
+    '--doc-page-ratio': `${parseLength(c.layout.pageWidth, 210)} / ${parseLength(c.layout.pageHeight, 297)}`,
+  } as Record<string, string>;
+});
 
 const fetchConfig = async () => {
   if (!pluginName.value) return;
@@ -283,23 +362,62 @@ onMounted(() => {
   /* padding: 16px; Removed to avoid double padding with BasicLayout */
   box-sizing: border-box;
   /* background-color: var(--el-bg-color-page); Handled by BasicLayout */
-  overflow: auto;
+  overflow: hidden; /* Disable main scroll */
 }
 
 .main-card {
-  min-height: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.el-card__body) {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height-row {
+  flex: 1;
+  overflow: hidden;
+  display: flex; /* Ensure columns take full height */
+}
+
+.scrollable-col {
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 20px; /* Add some bottom padding for scrolling content */
+}
+
+.left-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.config-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  padding-bottom: 20px;
+}
+
+.config-footer {
+  padding: 16px 0;
+  background-color: #fff;
+  border-top: 1px solid #ebeef5;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.form-actions {
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
 }
 
 .help-text {
@@ -314,45 +432,242 @@ onMounted(() => {
 
 .preview-container {
   background-color: #525659; /* Acrobat Reader dark background */
-  padding: 20px;
+  padding: 32px;
   border-radius: 4px;
-  min-height: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: fit-content;
+  margin: 0 auto;
+  gap: 24px; /* Space between pages */
 }
 
-.preview-header {
-  color: #fff;
-  margin-bottom: 10px;
-  font-size: 14px;
+.preview-label {
+  color: #e0e0e0;
+  font-size: 12px;
+  margin-bottom: -16px; /* Pull closer to paper */
+  z-index: 1;
 }
 
 .preview-paper {
   background-color: white;
-  width: 100%;
-  max-width: 595px; /* A4 width approx */
-  min-height: 842px; /* A4 height approx */
-  padding: 40px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  width: 400px; /* Fixed width for preview to control container size */
+  max-width: 100%;
+  padding: 32px; /* Standard margin */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  /* Use Design Tokens */
+  aspect-ratio: var(--doc-page-ratio);
+  font-family: var(--doc-font-body);
+}
+
+.toc-page {
+  display: flex;
+  flex-direction: column;
+  font-family: monospace;
+}
+
+.toc-list {
+  margin-top: 20px;
+  flex: 1;
+}
+
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.toc-text {
+  font-weight: bold;
+}
+
+.toc-dots {
+  flex: 1;
+  border-bottom: 1px dotted #000;
+  margin: 0 8px;
+  opacity: 0.3;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Config Blocks */
+.config-block {
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s;
+}
+
+.config-block:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.block-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 20px;
+  color: #303133;
+  display: flex;
+  align-items: center;
+}
+
+.block-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  background-color: var(--el-color-primary);
+  margin-right: 8px;
+  border-radius: 2px;
+}
+
+/* Cover Page Styles */
+.cover-page {
+  text-align: center;
+}
+
+.cover-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.doc-title-large {
+  font-size: 28px;
+  line-height: 1.4;
+  margin-top: 40px;
+
+  /* Use Design Tokens */
+  font-family: var(--doc-font-title);
+  color: var(--doc-color-title);
+}
+
+.doc-subtitle {
+  font-size: 16px;
+  font-weight: normal;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+
+.doc-cover-large {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.preview-cover-img-large {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.doc-footer {
+  font-size: 12px;
+  color: #909399;
+  border-top: 1px solid #ebeef5;
+  padding-top: 16px;
+  width: 60%;
+}
+
+/* Content Page Styles */
+.page-header {
+  font-size: 10px;
+  color: #909399;
+  border-bottom: 1px solid #ebeef5;
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+  text-align: right;
+}
+
+.page-footer {
+  font-size: 10px;
+  color: #909399;
+  border-top: 1px solid #ebeef5;
+  padding-top: 8px;
+  margin-top: auto;
+  text-align: center;
 }
 
 .doc-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   padding-bottom: 4px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+
+  /* Use Design Tokens */
+  font-family: var(--doc-font-title);
+  color: var(--doc-color-title);
+  border-bottom: 2px solid var(--doc-color-accent);
 }
 
 .doc-section {
-  padding: 10px;
-  margin-bottom: 15px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.doc-prereq {
+  border-left: 4px solid var(--doc-color-accent);
+  background-color: #fdf2e9;
+}
+
+.doc-context {
+  border-left: 4px solid var(--doc-color-secondary);
+  background-color: #f4f6f7;
 }
 
 .section-title {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.cover-uploader .cover-image {
+  width: 148px;
+  height: 148px;
+  display: block;
+  object-fit: contain;
+}
+
+.cover-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.cover-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.cover-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 148px;
+  height: 148px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .doc-steps .step {

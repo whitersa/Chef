@@ -1,14 +1,27 @@
 import { api as apiClient } from '../api-client';
 
 export interface PluginConfig {
-  baseFontFamily: string;
-  titleFontFamily: string;
-  titleColor: string;
-  accentColor: string;
-  secondaryColor: string;
-  pageWidth?: string;
-  pageHeight?: string;
-  coverImage?: string;
+  layout: {
+    pageWidth: string;
+    pageHeight: string;
+  };
+  typography: {
+    baseFont: string;
+    titleFont: string;
+  };
+  palette: {
+    title: string;
+    accent: string;
+    secondary: string;
+  };
+  components: {
+    cover: {
+      image: string;
+    };
+    toc: {
+      title: string;
+    };
+  };
 }
 
 export const getPlugins = () => {

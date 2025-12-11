@@ -194,7 +194,8 @@ export class DitaRunnerService {
         if (this.javaExecutable) {
           env['JAVACMD'] = this.javaExecutable;
         }
-        await execAsync(`"${this.ditaExecutable}" --install`, {
+        // Use --force to ensure clean integration
+        await execAsync(`"${this.ditaExecutable}" --install --force`, {
           env,
           maxBuffer: 1024 * 1024 * 10, // 10MB
         });

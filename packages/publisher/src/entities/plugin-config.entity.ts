@@ -5,6 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { DEFAULT_THEME_CONFIG } from '../types/theme.types.js';
+import type { PluginThemeConfig } from '../types/theme.types.js';
 
 @Entity({ comment: 'Configuration for DITA-OT plugins' })
 export class PluginConfig {
@@ -14,29 +16,12 @@ export class PluginConfig {
   @Column({ unique: true, comment: 'Name of the plugin (e.g., com.chefos.pdf)' })
   pluginName!: string;
 
-  @Column({ default: 'Serif', comment: 'Base font family for body text' })
-  baseFontFamily!: string;
-
-  @Column({ default: 'Sans', comment: 'Font family for titles' })
-  titleFontFamily!: string;
-
-  @Column({ default: '#2c3e50', comment: 'Color for titles' })
-  titleColor!: string;
-
-  @Column({ default: '#e67e22', comment: 'Accent color for borders and highlights' })
-  accentColor!: string;
-
-  @Column({ default: '#3498db', comment: 'Secondary color for context boxes' })
-  secondaryColor!: string;
-
-  @Column({ default: '210mm', comment: 'Page width (e.g., 210mm)' })
-  pageWidth!: string;
-
-  @Column({ default: '297mm', comment: 'Page height (e.g., 297mm)' })
-  pageHeight!: string;
-
-  @Column({ nullable: true, comment: 'Filename of the cover image' })
-  coverImage?: string;
+  @Column({
+    type: 'jsonb',
+    default: DEFAULT_THEME_CONFIG,
+    comment: 'Structured theme configuration',
+  })
+  themeConfig!: PluginThemeConfig;
 
   @CreateDateColumn()
   createdAt!: Date;

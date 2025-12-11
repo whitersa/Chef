@@ -3,10 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import fs from 'fs-extra';
 import * as path from 'path';
-import { create } from 'xmlbuilder2';
 import { PluginConfigDto } from '../dtos/plugin-config.dto.js';
 import { PluginConfig } from '../entities/plugin-config.entity.js';
-import { XslDoc, XslStylesheet, XslAttributeSet, XslVariable } from '../types/xslt.types.js';
+import { DEFAULT_THEME_CONFIG, PluginThemeConfig } from '../types/theme.types.js';
 
 @Injectable()
 export class PluginManagerService {
@@ -49,146 +48,45 @@ export class PluginManagerService {
   }
 
   async getConfig(pluginName: string): Promise<PluginConfigDto> {
-    // 1. Try to get from DB
     const dbConfig = await this.configRepo.findOne({ where: { pluginName } });
-    if (dbConfig) {
+    if (dbConfig && dbConfig.themeConfig) {
+      // Ensure all fields exist by merging with default
       return {
-        baseFontFamily: dbConfig.baseFontFamily,
-        titleFontFamily: dbConfig.titleFontFamily,
-        titleColor: dbConfig.titleColor,
-        accentColor: dbConfig.accentColor,
-        secondaryColor: dbConfig.secondaryColor,
-        pageWidth: dbConfig.pageWidth,
-        pageHeight: dbConfig.pageHeight,
-        coverImage: dbConfig.coverImage,
-      };
+        ...DEFAULT_THEME_CONFIG,
+        ...dbConfig.themeConfig,
+        components: {
+          ...DEFAULT_THEME_CONFIG.components,
+          ...(dbConfig.themeConfig.components || {}),
+          cover: {
+            ...DEFAULT_THEME_CONFIG.components.cover,
+            ...(dbConfig.themeConfig.components?.cover || {}),
+          },
+          toc: {
+            ...DEFAULT_THEME_CONFIG.components.toc,
+            ...(dbConfig.themeConfig.components?.toc || {}),
+          },
+        },
+        layout: { ...DEFAULT_THEME_CONFIG.layout, ...(dbConfig.themeConfig.layout || {}) },
+        typography: {
+          ...DEFAULT_THEME_CONFIG.typography,
+          ...(dbConfig.themeConfig.typography || {}),
+        },
+        palette: { ...DEFAULT_THEME_CONFIG.palette, ...(dbConfig.themeConfig.palette || {}) },
+      } as PluginConfigDto;
     }
-
-    // 2. Fallback: Try to parse from file (Migration path)
-    this.logger.log(`No DB config for ${pluginName}, falling back to file parsing`);
-    const pluginPath = this.getPluginPath(pluginName);
-    if (!(await fs.pathExists(pluginPath))) {
-      // Return defaults if file also missing
-      return {
-        baseFontFamily: 'Serif',
-        titleFontFamily: 'Sans',
-        titleColor: '#2c3e50',
-        accentColor: '#e67e22',
-        secondaryColor: '#3498db',
-        pageWidth: '297mm',
-        pageHeight: '210mm',
-      };
-    }
-
-    const content = await fs.readFile(pluginPath, 'utf-8');
-
-    try {
-      const doc = create(content).toObject() as unknown as XslDoc;
-      const stylesheet = doc['xsl:stylesheet'];
-
-      // Helper to extract all elements of a certain type from the mixed content structure
-      const getElements = <T>(tagName: string): T[] => {
-        const elements: T[] = [];
-        // Handle mixed content array (comments + elements)
-        const children = Array.isArray(stylesheet['#']) ? stylesheet['#'] : [stylesheet];
-
-        children?.forEach((child: unknown) => {
-          if (child && typeof child === 'object' && tagName in child) {
-            const typedChild = child as Record<string, unknown>;
-            const items = Array.isArray(typedChild[tagName])
-              ? typedChild[tagName]
-              : [typedChild[tagName]];
-            elements.push(...(items as T[]));
-          }
-        });
-
-        // Also handle case where they are direct properties (if no mixed content)
-        if (tagName in stylesheet) {
-          const val = stylesheet[tagName as keyof XslStylesheet] as unknown;
-          const items = Array.isArray(val) ? val : [val];
-          elements.push(...(items as T[]));
-        }
-
-        return elements;
-      };
-
-      const allAttributeSets = getElements<XslAttributeSet>('xsl:attribute-set');
-      const allVariables = getElements<XslVariable>('xsl:variable');
-
-      // Helper to find variable value
-      const getVar = (name: string, defaultVal: string) => {
-        const found = allVariables.find((v) => v['@name'] === name);
-        return found ? found['#'] : defaultVal;
-      };
-
-      // Helper to find attribute value in a specific attribute-set
-      const getAttr = (setName: string, attrName: string, defaultVal: string, regex?: RegExp) => {
-        const set = allAttributeSets.find((s) => s['@name'] === setName);
-        if (!set) return defaultVal;
-
-        const attrs = set['xsl:attribute'];
-        if (!attrs) return defaultVal;
-        const attrList = Array.isArray(attrs) ? attrs : [attrs];
-        const attr = attrList.find((a) => a['@name'] === attrName);
-
-        if (!attr) return defaultVal;
-        const val = attr['#'];
-
-        if (regex) {
-          const match = val.match(regex);
-          return match && match[1] ? match[1] : defaultVal;
-        }
-        return val;
-      };
-
-      // Try to find new variable names first (if already migrated manually)
-      const titleColorVar = getVar('theme-color-title', '');
-      const accentColorVar = getVar('theme-color-accent', '');
-      const secondaryColorVar = getVar('theme-color-secondary', '');
-      const pageWidthVar = getVar('page-width', '210mm');
-      const pageHeightVar = getVar('page-height', '297mm');
-
-      const config = {
-        baseFontFamily: getVar('base-font-family', 'Serif'),
-        titleFontFamily: getVar('title-font-family', 'Sans'),
-        titleColor: titleColorVar || getAttr('topic.title', 'color', '#2c3e50'),
-        accentColor:
-          accentColorVar || getAttr('topic.title', 'border-bottom', '#e67e22', /2pt solid (.+)/),
-        secondaryColor:
-          secondaryColorVar || getAttr('context', 'border-left', '#3498db', /4pt solid (.+)/),
-        pageWidth: pageWidthVar,
-        pageHeight: pageHeightVar,
-      };
-
-      // Auto-save to DB to complete migration
-      await this.saveConfig(pluginName, config);
-      return config;
-    } catch (e) {
-      this.logger.error(`Failed to parse XML config for ${pluginName}`, e);
-      throw new Error(
-        `Failed to parse configuration file: ${e instanceof Error ? e.message : String(e)}`,
-      );
-    }
+    return DEFAULT_THEME_CONFIG as PluginConfigDto;
   }
 
   async saveConfig(pluginName: string, config: PluginConfigDto): Promise<void> {
-    // 1. Save to DB
     let dbConfig = await this.configRepo.findOne({ where: { pluginName } });
     if (!dbConfig) {
       dbConfig = this.configRepo.create({ pluginName });
     }
 
-    dbConfig.baseFontFamily = config.baseFontFamily;
-    dbConfig.titleFontFamily = config.titleFontFamily;
-    dbConfig.titleColor = config.titleColor;
-    dbConfig.accentColor = config.accentColor;
-    dbConfig.secondaryColor = config.secondaryColor;
-    dbConfig.pageWidth = config.pageWidth;
-    dbConfig.pageHeight = config.pageHeight;
-    dbConfig.coverImage = config.coverImage;
+    dbConfig.themeConfig = config;
 
     // Handle default cover image if not set
-    if (!config.coverImage) {
+    if (!config.components.cover.image) {
       const defaultCoverPath = path.join(process.cwd(), 'public', 'default-cover.jpg');
       const pluginDir = path.join(this.pluginsRoot, pluginName);
       const artworkDir = path.join(pluginDir, 'cfg', 'common', 'artwork');
@@ -197,17 +95,19 @@ export class PluginManagerService {
 
       if (await fs.pathExists(defaultCoverPath)) {
         await fs.copy(defaultCoverPath, targetPath, { overwrite: true });
-        config.coverImage = 'cover.jpg';
-        dbConfig.coverImage = 'cover.jpg';
+        config.components.cover.image = 'cover.jpg';
+        dbConfig.themeConfig.components.cover.image = 'cover.jpg';
       }
     }
 
     await this.configRepo.save(dbConfig);
 
-    // 2. Generate XSLT file
-    const pluginPath = this.getPluginPath(pluginName);
+    // Generate XSLT
+    await this.generateXSLT(pluginName, config);
+  }
 
-    // Ensure directory exists
+  private async generateXSLT(pluginName: string, config: PluginThemeConfig) {
+    const pluginPath = this.getPluginPath(pluginName);
     await fs.ensureDir(path.dirname(pluginPath));
 
     const content = `<?xml version="1.0" encoding="UTF-8"?>
@@ -221,20 +121,21 @@ export class PluginManagerService {
     </xsl:attribute-set>
 
     <!-- Font settings -->
-    <xsl:variable name="base-font-family">${config.baseFontFamily}</xsl:variable>
-    <xsl:variable name="title-font-family">${config.titleFontFamily}</xsl:variable>
+    <xsl:variable name="base-font-family">${config.typography.baseFont}</xsl:variable>
+    <xsl:variable name="title-font-family">${config.typography.titleFont}</xsl:variable>
+    <xsl:variable name="toc-title">${config.components.toc.title}</xsl:variable>
     
     <!-- Page Size -->
-    <xsl:variable name="page-width">${config.pageWidth || '297mm'}</xsl:variable>
-    <xsl:variable name="page-height">${config.pageHeight || '210mm'}</xsl:variable>
+    <xsl:variable name="page-width">${config.layout.pageWidth}</xsl:variable>
+    <xsl:variable name="page-height">${config.layout.pageHeight}</xsl:variable>
     
     <!-- Cover Image -->
-    <xsl:variable name="cover-image">file:/<xsl:value-of select="'${path.join(this.pluginsRoot, pluginName, 'cfg', 'common', 'artwork', config.coverImage || '').replace(/\\/g, '/')}'"/></xsl:variable>
+    <xsl:variable name="cover-image">file:/<xsl:value-of select="'${path.join(this.pluginsRoot, pluginName, 'cfg', 'common', 'artwork', config.components.cover.image || '').replace(/\\/g, '/')}'"/></xsl:variable>
 
     <!-- Color Theme Variables -->
-    <xsl:variable name="theme-color-title">${config.titleColor}</xsl:variable>
-    <xsl:variable name="theme-color-accent">${config.accentColor}</xsl:variable>
-    <xsl:variable name="theme-color-secondary">${config.secondaryColor}</xsl:variable>
+    <xsl:variable name="theme-color-title">${config.palette.title}</xsl:variable>
+    <xsl:variable name="theme-color-accent">${config.palette.accent}</xsl:variable>
+    <xsl:variable name="theme-color-secondary">${config.palette.secondary}</xsl:variable>
 
     <!-- Hide Cover Title -->
     <xsl:attribute-set name="__frontmatter__title">
@@ -313,7 +214,12 @@ export class PluginManagerService {
     if (!dbConfig) {
       dbConfig = this.configRepo.create({ pluginName });
     }
-    dbConfig.coverImage = targetFilename;
+
+    if (!dbConfig.themeConfig) {
+      dbConfig.themeConfig = JSON.parse(JSON.stringify(DEFAULT_THEME_CONFIG));
+    }
+
+    dbConfig.themeConfig.components.cover.image = targetFilename;
     await this.configRepo.save(dbConfig);
 
     return { url: targetFilename };

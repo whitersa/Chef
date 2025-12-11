@@ -1,28 +1,68 @@
-import { IsString, IsHexColor, IsOptional } from 'class-validator';
+import { IsString, IsHexColor, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class PluginConfigDto {
-  @IsString()
-  baseFontFamily!: string;
-
-  @IsString()
-  titleFontFamily!: string;
-
-  @IsHexColor()
-  titleColor!: string;
-
-  @IsHexColor()
-  accentColor!: string; // Used for title border and ingredients
-
-  @IsHexColor()
-  secondaryColor!: string; // Used for preparation context
-
+class LayoutDto {
   @IsString()
   pageWidth!: string;
 
   @IsString()
   pageHeight!: string;
+}
 
+class TypographyDto {
+  @IsString()
+  baseFont!: string;
+
+  @IsString()
+  titleFont!: string;
+}
+
+class PaletteDto {
+  @IsHexColor()
+  title!: string;
+
+  @IsHexColor()
+  accent!: string;
+
+  @IsHexColor()
+  secondary!: string;
+}
+
+class CoverDto {
   @IsOptional()
   @IsString()
-  coverImage?: string;
+  image?: string;
+}
+
+class TocDto {
+  @IsString()
+  title!: string;
+}
+
+class ComponentsDto {
+  @ValidateNested()
+  @Type(() => CoverDto)
+  cover!: CoverDto;
+
+  @ValidateNested()
+  @Type(() => TocDto)
+  toc!: TocDto;
+}
+
+export class PluginConfigDto {
+  @ValidateNested()
+  @Type(() => LayoutDto)
+  layout!: LayoutDto;
+
+  @ValidateNested()
+  @Type(() => TypographyDto)
+  typography!: TypographyDto;
+
+  @ValidateNested()
+  @Type(() => PaletteDto)
+  palette!: PaletteDto;
+
+  @ValidateNested()
+  @Type(() => ComponentsDto)
+  components!: ComponentsDto;
 }
