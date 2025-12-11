@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<fop version="1.0">
+  <use-cache>false</use-cache>
+  <renderers>
+    <renderer mime="application/pdf">
+      <fonts>
+        <font embed-url="@OUTPUT_DIR_URL@Alibaba-Regular.ttf">
+          <font-triplet name="Alibaba PuHuiTi 3.0" style="normal" weight="normal" />
+          <font-triplet name="Alibaba" style="normal" weight="normal" />
+          <font-triplet name="Sans" style="normal" weight="normal" />
+          <font-triplet name="Helvetica" style="normal" weight="normal" />
+          <font-triplet name="Arial" style="normal" weight="normal" />
+          <font-triplet name="SimSun" style="normal" weight="normal" />
+          <font-triplet name="SimHei" style="normal" weight="normal" />
+          <font-triplet name="Microsoft YaHei" style="normal" weight="normal" />
+          <font-triplet name="Serif" style="normal" weight="normal" />
+          <font-triplet name="Times New Roman" style="normal" weight="normal" />
+          <font-triplet name="Times" style="normal" weight="normal" />
+          <font-triplet name="Monospaced" style="normal" weight="normal" />
+          <font-triplet name="Courier New" style="normal" weight="normal" />
+          <font-triplet name="Courier" style="normal" weight="normal" />
+          <font-triplet name="Cambria" style="normal" weight="normal" />
+          <font-triplet name="Arial Unicode MS" style="normal" weight="normal" />
+          <font-triplet name="Tahoma" style="normal" weight="normal" />
+          <font-triplet name="Batang" style="normal" weight="normal" />
+        </font>
+        <font embed-url="@OUTPUT_DIR_URL@Alibaba-Bold.ttf">
+          <font-triplet name="Alibaba PuHuiTi 3.0" style="normal" weight="bold" />
+          <font-triplet name="Alibaba" style="normal" weight="bold" />
+          <font-triplet name="Sans" style="normal" weight="bold" />
+          <font-triplet name="Helvetica" style="normal" weight="bold" />
+          <font-triplet name="Arial" style="normal" weight="bold" />
+          <font-triplet name="SimSun" style="normal" weight="bold" />
+          <font-triplet name="SimHei" style="normal" weight="bold" />
+          <font-triplet name="Microsoft YaHei" style="normal" weight="bold" />
+          <font-triplet name="Serif" style="normal" weight="bold" />
+          <font-triplet name="Times New Roman" style="normal" weight="bold" />
+          <font-triplet name="Times" style="normal" weight="bold" />
+          <font-triplet name="Monospaced" style="normal" weight="bold" />
+          <font-triplet name="Courier New" style="normal" weight="bold" />
+          <font-triplet name="Courier" style="normal" weight="bold" />
+          <font-triplet name="Cambria" style="normal" weight="bold" />
+          <font-triplet name="Arial Unicode MS" style="normal" weight="bold" />
+          <font-triplet name="Tahoma" style="normal" weight="bold" />
+          <font-triplet name="Batang" style="normal" weight="bold" />
+        </font>
+      </fonts>
+    </renderer>
+  </renderers>
+</fop>

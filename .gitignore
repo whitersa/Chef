@@ -38,7 +38,7 @@ yarn-error.log*
 *.pem
 
 # Tools
-tools/
+fonts/
 
 
 dita-builds/

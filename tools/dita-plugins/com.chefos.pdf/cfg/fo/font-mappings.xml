@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <font-mappings>
     <font-table>
+        <logical-font name="Alibaba">
+            <physical-font char-set="default">
+                <font-face>Alibaba</font-face>
+                <font-face>Alibaba PuHuiTi 3.0</font-face>
+                <font-face>Sans</font-face>
+            </physical-font>
+            <physical-font char-set="Simplified Chinese">
+                <font-face>Alibaba</font-face>
+                <font-face>Alibaba PuHuiTi 3.0</font-face>
+                <font-face>Sans</font-face>
+            </physical-font>
+        </logical-font>
+
         <logical-font name="Sans">
             <physical-font char-set="default">
+                <font-face>Alibaba</font-face>
                 <font-face>Arial</font-face>
             </physical-font>
             <physical-font char-set="Simplified Chinese">
@@ -15,6 +29,7 @@
 
         <logical-font name="Serif">
             <physical-font char-set="default">
+                <font-face>Alibaba</font-face>
                 <font-face>Times New Roman</font-face>
             </physical-font>
             <physical-font char-set="Simplified Chinese">
@@ -24,9 +39,11 @@
         </logical-font>
         <logical-font name="Monospaced">
             <physical-font char-set="default">
+                <font-face>Alibaba</font-face>
                 <font-face>Courier New</font-face>
             </physical-font>
             <physical-font char-set="Simplified Chinese">
+                <font-face>Alibaba</font-face>
                 <font-face>SimSun</font-face>
             </physical-font>
         </logical-font>

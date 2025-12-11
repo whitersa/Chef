@@ -1,10 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
     <target name="chefos.pdf.init">
-        <condition property="args.fo.userconfig"
-            value="${dita.plugin.com.chefos.pdf.dir}/cfg/fo/fop.xconf">
+        <echo message="[CHEFOS] Initializing PDF plugin..." />
+        <property name="chefos.pdf.dir" value="${dita.plugin.com.chefos.pdf.dir}" />
+        <property name="customization.dir" value="${chefos.pdf.dir}/cfg" />
+
+        <!-- Convert to forward slashes for URL usage -->
+        <makeurl property="chefos.pdf.dir.url" file="${chefos.pdf.dir}" />
+
+        <!-- Create absolute URL for output directory -->
+        <makeurl property="chefos.output.dir.url" file="${dita.output.dir}" />
+
+        <property name="chefos.fop.config" value="${dita.output.dir}/fop.xconf" />
+
+        <!-- Flatten fonts to output directory to avoid path issues -->
+        <copy
+            file="${chefos.pdf.dir}/cfg/fonts/AlibabaPuHuiTi-3-55-Regular/AlibabaPuHuiTi-3-55-Regular.ttf"
+            tofile="${dita.output.dir}/Alibaba-Regular.ttf" />
+        <copy
+            file="${chefos.pdf.dir}/cfg/fonts/AlibabaPuHuiTi-3-85-Bold/AlibabaPuHuiTi-3-85-Bold.ttf"
+            tofile="${dita.output.dir}/Alibaba-Bold.ttf" />
+
+        <!-- Generate fop.xconf with absolute paths to flattened fonts -->
+        <copy file="${chefos.pdf.dir}/cfg/fo/fop.xconf.template" tofile="${chefos.fop.config}"
+            overwrite="true">
+            <filterset>
+                <filter token="PLUGIN_DIR" value="${chefos.pdf.dir.url}" />
+                <filter token="OUTPUT_DIR_URL" value="${chefos.output.dir.url}" />
+            </filterset>
+        </copy>
+
+        <condition property="args.fo.userconfig" value="${chefos.fop.config}">
             <equals arg1="${transtype}" arg2="chefos-pdf" />
         </condition>
+        <echo message="[CHEFOS] User Config set to: ${args.fo.userconfig}" />
     </target>
     <target name="dita2chefos-pdf" depends="dita2pdf2" />
 </project>

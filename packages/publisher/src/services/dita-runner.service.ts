@@ -137,12 +137,10 @@ export class DitaRunnerService {
   }
 
   private async syncPlugin() {
-    // Only sync if we are using a local DITA-OT (inside 'tools')
-    if (!this.ditaExecutable || !this.ditaExecutable.includes('tools')) {
+    if (!this.ditaExecutable) {
       return;
     }
 
-    const ditaHome = path.dirname(path.dirname(this.ditaExecutable));
     // Resolve tools directory relative to CWD or Monorepo Root
     let toolsDir = path.join(process.cwd(), 'tools');
     if (!fs.existsSync(toolsDir)) {
@@ -150,11 +148,15 @@ export class DitaRunnerService {
     }
 
     const pluginSource = path.join(toolsDir, 'dita-plugins', 'com.chefos.pdf');
-    const pluginTarget = path.join(ditaHome, 'plugins', 'com.chefos.pdf');
 
+    // If source doesn't exist (e.g. in Docker production without volume), we can't sync
     if (!(await fs.pathExists(pluginSource))) {
+      this.logger.debug(`Plugin source not found at ${pluginSource}, skipping sync.`);
       return;
     }
+
+    const ditaHome = path.dirname(path.dirname(this.ditaExecutable));
+    const pluginTarget = path.join(ditaHome, 'plugins', 'com.chefos.pdf');
 
     // Check if plugin.xml OR custom.xsl has changed to decide if we need full integration
     const sourceXml = path.join(pluginSource, 'plugin.xml');

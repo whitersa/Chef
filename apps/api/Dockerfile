@@ -38,6 +38,10 @@ RUN curl -L https://github.com/dita-ot/dita-ot/releases/download/4.2/dita-ot-4.2
     rm /tmp/dita.zip
 ENV PATH="/opt/dita-ot-4.2/bin:${PATH}"
 
+# 安装自定义插件
+COPY tools/dita-plugins/com.chefos.pdf /opt/dita-ot-4.2/plugins/com.chefos.pdf
+RUN dita --install
+
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/src ./apps/api/src

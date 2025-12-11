@@ -9,7 +9,7 @@
     </xsl:attribute-set>
 
     <!-- Font settings -->
-    <xsl:variable name="base-font-family">Serif</xsl:variable>
+    <xsl:variable name="base-font-family">Sans</xsl:variable>
     <xsl:variable name="title-font-family">Sans</xsl:variable>
 
     <!-- Page Size -->
