@@ -34,6 +34,12 @@ export class PluginController {
     return { message: 'Configuration updated successfully' };
   }
 
+  @Post(':name/sync')
+  async syncConfig(@Param('name') name: string) {
+    const config = await this.pluginManager.syncConfigFromPlugin(name);
+    return { message: 'Configuration synced from plugin file', config };
+  }
+
   @Post(':name/cover')
   @UseInterceptors(
     FileInterceptor('file', {

@@ -7,6 +7,9 @@ class LayoutDto {
 
   @IsString()
   pageHeight!: string;
+
+  @IsString()
+  bleed!: string;
 }
 
 class TypographyDto {

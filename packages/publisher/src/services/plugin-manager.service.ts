@@ -110,6 +110,25 @@ export class PluginManagerService {
     const pluginPath = this.getPluginPath(pluginName);
     await fs.ensureDir(path.dirname(pluginPath));
 
+    // Helper to parse size string to mm number
+    const parseSize = (size: string): number => {
+      const num = parseFloat(size);
+      if (isNaN(num)) return 0;
+      if (size.endsWith('in')) return num * 25.4;
+      if (size.endsWith('cm')) return num * 10;
+      if (size.endsWith('pt')) return num * 0.352778;
+      if (size.endsWith('px')) return num * 0.264583;
+      return num; // assume mm
+    };
+
+    const widthMm = parseSize(config.layout.pageWidth);
+    const heightMm = parseSize(config.layout.pageHeight);
+    const bleedMm = parseSize(config.layout.bleed || '3mm');
+
+    const finalWidth = `${widthMm + bleedMm * 2}mm`;
+    const finalHeight = `${heightMm + bleedMm * 2}mm`;
+    const bleedMargin = `${bleedMm}mm`;
+
     const content = `<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:fo="http://www.w3.org/1999/XSL/Format"
@@ -125,9 +144,10 @@ export class PluginManagerService {
     <xsl:variable name="title-font-family">${config.typography.titleFont}</xsl:variable>
     <xsl:variable name="toc-title">${config.components.toc.title}</xsl:variable>
     
-    <!-- Page Size -->
-    <xsl:variable name="page-width">${config.layout.pageWidth}</xsl:variable>
-    <xsl:variable name="page-height">${config.layout.pageHeight}</xsl:variable>
+    <!-- Page Size (Includes Bleed) -->
+    <xsl:variable name="page-width">${finalWidth}</xsl:variable>
+    <xsl:variable name="page-height">${finalHeight}</xsl:variable>
+    <xsl:variable name="page-margins">${bleedMargin}</xsl:variable>
     
     <!-- Cover Image -->
     <xsl:variable name="cover-image">file:/<xsl:value-of select="'${path.join(this.pluginsRoot, pluginName, 'cfg', 'common', 'artwork', config.components.cover.image || '').replace(/\\/g, '/')}'"/></xsl:variable>
@@ -196,6 +216,71 @@ export class PluginManagerService {
 
     await fs.writeFile(pluginPath, content, 'utf-8');
     this.logger.log('Plugin configuration updated in DB and file system');
+  }
+
+  async syncConfigFromPlugin(pluginName: string): Promise<PluginConfigDto> {
+    const pluginPath = this.getPluginPath(pluginName);
+    if (!(await fs.pathExists(pluginPath))) {
+      throw new Error(`Plugin configuration file not found at ${pluginPath}`);
+    }
+
+    const content = await fs.readFile(pluginPath, 'utf-8');
+    const extractVar = (name: string) => {
+      const match = content.match(new RegExp(`<xsl:variable name="${name}">(.*?)</xsl:variable>`));
+      return match ? match[1] : null;
+    };
+
+    const pageWidthRaw = extractVar('page-width');
+    const pageHeightRaw = extractVar('page-height');
+    const pageMarginsRaw = extractVar('page-margins');
+    const baseFont = extractVar('base-font-family');
+    const titleFont = extractVar('title-font-family');
+    const tocTitle = extractVar('toc-title');
+    const titleColor = extractVar('theme-color-title');
+    const accentColor = extractVar('theme-color-accent');
+    const secondaryColor = extractVar('theme-color-secondary');
+
+    // Reverse calculation for bleed
+    // Final = Logical + 2*Bleed
+    // Logical = Final - 2*Bleed
+    const parseSize = (size: string): number => {
+      const num = parseFloat(size);
+      if (isNaN(num)) return 0;
+      return num; // Assuming mm for simplicity in reverse logic
+    };
+
+    const bleedVal = pageMarginsRaw || '3mm';
+    const bleedMm = parseSize(bleedVal);
+    const widthMm = parseSize(pageWidthRaw || '216mm') - bleedMm * 2;
+    const heightMm = parseSize(pageHeightRaw || '303mm') - bleedMm * 2;
+
+    const config: PluginConfigDto = {
+      ...DEFAULT_THEME_CONFIG,
+      layout: {
+        pageWidth: `${widthMm}mm`,
+        pageHeight: `${heightMm}mm`,
+        bleed: bleedVal,
+      },
+      typography: {
+        baseFont: baseFont || DEFAULT_THEME_CONFIG.typography.baseFont,
+        titleFont: titleFont || DEFAULT_THEME_CONFIG.typography.titleFont,
+      },
+      palette: {
+        title: titleColor || DEFAULT_THEME_CONFIG.palette.title,
+        accent: accentColor || DEFAULT_THEME_CONFIG.palette.accent,
+        secondary: secondaryColor || DEFAULT_THEME_CONFIG.palette.secondary,
+      },
+      components: {
+        ...DEFAULT_THEME_CONFIG.components,
+        toc: {
+          title: tocTitle || DEFAULT_THEME_CONFIG.components.toc.title,
+        },
+      },
+    };
+
+    // Save to DB
+    await this.saveConfig(pluginName, config);
+    return config;
   }
 
   async handleCoverUpload(pluginName: string, file: Express.Multer.File): Promise<{ url: string }> {

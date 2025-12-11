@@ -11,19 +11,15 @@
     <!-- Font settings -->
     <xsl:variable name="base-font-family">Sans</xsl:variable>
     <xsl:variable name="title-font-family">Sans</xsl:variable>
-
-    <!-- Page Size -->
+    <xsl:variable name="toc-title">Table of Contents</xsl:variable>
+    
+    <!-- Page Size (Includes Bleed) -->
     <xsl:variable name="page-width">297mm</xsl:variable>
     <xsl:variable name="page-height">210mm</xsl:variable>
-
+    <xsl:variable name="page-margins">3mm</xsl:variable>
+    
     <!-- Cover Image -->
-    <!-- Cover Image -->
-    <!-- Cover Image -->
-    <xsl:variable name="cover-image">
-        file:/C:/Users/lilong.bai/Documents/develop/chef/tools/dita-plugins/com.chefos.pdf/cfg/common/artwork/cover.jpg</xsl:variable>
-
-    <!-- Watermark -->
-    <xsl:variable name="watermark-text">DRAFT</xsl:variable>
+    <xsl:variable name="cover-image">file:/<xsl:value-of select="'C:/Users/lilong.bai/Documents/develop/chef/tools/dita-plugins/com.chefos.pdf/cfg/common/artwork/cover.jpg'"/></xsl:variable>
 
     <!-- Color Theme Variables -->
     <xsl:variable name="theme-color-title">#2c3e50</xsl:variable>
@@ -35,18 +31,10 @@
         <xsl:attribute name="color">transparent</xsl:attribute>
         <xsl:attribute name="font-size">0pt</xsl:attribute>
     </xsl:attribute-set>
-
+    
     <xsl:attribute-set name="__frontmatter__subtitle">
         <xsl:attribute name="color">transparent</xsl:attribute>
         <xsl:attribute name="font-size">0pt</xsl:attribute>
-    </xsl:attribute-set>
-
-    <!-- Allow Watermark to overflow header -->
-    <xsl:attribute-set name="region-before">
-        <xsl:attribute name="overflow">visible</xsl:attribute>
-    </xsl:attribute-set>
-    <xsl:attribute-set name="region-after">
-        <xsl:attribute name="overflow">visible</xsl:attribute>
     </xsl:attribute-set>
 
     <!-- Titles -->

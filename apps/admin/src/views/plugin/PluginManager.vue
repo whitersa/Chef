@@ -15,22 +15,25 @@
               <!-- Block 1: Page Settings -->
               <div class="config-block" @click="scrollToPreview('cover')">
                 <div class="block-title">页面设置 (Page Settings)</div>
-                <el-form-item label="页面尺寸 (Page Size)">
+                <el-form-item label="页面布局 (Layout)">
                   <el-row :gutter="10">
-                    <el-col :span="12">
-                      <el-input v-model="config.layout.pageWidth" placeholder="Width (e.g. 210mm)">
+                    <el-col :span="8">
+                      <el-input v-model="config.layout.pageWidth" placeholder="210mm">
                         <template #prepend>宽</template>
                       </el-input>
                     </el-col>
-                    <el-col :span="12">
-                      <el-input
-                        v-model="config.layout.pageHeight"
-                        placeholder="Height (e.g. 297mm)"
-                      >
+                    <el-col :span="8">
+                      <el-input v-model="config.layout.pageHeight" placeholder="297mm">
                         <template #prepend>高</template>
                       </el-input>
                     </el-col>
+                    <el-col :span="8">
+                      <el-input v-model="config.layout.bleed" placeholder="3mm">
+                        <template #prepend>出血</template>
+                      </el-input>
+                    </el-col>
                   </el-row>
+                  <div class="help-text">实际生成尺寸 = 页面尺寸 + (出血 × 2)</div>
                 </el-form-item>
               </div>
 
@@ -38,24 +41,40 @@
               <div class="config-block" @click="scrollToPreview('cover')">
                 <div class="block-title">封面设计 (Cover Design)</div>
                 <el-form-item label="封面图片 (Cover Image)">
-                  <el-upload
-                    class="cover-uploader"
-                    :action="uploadUrl"
-                    :show-file-list="false"
-                    :on-success="handleCoverSuccess"
-                    :before-upload="beforeCoverUpload"
-                  >
-                    <img
-                      v-if="config.components.cover.image"
-                      :src="coverImageUrl"
-                      class="cover-image"
-                    />
-                    <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
-                  </el-upload>
-                  <div v-if="config.components.cover.image" class="help-text">
-                    已上传: {{ config.components.cover.image }}
+                  <div class="cover-design-container">
+                    <el-upload
+                      class="cover-uploader"
+                      :action="uploadUrl"
+                      :show-file-list="false"
+                      :on-success="handleCoverSuccess"
+                      :before-upload="beforeCoverUpload"
+                    >
+                      <div v-if="config.components.cover.image" class="cover-preview-wrapper">
+                        <img :src="coverImageUrl" class="cover-image" />
+                        <div class="cover-mask">
+                          <div class="mask-icon" @click.stop="showImageViewer = true">
+                            <el-icon><ZoomIn /></el-icon>
+                            <span>预览</span>
+                          </div>
+                          <div class="mask-icon">
+                            <el-icon><Refresh /></el-icon>
+                            <span>替换</span>
+                          </div>
+                        </div>
+                      </div>
+                      <el-icon v-else class="cover-uploader-icon"><Plus /></el-icon>
+                    </el-upload>
+                    <div v-if="config.components.cover.image" class="file-name">
+                      {{ config.components.cover.image }}
+                    </div>
                   </div>
                 </el-form-item>
+
+                <el-image-viewer
+                  v-if="showImageViewer"
+                  :url-list="[coverImageUrl]"
+                  @close="showImageViewer = false"
+                />
 
                 <el-form-item label="标题字体 (Title Font)">
                   <el-select v-model="config.typography.titleFont" placeholder="Select font">
@@ -113,6 +132,9 @@
           <div class="config-footer">
             <el-button type="primary" :loading="saving" @click="save">保存配置</el-button>
             <el-button @click="fetchConfig">重置</el-button>
+            <el-tooltip content="从插件文件(custom.xsl)反向同步配置到数据库" placement="top">
+              <el-button :loading="syncing" :icon="Refresh" @click="handleSync"> 同步 </el-button>
+            </el-tooltip>
           </div>
         </el-col>
 
@@ -209,9 +231,14 @@
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, type UploadProps } from 'element-plus';
-import { Plus } from '@element-plus/icons-vue';
+import { Plus, Refresh, ZoomIn } from '@element-plus/icons-vue';
 import { API_URL } from '@chefos/utils';
-import { getPluginConfig, updatePluginConfig, type PluginConfig } from '../../api/plugins';
+import {
+  getPluginConfig,
+  updatePluginConfig,
+  syncPluginConfig,
+  type PluginConfig,
+} from '../../api/plugins';
 
 const route = useRoute();
 const router = useRouter();
@@ -219,11 +246,14 @@ const pluginName = computed(() => route.params.name as string);
 
 const loading = ref(false);
 const saving = ref(false);
+const syncing = ref(false);
+const showImageViewer = ref(false);
 
 const config = ref<PluginConfig>({
   layout: {
     pageWidth: '297mm',
     pageHeight: '210mm',
+    bleed: '3mm',
   },
   typography: {
     baseFont: 'Serif',
@@ -344,6 +374,20 @@ const save = async () => {
     ElMessage.error('Failed to save configuration');
   } finally {
     saving.value = false;
+  }
+};
+
+const handleSync = async () => {
+  if (!pluginName.value) return;
+  syncing.value = true;
+  try {
+    const res = await syncPluginConfig(pluginName.value);
+    config.value = res.config;
+    ElMessage.success('Configuration synced from plugin file');
+  } catch {
+    ElMessage.error('Failed to sync configuration');
+  } finally {
+    syncing.value = false;
   }
 };
 
@@ -640,14 +684,14 @@ onMounted(() => {
 }
 
 .cover-uploader .cover-image {
-  width: 148px;
-  height: 148px;
+  width: 100%;
+  height: 100%;
   display: block;
   object-fit: contain;
 }
 
 .cover-uploader .el-upload {
-  border: 1px dashed var(--el-border-color);
+  border: none;
   border-radius: 6px;
   cursor: pointer;
   position: relative;
@@ -655,19 +699,88 @@ onMounted(() => {
   transition: var(--el-transition-duration-fast);
 }
 
-.cover-uploader .el-upload:hover {
-  border-color: var(--el-color-primary);
-}
-
 .cover-uploader-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 148px;
-  height: 148px;
+  width: 200px;
+  height: 112px;
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  transition: var(--el-transition-duration-fast);
+}
+
+.cover-uploader-icon:hover {
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+
+.cover-design-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cover-preview-wrapper {
+  position: relative;
+  width: 200px;
+  height: 112px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--el-border-color);
+  background-color: #fafafa;
+  box-sizing: border-box;
+}
+
+.cover-preview-wrapper:hover .cover-mask {
+  opacity: 1;
+}
+
+.cover-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  color: #fff;
+}
+
+.mask-icon {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  gap: 4px;
+}
+
+.mask-icon .el-icon {
+  font-size: 20px;
+}
+
+.mask-icon:hover {
+  color: var(--el-color-primary);
+}
+
+.file-name {
+  font-size: 12px;
+  color: #909399;
+  text-align: center;
+  width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 .doc-steps .step {
@@ -676,5 +789,10 @@ onMounted(() => {
 
 .cmd {
   font-weight: bold;
+}
+
+:deep(.el-input-group__prepend) {
+  color: var(--el-text-color-regular);
+  background-color: var(--el-fill-color-light);
 }
 </style>

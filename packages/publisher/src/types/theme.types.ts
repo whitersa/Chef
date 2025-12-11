@@ -2,6 +2,7 @@ export interface PluginThemeConfig {
   layout: {
     pageWidth: string;
     pageHeight: string;
+    bleed: string;
   };
   typography: {
     baseFont: string;
@@ -26,6 +27,7 @@ export const DEFAULT_THEME_CONFIG: PluginThemeConfig = {
   layout: {
     pageWidth: '210mm',
     pageHeight: '297mm',
+    bleed: '3mm',
   },
   typography: {
     baseFont: 'Serif',
