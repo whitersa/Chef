@@ -72,15 +72,8 @@ export class DitaRunnerService {
       }
     }
 
-    // Define versions and their Java requirements (optional, for now just preference)
-    // We prefer 4.2 if we have Java 17 (local or system - though we only check local for now to be safe)
-    // If no local Java 17, we might fallback to 3.7.4 if available, or 4.2 and hope system java is new enough.
-
-    const versions = ['dita-ot-4.2', 'dita-ot-3.7.4'];
-
-    // If we found local Java 17, we definitely want to try 4.2 first.
-    // If we didn't, we might still try 4.2 but 3.7.4 is safer for old system java.
-    // For simplicity, let's just look for what's available in order.
+    // We only support DITA-OT 4.2 now
+    const versions = ['dita-ot-4.2'];
 
     const potentialRoots = [
       path.join(process.cwd(), 'tools'),
@@ -98,18 +91,10 @@ export class DitaRunnerService {
         const resolved = path.resolve(ditaPath);
 
         if (fs.existsSync(resolved)) {
-          // If we found 4.2 but don't have local Java, we might warn or check system java version?
-          // For now, let's assume if 4.2 is there, the user intends to use it.
-          // But wait, we just installed 3.7.4 because 4.2 failed.
-          // So we should probably prefer 4.2 ONLY if we have our local Java 17.
-
           if (ver === 'dita-ot-4.2' && !this.javaExecutable) {
-            this.logger.debug(
-              `Found ${ver} but no local Java 17 detected. Skipping in favor of potentially safer version or system java.`,
+            this.logger.warn(
+              `Found ${ver} but no local Java 17 detected. Ensure system Java is version 17 or higher.`,
             );
-            // Continue searching unless it's the only one?
-            // Let's actually allow it if it's the only one, but if 3.7.4 exists, prefer that?
-            // Actually, let's just stick to the order in 'versions' array.
           }
 
           this.ditaExecutable = resolved;

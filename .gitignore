@@ -37,8 +37,7 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-# Tools
-fonts/
+
 
 
 dita-builds/
