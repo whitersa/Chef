@@ -4,7 +4,7 @@ import { Recipe } from '@chefos/types';
 
 @Injectable()
 export class DitaGeneratorService {
-  generateRecipeTopic(recipe: Recipe): string {
+  generateRecipeTopic(recipe: Recipe, nutritionChartFilename?: string): string {
     const doc = create({ version: '1.0', encoding: 'UTF-8' });
     doc.dtd({ pubID: '-//OASIS//DTD DITA Task//EN', sysID: 'task.dtd' });
 
@@ -48,6 +48,14 @@ export class DitaGeneratorService {
       recipe.steps.forEach((stepText) => {
         steps.ele('step').ele('cmd').txt(stepText);
       });
+    }
+
+    // Nutrition Chart
+    if (nutritionChartFilename) {
+      const result = taskbody.ele('result');
+      result.ele('p').ele('b').txt('Nutrition Facts:');
+      // Use fixed width (12cm) to ensure high-quality rendering without being too large
+      result.ele('image', { href: nutritionChartFilename, placement: 'break', width: '12cm' });
     }
 
     return doc.end({ prettyPrint: true });

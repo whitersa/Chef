@@ -238,7 +238,16 @@ export class DitaRunnerService {
           chapter2Recipes.push(clonedRecipe);
         }
 
-        const ditaContent = this.ditaGenerator.generateRecipeTopic(clonedRecipe);
+        // Calculate Nutrition & Generate Chart
+        const nutrition = this.calculateNutrition(clonedRecipe);
+        let chartFileName: string | undefined;
+        if (nutrition) {
+          const svgContent = this.generatePieChartSvg(nutrition);
+          chartFileName = `nutrition_${clonedRecipe.id}.svg`;
+          await fs.writeFile(path.join(buildDir, chartFileName), svgContent);
+        }
+
+        const ditaContent = this.ditaGenerator.generateRecipeTopic(clonedRecipe, chartFileName);
         const ditaFileName = `recipe_${clonedRecipe.id}.dita`;
         const ditaFilePath = path.join(buildDir, ditaFileName);
         await fs.writeFile(ditaFilePath, ditaContent);
@@ -268,12 +277,22 @@ export class DitaRunnerService {
         this.logger.log(`Using custom JAVACMD: ${this.javaExecutable}`);
       }
 
+      // Optimize Java Heap Memory for large books (hundreds of recipes)
+      // DITA-OT/FOP can be memory intensive.
+      // -Xmx2048m: Allow up to 2GB RAM (Prevent OutOfMemoryError)
+      if (!env['ANT_OPTS']) {
+        env['ANT_OPTS'] = '-Xmx2048m -Xms512m';
+        this.logger.log(`Setting ANT_OPTS for memory optimization: ${env['ANT_OPTS']}`);
+      }
+
       // Increase maxBuffer to 10MB to handle verbose output
       const { stdout, stderr } = await execAsync(command, { env, maxBuffer: 1024 * 1024 * 10 });
 
-      // FORCE LOG TO CONSOLE FOR DEBUGGING
-      console.log('--- DITA-OT STDOUT ---');
-      console.log(stdout);
+      // FORCE LOG TO CONSOLE FOR DEBUGGING (Truncated)
+      console.log('--- DITA-OT STDOUT (Truncated 2000 chars) ---');
+      console.log(stdout.slice(0, 2000));
+      if (stdout.length > 2000) console.log('... (output truncated)');
+
       console.log('--- DITA-OT STDERR ---');
       console.log(stderr);
       console.log('----------------------');
@@ -308,5 +327,170 @@ export class DitaRunnerService {
     }
     // Note: We are not cleaning up buildDir immediately to allow debugging or caching,
     // but in production you should schedule a cleanup.
+  }
+
+  private calculateNutrition(recipe: Recipe) {
+    const total = { protein: 0, fat: 0, carbs: 0 };
+    let hasData = false;
+
+    recipe.items?.forEach((item) => {
+      if (item.ingredient?.nutrition) {
+        const qty = item.quantity;
+        total.protein += (item.ingredient.nutrition.protein || 0) * qty;
+        total.fat += (item.ingredient.nutrition.fat || 0) * qty;
+        total.carbs += (item.ingredient.nutrition.carbs || 0) * qty;
+        hasData = true;
+      }
+    });
+
+    return hasData ? total : null;
+  }
+
+  private generatePieChartSvg(data: { protein: number; fat: number; carbs: number }): string {
+    // 1. Fix Math: Calculate rounded values first to ensure sum matches display
+    const roundedData = {
+      protein: Math.round(data.protein),
+      fat: Math.round(data.fat),
+      carbs: Math.round(data.carbs),
+    };
+    const total = roundedData.protein + roundedData.fat + roundedData.carbs;
+    if (total === 0) return '';
+
+    const width = 450;
+    const height = 300;
+    const outerRadius = 80;
+    const innerRadius = 50;
+    const cx = width / 2;
+    const cy = height / 2;
+
+    // 2. Fix Visuals: Use Filled Path with Stroke Join Rounding
+    // This allows for controlled corner radius (not full semi-circles) and clean gaps.
+    const cornerRadius = 4; // Small rounded corners
+    const strokeWidth = cornerRadius * 2; // Stroke width to create the rounding
+    const gapDegrees = 8; // Visible gap between slices
+
+    // Adjust radii for the stroke expansion (stroke extends half-width outward/inward)
+    const drawOuterRadius = outerRadius - cornerRadius;
+    const drawInnerRadius = innerRadius + cornerRadius;
+
+    // Modern Palette with Gradients
+    const colors = {
+      protein: { start: '#34D399', end: '#059669', id: 'grad-protein' }, // Emerald
+      fat: { start: '#FBBF24', end: '#D97706', id: 'grad-fat' }, // Amber
+      carbs: { start: '#60A5FA', end: '#2563EB', id: 'grad-carbs' }, // Blue
+    };
+
+    let startAngle = 0;
+    const slices = Object.entries(roundedData).map(([key, value]) => {
+      const angle = (value / total) * 360;
+
+      // Handle full circle case or very small slices
+      const isFullCircle = angle >= 359.9;
+      const effectiveGap = isFullCircle ? 0 : gapDegrees;
+
+      // Adjust start/end angles to account for gap
+      const currentStartAngle = startAngle + effectiveGap / 2;
+      const currentEndAngle = startAngle + angle - effectiveGap / 2;
+
+      // Convert to radians (SVG uses 0 at 3 o'clock, we want 12 o'clock so -90)
+      const rStart = (Math.PI * (currentStartAngle - 90)) / 180;
+      const rEnd = (Math.PI * (currentEndAngle - 90)) / 180;
+
+      // Outer arc points
+      const x1 = cx + drawOuterRadius * Math.cos(rStart);
+      const y1 = cy + drawOuterRadius * Math.sin(rStart);
+      const x2 = cx + drawOuterRadius * Math.cos(rEnd);
+      const y2 = cy + drawOuterRadius * Math.sin(rEnd);
+
+      // Inner arc points
+      const x3 = cx + drawInnerRadius * Math.cos(rEnd);
+      const y3 = cy + drawInnerRadius * Math.sin(rEnd);
+      const x4 = cx + drawInnerRadius * Math.cos(rStart);
+      const y4 = cy + drawInnerRadius * Math.sin(rStart);
+
+      const largeArcFlag = currentEndAngle - currentStartAngle > 180 ? 1 : 0;
+
+      // Closed Path: Outer Arc -> Line to Inner -> Inner Arc (Reverse) -> Close
+      const pathData = [
+        `M ${x1} ${y1}`,
+        `A ${drawOuterRadius} ${drawOuterRadius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+        `L ${x3} ${y3}`,
+        `A ${drawInnerRadius} ${drawInnerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4}`,
+        'Z',
+      ].join(' ');
+
+      // Label position
+      const midAngle = startAngle + angle / 2;
+      const rMid = (Math.PI * (midAngle - 90)) / 180;
+      const labelRadius = outerRadius + 30;
+      const lx = cx + labelRadius * Math.cos(rMid);
+      const ly = cy + labelRadius * Math.sin(rMid);
+
+      const anchor = lx > cx ? 'start' : 'end';
+
+      startAngle += angle;
+
+      return {
+        path: pathData,
+        colorId: colors[key as keyof typeof colors].id,
+        baseColor: colors[key as keyof typeof colors].end,
+        label: `${key.charAt(0).toUpperCase() + key.slice(1)}`,
+        value: `${value}g`,
+        lx,
+        ly,
+        anchor,
+      };
+    });
+
+    // Increase resolution for better rasterization quality (4x)
+    const scaleFactor = 4;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width * scaleFactor}" height="${height * scaleFactor}" viewBox="0 0 ${width} ${height}" shape-rendering="geometricPrecision">`;
+
+    // Defs for gradients
+    svg += `
+    <defs>
+      <linearGradient id="grad-protein" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:${colors.protein.start};stop-opacity:1" />
+        <stop offset="100%" style="stop-color:${colors.protein.end};stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="grad-fat" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:${colors.fat.start};stop-opacity:1" />
+        <stop offset="100%" style="stop-color:${colors.fat.end};stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="grad-carbs" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:${colors.carbs.start};stop-opacity:1" />
+        <stop offset="100%" style="stop-color:${colors.carbs.end};stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    `;
+
+    svg += `<rect width="100%" height="100%" fill="white"/>`; // Background
+
+    // 1. Draw Shadow Layer (Vector based)
+    // Use stroke-linejoin="round" to round the corners of the filled shape
+    slices.forEach((slice) => {
+      svg += `<path d="${slice.path}" fill="#000000" fill-opacity="0.2" stroke="#000000" stroke-opacity="0.2" stroke-width="${strokeWidth}" stroke-linejoin="round" transform="translate(3, 3)" />`;
+    });
+
+    // 2. Draw Main Slices
+    // Fill with gradient, and stroke with gradient to create rounded corners
+    slices.forEach((slice) => {
+      svg += `<path d="${slice.path}" fill="url(#${slice.colorId})" stroke="url(#${slice.colorId})" stroke-width="${strokeWidth}" stroke-linejoin="round" />`;
+    });
+
+    // Center Text (Total)
+    svg += `<text x="${cx}" y="${cy - 10}" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#888" font-weight="bold">TOTAL</text>`;
+    svg += `<text x="${cx}" y="${cy + 15}" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">${total}g</text>`;
+
+    // Labels
+    slices.forEach((slice) => {
+      svg += `<text x="${slice.lx}" y="${slice.ly}" text-anchor="${slice.anchor}" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
+        <tspan font-weight="bold" fill="${slice.baseColor}">${slice.label}</tspan> ${slice.value}
+      </text>`;
+    });
+
+    svg += `<text x="${cx}" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2c3e50">Nutrition Facts</text>`;
+    svg += `</svg>`;
+    return svg;
   }
 }

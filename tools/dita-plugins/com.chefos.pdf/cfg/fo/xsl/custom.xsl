@@ -143,6 +143,30 @@
         </fo:static-content>
     </xsl:template>
 
+    <xsl:template name="insertBodyLastFooter">
+        <fo:static-content flow-name="last-body-footer">
+            <xsl:call-template name="insertWatermark" />
+            <xsl:call-template name="insertVariable">
+                <xsl:with-param name="theVariableID" select="'Body Even Footer'" />
+                <xsl:with-param name="theParameters">
+                    <prodname>
+                        <xsl:value-of select="$productName" />
+                    </prodname>
+                    <heading>
+                        <fo:inline xsl:use-attribute-sets="__body__even__footer__heading">
+                            <fo:retrieve-marker retrieve-class-name="current-header" />
+                        </fo:inline>
+                    </heading>
+                    <pagenum>
+                        <fo:inline xsl:use-attribute-sets="__body__even__footer__pagenum">
+                            <fo:page-number />
+                        </fo:inline>
+                    </pagenum>
+                </xsl:with-param>
+            </xsl:call-template>
+        </fo:static-content>
+    </xsl:template>
+
     <!-- TOC Header Overrides (Removed as they didn't work) -->
 
     <!-- Override createToc to inject Watermark -->
@@ -272,6 +296,22 @@
                 <xsl:with-param name="theParameters">
                     <pagenum>
                         <fo:inline xsl:use-attribute-sets="__body__first__footer__pagenum">
+                            <fo:page-number />
+                        </fo:inline>
+                    </pagenum>
+                </xsl:with-param>
+            </xsl:call-template>
+        </fo:static-content>
+    </xsl:template>
+
+    <xsl:template name="insertPrefaceLastFooter">
+        <fo:static-content flow-name="last-body-footer">
+            <xsl:call-template name="insertWatermark" />
+            <xsl:call-template name="insertVariable">
+                <xsl:with-param name="theVariableID" select="'Body Even Footer'" />
+                <xsl:with-param name="theParameters">
+                    <pagenum>
+                        <fo:inline xsl:use-attribute-sets="__body__even__footer__pagenum">
                             <fo:page-number />
                         </fo:inline>
                     </pagenum>

@@ -4,7 +4,11 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "@chefos/publisher": ["../../packages/publisher/src"],
+      "@chefos/publisher/*": ["../../packages/publisher/src/*"]
+    }
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
