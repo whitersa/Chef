@@ -9,6 +9,34 @@ import { NUTRIENT_MAP, translateFoodName } from './usda-translation.constant';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import * as https from 'https';
+
+interface UsdaFoodListItem {
+  fdcId: number;
+  description: string;
+}
+
+interface NutrientData {
+  amount: number;
+  unit: string;
+  nutrientId?: number;
+  nutrientNumber?: string;
+}
+
+interface UsdaFoodDetails {
+  fdcId: number;
+  description: string;
+  foodNutrients: Array<{
+    amount: number;
+    name?: string;
+    nutrient?: {
+      id?: number;
+      name?: string;
+      unitName?: string;
+      number?: string;
+    };
+  }>;
+}
 
 @Injectable()
 export class UsdaService {
@@ -65,7 +93,7 @@ export class UsdaService {
       // 1. Get a list of foods (Search)
       // We search for "foundation" foods as they are basic ingredients
       const searchResponse = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/foods/list`, {
+        this.httpService.get<UsdaFoodListItem[]>(`${this.baseUrl}/foods/list`, {
           params: {
             api_key: this.apiKey,
             dataType: 'Foundation',
@@ -81,16 +109,16 @@ export class UsdaService {
         return { count: 0, message: 'No foods found' };
       }
 
-      const fdcIds = foods.map((f: any) => f.fdcId);
+      const fdcIds = foods.map((f) => f.fdcId);
       this.logger.log(
         `Found ${fdcIds.length} foods (IDs: ${fdcIds.join(', ')}). Fetching details...`,
       );
 
-      const httpsAgent = new (require('https').Agent)({ rejectUnauthorized: false });
+      const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
       // 2. Fetch details (Batch)
       const detailsResponse = await firstValueFrom(
-        this.httpService.post(
+        this.httpService.post<UsdaFoodDetails[]>(
           `${this.baseUrl}/foods`,
           {
             fdcIds: fdcIds,
@@ -110,35 +138,29 @@ export class UsdaService {
       // 3. Transform and Save
       for (const food of foodDetails) {
         // Detailed mapping for full USDA structure
-        const nutrientMap: Record<string, any> = {};
+        const nutrientMap: Record<string, NutrientData> = {};
 
         if (food.foodNutrients) {
-          food.foodNutrients.forEach(
-            (n: {
-              amount: number;
-              name?: string;
-              nutrient?: { id?: number; name?: string; unitName?: string; number?: string };
-            }) => {
-              // In 'full' format, nutrient info is nested in 'nutrient' object
-              const nutrientInfo = n.nutrient || {};
+          food.foodNutrients.forEach((n) => {
+            // In 'full' format, nutrient info is nested in 'nutrient' object
+            const nutrientInfo = n.nutrient || {};
 
-              // We key by nutrient name for readability, but include ID for precision
-              // e.g. "Protein": { amount: 10, unit: "g", id: 1003 }
-              const rawName = nutrientInfo.name || n.name || 'Unknown';
-              // Try to translate keys derived from ID (most accurate) or use raw name
-              const translatedName =
-                (nutrientInfo.id ? NUTRIENT_MAP[nutrientInfo.id] : undefined) || rawName;
+            // We key by nutrient name for readability, but include ID for precision
+            // e.g. "Protein": { amount: 10, unit: "g", id: 1003 }
+            const rawName = nutrientInfo.name || n.name || 'Unknown';
+            // Try to translate keys derived from ID (most accurate) or use raw name
+            const translatedName =
+              (nutrientInfo.id ? NUTRIENT_MAP[nutrientInfo.id] : undefined) || rawName;
 
-              if (translatedName) {
-                nutrientMap[translatedName as string] = {
-                  amount: n.amount,
-                  unit: nutrientInfo.unitName || 'g',
-                  nutrientId: nutrientInfo.id,
-                  nutrientNumber: nutrientInfo.number, // e.g. "203" for Protein
-                };
-              }
-            },
-          );
+            if (translatedName) {
+              nutrientMap[translatedName as string] = {
+                amount: n.amount,
+                unit: nutrientInfo.unitName || 'g',
+                nutrientId: nutrientInfo.id,
+                nutrientNumber: nutrientInfo.number, // e.g. "203" for Protein
+              };
+            }
+          });
         }
 
         const ingredientData = {
@@ -167,11 +189,19 @@ export class UsdaService {
       await this.clearCache();
       return { count: syncedCount, message: 'Sync successful' };
     } catch (error: any) {
-      this.logger.error('Error syncing with USDA API', error.message);
-      this.logger.error(`Error details: code=${error.code}, cause=${error.cause}`);
-      if (error.response) {
+      const err = error as {
+        message: string;
+        code?: string;
+        cause?: string;
+        response?: { status: number; data: any };
+      };
+      this.logger.error('Error syncing with USDA API', err.message);
+      this.logger.error(`Error details: code=${err.code}, cause=${err.cause}`);
+      if (err.response) {
         this.logger.error(
-          `USDA API Response: status=${error.response.status}, data=${JSON.stringify(error.response.data)}`,
+          `USDA API Response: status=${err.response.status}, data=${JSON.stringify(
+            err.response.data,
+          )}`,
         );
       } else {
         this.logger.error('No response received from USDA API');
