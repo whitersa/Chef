@@ -106,11 +106,11 @@ function confirmProcessing() {
 const nutritionOptions = computed<EChartsOption>(() => {
   const nutrition = recipeStore.totalNutrition;
   const keys = Object.keys(nutrition);
-  const hasData = keys.some((k) => nutrition[k] > 0);
+  const hasData = keys.some((k) => (nutrition[k] || 0) > 0);
 
   const data = keys
     .map((key) => ({
-      value: parseFloat(nutrition[key].toFixed(2)),
+      value: parseFloat((nutrition[key] || 0).toFixed(2)),
       name: key,
       itemStyle: { color: getNutrientColorInChart(key) },
     }))

@@ -82,10 +82,15 @@
                   class="nutrient-row"
                 >
                   <div class="nutrient-label">
-                    <span class="dot" :style="{ backgroundColor: getNutrientColor(key) }" />
+                    <span class="dot" :style="{ backgroundColor: getNutrientColor(String(key)) }" />
                     <span>{{ key }}</span>
                   </div>
-                  <span class="nutrient-value"> {{ value.amount }} {{ value.unit }} </span>
+                  <span class="nutrient-value">
+                    {{
+                      value && typeof value === 'object' && 'amount' in value ? value.amount : value
+                    }}
+                    {{ value && typeof value === 'object' && 'unit' in value ? value.unit : 'g' }}
+                  </span>
                 </div>
                 <div
                   v-if="!scope.row.nutrition || Object.keys(scope.row.nutrition).length === 0"
