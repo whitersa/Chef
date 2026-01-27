@@ -334,7 +334,10 @@ export class DitaRunnerService {
     let hasData = false;
 
     recipe.items?.forEach((item) => {
-      const n = item.ingredient?.nutrition || {};
+      const n = (item.ingredient?.nutrition || {}) as Record<
+        string,
+        number | { amount: number; unit?: string }
+      >;
       const qty = item.quantity;
 
       // Iterate over dynamic keys
@@ -342,8 +345,8 @@ export class DitaRunnerService {
         // New structure: value is { amount: number, unit: string }
         // Legacy check in case of mixed data (optional, but safer)
         let amount = 0;
-        if (typeof value === 'object' && value !== null && 'amount' in value) {
-          amount = Number((value as { amount: number }).amount) || 0;
+        if (value && typeof value === 'object' && 'amount' in value) {
+          amount = Number(value.amount) || 0;
         } else if (typeof value === 'number') {
           amount = value;
         }

@@ -232,9 +232,9 @@ export class RecipesService implements OnModuleInit {
     // Convert all Decimals to numbers
     const result: Record<string, number> = {};
     for (const [key, value] of Object.entries(rawTotal)) {
-        if (key !== 'totalWeight') {
-            result[key] = value.toDecimalPlaces(2).toNumber();
-        }
+      if (key !== 'totalWeight') {
+        result[key] = value.toDecimalPlaces(2).toNumber();
+      }
     }
     return result;
   }
@@ -263,22 +263,25 @@ export class RecipesService implements OnModuleInit {
 
       if (item.ingredient) {
         itemWeightInGrams = UnitConversionUtil.toGrams(item.quantity, item.ingredient.unit);
-        
-        const n = item.ingredient.nutrition || {};
+
+        const n = (item.ingredient.nutrition || {}) as Record<
+          string,
+          number | { amount: number; unit?: string }
+        >;
         const factor = itemWeightInGrams.dividedBy(100);
 
         // Iterate over dynamic keys (e.g., Protein, Fat, Vitamin C)
         for (const [key, value] of Object.entries(n)) {
-            // New structure: value is { amount: number, unit: string }
-            // Legacy/Simple structure fallback: value is number (handled if we kept types strict, but here we assume migration)
-            let amount = 0;
-            if (typeof value === 'object' && value !== null && 'amount' in value) {
-                amount = Number((value as any).amount) || 0;
-            } else if (typeof value === 'number') {
-                amount = value;
-            }
-            
-            itemNutrition[key] = new Decimal(amount).times(factor);
+          // New structure: value is { amount: number, unit: string }
+          // Legacy/Simple structure fallback: value is number (handled if we kept types strict, but here we assume migration)
+          let amount = 0;
+          if (value && typeof value === 'object' && 'amount' in value) {
+            amount = Number(value.amount) || 0;
+          } else if (typeof value === 'number') {
+            amount = value;
+          }
+
+          itemNutrition[key] = new Decimal(amount).times(factor);
         }
       } else if (item.childRecipe) {
         const childStats = await this.calculateNutritionRecursive(item.childRecipe.id, visited);
@@ -286,20 +289,20 @@ export class RecipesService implements OnModuleInit {
         itemWeightInGrams = new Decimal(childStats.totalWeight || 0).times(batches);
 
         for (const [key, val] of Object.entries(childStats)) {
-            if (key !== 'totalWeight') {
-                itemNutrition[key] = val.times(batches);
-            }
+          if (key !== 'totalWeight') {
+            itemNutrition[key] = val.times(batches);
+          }
         }
       }
 
       totalWeight = totalWeight.plus(itemWeightInGrams);
-      
+
       // Merge itemNutrition into totalNutrition
       for (const [key, val] of Object.entries(itemNutrition)) {
-          if (!totalNutrition[key]) {
-              totalNutrition[key] = new Decimal(0);
-          }
-          totalNutrition[key] = totalNutrition[key].plus(val);
+        if (!totalNutrition[key]) {
+          totalNutrition[key] = new Decimal(0);
+        }
+        totalNutrition[key] = totalNutrition[key].plus(val);
       }
     }
 
