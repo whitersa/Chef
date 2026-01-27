@@ -46,7 +46,7 @@ interface DraggableChangeEvent {
       name: string;
       unit: string;
       price: number;
-      nutrition?: Record<string, any>;
+      nutrition?: Record<string, { amount: number; unit: string }>;
       items?: unknown[];
     };
     newIndex: number;
@@ -106,13 +106,15 @@ function confirmProcessing() {
 const nutritionOptions = computed<EChartsOption>(() => {
   const nutrition = recipeStore.totalNutrition;
   const keys = Object.keys(nutrition);
-  const hasData = keys.some(k => nutrition[k] > 0);
+  const hasData = keys.some((k) => nutrition[k] > 0);
 
-  const data = keys.map(key => ({
+  const data = keys
+    .map((key) => ({
       value: parseFloat(nutrition[key].toFixed(2)),
       name: key,
-      itemStyle: { color: getNutrientColorInChart(key) }
-  })).filter(d => d.value > 0);
+      itemStyle: { color: getNutrientColorInChart(key) },
+    }))
+    .filter((d) => d.value > 0);
 
   return {
     tooltip: {
@@ -151,33 +153,31 @@ const nutritionOptions = computed<EChartsOption>(() => {
         labelLine: {
           show: false,
         },
-        data: hasData
-          ? data
-          : [{ value: 0, name: '无数据', itemStyle: { color: '#f4f4f5' } }], // Zinc 100
+        data: hasData ? data : [{ value: 0, name: '无数据', itemStyle: { color: '#f4f4f5' } }], // Zinc 100
       },
     ],
   };
 });
 
 function getNutrientColorInChart(key: string) {
-    const map: Record<string, string> = {
-        'Protein': '#e6a23c', // Orange
-        'Fat': '#f56c6c', // Red
-        'Carbohydrates': '#409eff', // Blue
-        'Energy': '#67c23a', // Green
-        'Fiber': '#a0cfff',
-        'Sugar': '#f3d19e',
-        'Sodium': '#d9d9d9'
-    };
-    if (map[key]) return map[key];
-    
-    // Hash string to color for others
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-        hash = key.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const c = (hash & 0x00ffffff).toString(16).toUpperCase();
-    return '#' + '00000'.substring(0, 6 - c.length) + c;
+  const map: Record<string, string> = {
+    Protein: '#e6a23c', // Orange
+    Fat: '#f56c6c', // Red
+    Carbohydrates: '#409eff', // Blue
+    Energy: '#67c23a', // Green
+    Fiber: '#a0cfff',
+    Sugar: '#f3d19e',
+    Sodium: '#d9d9d9',
+  };
+  if (map[key]) return map[key];
+
+  // Hash string to color for others
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = key.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const c = (hash & 0x00ffffff).toString(16).toUpperCase();
+  return '#' + '00000'.substring(0, 6 - c.length) + c;
 }
 </script>
 

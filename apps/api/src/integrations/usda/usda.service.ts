@@ -1,4 +1,3 @@
-
 import { Injectable, Logger, HttpException, HttpStatus, Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
@@ -31,17 +30,28 @@ export class UsdaService {
   }
 
   private async clearCache() {
-      const store = this.cacheManager.store as any;
-      if (store.keys) {
-        const keys = await store.keys('ingredients_list*');
-        if (keys.length > 0) {
-          if (store.mdel) {
-            await store.mdel(...keys);
-          } else if (store.del) {
-            await Promise.all(keys.map((k: string) => store.del(k)));
-          }
+    const store = this.cacheManager.store;
+    // Some stores like redis-cache-manager have keys() and mdel()
+    // We use type casting to a specific interface to satisfy ESLint
+    interface CacheStoreWithKeys {
+      keys?: (pattern: string) => Promise<string[]>;
+      mdel?: (...keys: string[]) => Promise<void>;
+      del?: (key: string) => Promise<void>;
+    }
+
+    const extendedStore = store as unknown as CacheStoreWithKeys;
+
+    if (extendedStore.keys) {
+      const keys = await extendedStore.keys('ingredients_list*');
+      if (keys && keys.length > 0) {
+        if (extendedStore.mdel) {
+          await extendedStore.mdel(...keys);
+        } else if (extendedStore.del) {
+          const store_for_del = extendedStore;
+          await Promise.all(keys.map((k: string) => store_for_del.del!(k)));
         }
       }
+    }
   }
 
   async syncIngredients(page: number = 1, limit: number = 3) {
@@ -72,7 +82,9 @@ export class UsdaService {
       }
 
       const fdcIds = foods.map((f: any) => f.fdcId);
-      this.logger.log(`Found ${fdcIds.length} foods (IDs: ${fdcIds.join(', ')}). Fetching details...`);
+      this.logger.log(
+        `Found ${fdcIds.length} foods (IDs: ${fdcIds.join(', ')}). Fetching details...`,
+      );
 
       const httpsAgent = new (require('https').Agent)({ rejectUnauthorized: false });
 
@@ -99,45 +111,54 @@ export class UsdaService {
       for (const food of foodDetails) {
         // Detailed mapping for full USDA structure
         const nutrientMap: Record<string, any> = {};
-        
-        if (food.foodNutrients) {
-            food.foodNutrients.forEach((n: any) => {
-                 // In 'full' format, nutrient info is nested in 'nutrient' object
-                 const nutrientInfo = n.nutrient || {};
-                 
-                 // We key by nutrient name for readability, but include ID for precision
-                 // e.g. "Protein": { amount: 10, unit: "g", id: 1003 }
-                 const rawName = nutrientInfo.name || n.name; 
-                 // Try to translate keys derived from ID (most accurate) or use raw name
-                 const translatedName = NUTRIENT_MAP[nutrientInfo.id] || rawName;
 
-                 if (translatedName) {
-                    nutrientMap[translatedName] = {
-                        amount: n.amount,
-                        unit: nutrientInfo.unitName || n.unitName,
-                        nutrientId: nutrientInfo.id,
-                        nutrientNumber: nutrientInfo.number // e.g. "203" for Protein
-                    };
-                 }
-            });
+        if (food.foodNutrients) {
+          food.foodNutrients.forEach(
+            (n: {
+              amount: number;
+              name?: string;
+              nutrient?: { id?: number; name?: string; unitName?: string; number?: string };
+            }) => {
+              // In 'full' format, nutrient info is nested in 'nutrient' object
+              const nutrientInfo = n.nutrient || {};
+
+              // We key by nutrient name for readability, but include ID for precision
+              // e.g. "Protein": { amount: 10, unit: "g", id: 1003 }
+              const rawName = nutrientInfo.name || n.name || 'Unknown';
+              // Try to translate keys derived from ID (most accurate) or use raw name
+              const translatedName =
+                (nutrientInfo.id ? NUTRIENT_MAP[nutrientInfo.id] : undefined) || rawName;
+
+              if (translatedName) {
+                nutrientMap[translatedName as string] = {
+                  amount: n.amount,
+                  unit: nutrientInfo.unitName || 'g',
+                  nutrientId: nutrientInfo.id,
+                  nutrientNumber: nutrientInfo.number, // e.g. "203" for Protein
+                };
+              }
+            },
+          );
         }
 
         const ingredientData = {
-           name: `${translateFoodName(food.description)} (USDA)`,
-           originalName: food.description,
-           price: 0, 
-           unit: 'g', 
-           nutrition: nutrientMap,
+          name: `${translateFoodName(food.description)} (USDA)`,
+          originalName: food.description,
+          price: 0,
+          unit: 'g',
+          nutrition: nutrientMap,
         };
 
-        const existing = await this.ingredientRepository.findOne({ where: { name: ingredientData.name }});
-        
+        const existing = await this.ingredientRepository.findOne({
+          where: { name: ingredientData.name },
+        });
+
         if (existing) {
-            Object.assign(existing, ingredientData);
-            await this.ingredientRepository.save(existing);
+          Object.assign(existing, ingredientData);
+          await this.ingredientRepository.save(existing);
         } else {
-            const newIngredient = this.ingredientRepository.create(ingredientData);
-            await this.ingredientRepository.save(newIngredient);
+          const newIngredient = this.ingredientRepository.create(ingredientData);
+          await this.ingredientRepository.save(newIngredient);
         }
         syncedCount++;
       }
@@ -145,14 +166,15 @@ export class UsdaService {
       this.logger.log(`Successfully synced ${syncedCount} ingredients from USDA (Full Format).`);
       await this.clearCache();
       return { count: syncedCount, message: 'Sync successful' };
-
     } catch (error: any) {
       this.logger.error('Error syncing with USDA API', error.message);
       this.logger.error(`Error details: code=${error.code}, cause=${error.cause}`);
       if (error.response) {
-         this.logger.error(`USDA API Response: status=${error.response.status}, data=${JSON.stringify(error.response.data)}`);
+        this.logger.error(
+          `USDA API Response: status=${error.response.status}, data=${JSON.stringify(error.response.data)}`,
+        );
       } else {
-         this.logger.error('No response received from USDA API');
+        this.logger.error('No response received from USDA API');
       }
       throw new HttpException('Failed to sync with USDA', HttpStatus.BAD_GATEWAY);
     }

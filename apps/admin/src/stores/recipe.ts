@@ -53,22 +53,22 @@ export const useRecipeStore = defineStore('recipe', () => {
   const totalNutrition = computed(() => {
     return items.value.reduce(
       (acc, item) => {
-         // item.nutrition is now Record<string, {amount, unit}>
-         const n = item.nutrition || {};
-         for (const [key, val] of Object.entries(n)) {
-             if (!acc[key]) {
-                 acc[key] = 0;
-             }
-             // Handle both new structure {amount, unit} and legacy number
-             let amount = 0;
-             if (typeof val === 'object' && val !== null && 'amount' in val) {
-                 amount = Number((val as any).amount) || 0;
-             } else if (typeof val === 'number') {
-                 amount = val;
-             }
-             acc[key] += amount * item.quantity;
-         }
-         return acc;
+        // item.nutrition is now Record<string, {amount, unit}>
+        const n = item.nutrition || {};
+        for (const [key, val] of Object.entries(n)) {
+          if (!acc[key]) {
+            acc[key] = 0;
+          }
+          // Handle both new structure {amount, unit} and legacy number
+          let amount = 0;
+          if (typeof val === 'object' && val !== null && 'amount' in val) {
+            amount = Number((val as { amount: number }).amount) || 0;
+          } else if (typeof val === 'number') {
+            amount = val;
+          }
+          acc[key] += amount * item.quantity;
+        }
+        return acc;
       },
       {} as Record<string, number>,
     );

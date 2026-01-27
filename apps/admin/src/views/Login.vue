@@ -76,6 +76,8 @@ import { useAuthStore } from '../stores/auth';
 import { ElMessage } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
 
+defineOptions({ name: 'LoginPage' });
+
 const authStore = useAuthStore();
 const formRef = ref<FormInstance>();
 const loading = ref(false);

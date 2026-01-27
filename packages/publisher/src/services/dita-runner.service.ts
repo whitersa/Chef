@@ -339,18 +339,18 @@ export class DitaRunnerService {
 
       // Iterate over dynamic keys
       for (const [key, value] of Object.entries(n)) {
-          // New structure: value is { amount: number, unit: string }
-          // Legacy check in case of mixed data (optional, but safer)
-          let amount = 0;
-          if (typeof value === 'object' && value !== null && 'amount' in value) {
-              amount = Number((value as any).amount) || 0;
-          } else if (typeof value === 'number') {
-              amount = value;
-          }
+        // New structure: value is { amount: number, unit: string }
+        // Legacy check in case of mixed data (optional, but safer)
+        let amount = 0;
+        if (typeof value === 'object' && value !== null && 'amount' in value) {
+          amount = Number((value as { amount: number }).amount) || 0;
+        } else if (typeof value === 'number') {
+          amount = value;
+        }
 
-          if (!total[key]) total[key] = 0;
-          total[key] += amount * qty;
-          if (amount > 0) hasData = true;
+        if (!total[key]) total[key] = 0;
+        total[key] += amount * qty;
+        if (amount > 0) hasData = true;
       }
     });
 
@@ -361,8 +361,8 @@ export class DitaRunnerService {
     // 1. Sort and Pick Top data to avoid overcrowding the chart
     // Filter out zero or negative values
     const validData = Object.entries(data)
-        .filter(([_, val]) => val > 0)
-        .sort((a, b) => b[1] - a[1]); // Descending
+      .filter(([, val]) => val > 0)
+      .sort((a, b) => b[1] - a[1]); // Descending
 
     // Take top 6 items + "Others" if needed? For now just take all valid ones, assuming usually not too many macro nutrients.
     // If we have micro-nutrients (mg/ug), they are negligible compared to macros (g) in a by-weight pie chart.
@@ -374,11 +374,11 @@ export class DitaRunnerService {
     const roundedData: Record<string, number> = {};
     let total = 0;
     validData.forEach(([key, val]) => {
-        const rVal = Math.round(val);
-        if (rVal > 0) {
-            roundedData[key] = rVal;
-            total += rVal;
-        }
+      const rVal = Math.round(val);
+      if (rVal > 0) {
+        roundedData[key] = rVal;
+        total += rVal;
+      }
     });
 
     if (total === 0) return '';
@@ -397,89 +397,91 @@ export class DitaRunnerService {
     const drawInnerRadius = innerRadius + cornerRadius;
 
     // Helper to generate colors deterministically
-    const getColor = (key: string): { start: string, end: string, id: string } => {
-        const map: Record<string, any> = {
-            'Protein': { start: '#34D399', end: '#059669' }, // Emerald
-            'Fat': { start: '#FBBF24', end: '#D97706' }, // Amber
-            'Carbohydrates': { start: '#60A5FA', end: '#2563EB' }, // Blue
-            'Fiber': { start: '#A78BFA', end: '#7C3AED' }, // Violet
-            'Sugar': { start: '#FCA5A5', end: '#DC2626' }, // Red
-            'Sodium': { start: '#D1D5DB', end: '#9CA3AF' }, // Gray
-        };
+    const getColor = (key: string): { start: string; end: string; id: string } => {
+      const map: Record<string, { start: string; end: string }> = {
+        Protein: { start: '#34D399', end: '#059669' }, // Emerald
+        Fat: { start: '#FBBF24', end: '#D97706' }, // Amber
+        Carbohydrates: { start: '#60A5FA', end: '#2563EB' }, // Blue
+        Fiber: { start: '#A78BFA', end: '#7C3AED' }, // Violet
+        Sugar: { start: '#FCA5A5', end: '#DC2626' }, // Red
+        Sodium: { start: '#D1D5DB', end: '#9CA3AF' }, // Gray
+      };
 
-        if (map[key]) return { ...map[key], id: `grad-${key.toLowerCase()}` };
-        
-        // Hash for others
-        let hash = 0;
-        for (let i = 0; i < key.length; i++) {
-            hash = key.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const c1 = (hash & 0x00ffffff).toString(16).toUpperCase().padStart(6, '0');
-        const c2 = ((hash >> 4) & 0x00ffffff).toString(16).toUpperCase().padStart(6, '0'); // Slightly different for gradient
-        
-        return { 
-            start: '#' + c1, 
-            end: '#' + c2, 
-            id: `grad-${key.replace(/[^a-zA-Z0-9]/g, '')}` 
-        };
+      if (map[key]) return { ...map[key], id: `grad-${key.toLowerCase()}` };
+
+      // Hash for others
+      let hash = 0;
+      for (let i = 0; i < key.length; i++) {
+        hash = key.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const c1 = (hash & 0x00ffffff).toString(16).toUpperCase().padStart(6, '0');
+      const c2 = ((hash >> 4) & 0x00ffffff).toString(16).toUpperCase().padStart(6, '0'); // Slightly different for gradient
+
+      return {
+        start: '#' + c1,
+        end: '#' + c2,
+        id: `grad-${key.replace(/[^a-zA-Z0-9]/g, '')}`,
+      };
     };
 
     let startAngle = 0;
-    const slices = Object.entries(roundedData).map(([key, value]) => {
-      const angle = (value / total) * 360;
-      const isFullCircle = angle >= 359.9;
-      const effectiveGap = isFullCircle ? 0 : gapDegrees;
-      const currentStartAngle = startAngle + effectiveGap / 2;
-      const currentEndAngle = startAngle + angle - effectiveGap / 2;
+    const slices = Object.entries(roundedData)
+      .map(([key, value]) => {
+        const angle = (value / total) * 360;
+        const isFullCircle = angle >= 359.9;
+        const effectiveGap = isFullCircle ? 0 : gapDegrees;
+        const currentStartAngle = startAngle + effectiveGap / 2;
+        const currentEndAngle = startAngle + angle - effectiveGap / 2;
 
-      // Ensure angles don't cross due to gap being larger than slice
-      if (currentEndAngle < currentStartAngle) return null;
+        // Ensure angles don't cross due to gap being larger than slice
+        if (currentEndAngle < currentStartAngle) return null;
 
-      const rStart = (Math.PI * (currentStartAngle - 90)) / 180;
-      const rEnd = (Math.PI * (currentEndAngle - 90)) / 180;
+        const rStart = (Math.PI * (currentStartAngle - 90)) / 180;
+        const rEnd = (Math.PI * (currentEndAngle - 90)) / 180;
 
-      const x1 = cx + drawOuterRadius * Math.cos(rStart);
-      const y1 = cy + drawOuterRadius * Math.sin(rStart);
-      const x2 = cx + drawOuterRadius * Math.cos(rEnd);
-      const y2 = cy + drawOuterRadius * Math.sin(rEnd);
+        const x1 = cx + drawOuterRadius * Math.cos(rStart);
+        const y1 = cy + drawOuterRadius * Math.sin(rStart);
+        const x2 = cx + drawOuterRadius * Math.cos(rEnd);
+        const y2 = cy + drawOuterRadius * Math.sin(rEnd);
 
-      const x3 = cx + drawInnerRadius * Math.cos(rEnd);
-      const y3 = cy + drawInnerRadius * Math.sin(rEnd);
-      const x4 = cx + drawInnerRadius * Math.cos(rStart);
-      const y4 = cy + drawInnerRadius * Math.sin(rStart);
+        const x3 = cx + drawInnerRadius * Math.cos(rEnd);
+        const y3 = cy + drawInnerRadius * Math.sin(rEnd);
+        const x4 = cx + drawInnerRadius * Math.cos(rStart);
+        const y4 = cy + drawInnerRadius * Math.sin(rStart);
 
-      const largeArcFlag = currentEndAngle - currentStartAngle > 180 ? 1 : 0;
+        const largeArcFlag = currentEndAngle - currentStartAngle > 180 ? 1 : 0;
 
-      const pathData = [
-        `M ${x1} ${y1}`,
-        `A ${drawOuterRadius} ${drawOuterRadius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-        `L ${x3} ${y3}`,
-        `A ${drawInnerRadius} ${drawInnerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4}`,
-        'Z',
-      ].join(' ');
+        const pathData = [
+          `M ${x1} ${y1}`,
+          `A ${drawOuterRadius} ${drawOuterRadius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+          `L ${x3} ${y3}`,
+          `A ${drawInnerRadius} ${drawInnerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4}`,
+          'Z',
+        ].join(' ');
 
-      const midAngle = startAngle + angle / 2;
-      const rMid = (Math.PI * (midAngle - 90)) / 180;
-      const labelRadius = outerRadius + 30;
-      const lx = cx + labelRadius * Math.cos(rMid);
-      const ly = cy + labelRadius * Math.sin(rMid);
-      const anchor = lx > cx ? 'start' : 'end';
+        const midAngle = startAngle + angle / 2;
+        const rMid = (Math.PI * (midAngle - 90)) / 180;
+        const labelRadius = outerRadius + 30;
+        const lx = cx + labelRadius * Math.cos(rMid);
+        const ly = cy + labelRadius * Math.sin(rMid);
+        const anchor = lx > cx ? 'start' : 'end';
 
-      startAngle += angle;
-      const color = getColor(key);
+        startAngle += angle;
+        const color = getColor(key);
 
-      return {
-        path: pathData,
-        colorId: color.id,
-        itemColor: color, // Store full color obj for defs
-        baseColor: color.end,
-        label: `${key.charAt(0).toUpperCase() + key.slice(1)}`,
-        value: `${value}g`,
-        lx,
-        ly,
-        anchor,
-      };
-    }).filter(s => s !== null);
+        return {
+          path: pathData,
+          colorId: color.id,
+          itemColor: color, // Store full color obj for defs
+          baseColor: color.end,
+          label: `${key.charAt(0).toUpperCase() + key.slice(1)}`,
+          value: `${value}g`,
+          lx,
+          ly,
+          anchor,
+        };
+      })
+      .filter((s) => s !== null);
 
     const scaleFactor = 4;
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width * scaleFactor}" height="${height * scaleFactor}" viewBox="0 0 ${width} ${height}" shape-rendering="geometricPrecision">`;
@@ -487,17 +489,17 @@ export class DitaRunnerService {
     // Generate Defs for unique colors found
     svg += '<defs>';
     const definedGradients = new Set();
-    slices.forEach(slice => {
-        if (!slice) return;
-        if (!definedGradients.has(slice.colorId)) {
-            svg += `
+    slices.forEach((slice) => {
+      if (!slice) return;
+      if (!definedGradients.has(slice.colorId)) {
+        svg += `
               <linearGradient id="${slice.colorId}" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:${slice.itemColor.start};stop-opacity:1" />
                 <stop offset="100%" style="stop-color:${slice.itemColor.end};stop-opacity:1" />
               </linearGradient>
             `;
-            definedGradients.add(slice.colorId);
-        }
+        definedGradients.add(slice.colorId);
+      }
     });
     svg += '</defs>';
 
@@ -505,12 +507,14 @@ export class DitaRunnerService {
 
     // Shadows
     slices.forEach((slice) => {
-      if (slice) svg += `<path d="${slice.path}" fill="#000000" fill-opacity="0.2" stroke="#000000" stroke-opacity="0.2" stroke-width="${strokeWidth}" stroke-linejoin="round" transform="translate(3, 3)" />`;
+      if (slice)
+        svg += `<path d="${slice.path}" fill="#000000" fill-opacity="0.2" stroke="#000000" stroke-opacity="0.2" stroke-width="${strokeWidth}" stroke-linejoin="round" transform="translate(3, 3)" />`;
     });
 
     // Main Slices
     slices.forEach((slice) => {
-      if (slice) svg += `<path d="${slice.path}" fill="url(#${slice.colorId})" stroke="url(#${slice.colorId})" stroke-width="${strokeWidth}" stroke-linejoin="round" />`;
+      if (slice)
+        svg += `<path d="${slice.path}" fill="url(#${slice.colorId})" stroke="url(#${slice.colorId})" stroke-width="${strokeWidth}" stroke-linejoin="round" />`;
     });
 
     // Center Text
@@ -520,7 +524,7 @@ export class DitaRunnerService {
     // Labels
     slices.forEach((slice) => {
       if (slice) {
-          svg += `<text x="${slice.lx}" y="${slice.ly}" text-anchor="${slice.anchor}" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
+        svg += `<text x="${slice.lx}" y="${slice.ly}" text-anchor="${slice.anchor}" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
             <tspan font-weight="bold" fill="${slice.baseColor}">${slice.label}</tspan> ${slice.value}
           </text>`;
       }
