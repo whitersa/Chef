@@ -232,9 +232,7 @@ export class RecipesService implements OnModuleInit {
     // Convert all Decimals to numbers
     const result: Record<string, number> = {};
     for (const [key, value] of Object.entries(rawTotal)) {
-      if (key !== 'totalWeight') {
-        result[key] = value.toDecimalPlaces(2).toNumber();
-      }
+      result[key] = value.toDecimalPlaces(2).toNumber();
     }
     return result;
   }
