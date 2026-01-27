@@ -10,4 +10,6 @@ export const ingredientsApi = {
   create: (data: Omit<Ingredient, 'id'>) => api.post<Ingredient>('/ingredients', data),
   update: (id: string, data: Partial<Ingredient>) => api.patch(`/ingredients/${id}`, data),
   delete: (id: string) => api.delete(`/ingredients/${id}`),
+  syncUsda: (page: number) =>
+    api.post<{ count: number; message: string }>(`/ingredients/sync/usda?page=${page}`),
 };

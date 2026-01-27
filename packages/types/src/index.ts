@@ -71,11 +71,7 @@ export interface Ingredient {
   name: string;
   price: number;
   unit: string;
-  nutrition?: {
-    protein: number;
-    fat: number;
-    carbs: number;
-  };
+  nutrition?: Record<string, any>;
   stockQuantity?: number;
   stockUnit?: string;
 }

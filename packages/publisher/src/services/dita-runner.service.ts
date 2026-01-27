@@ -330,30 +330,57 @@ export class DitaRunnerService {
   }
 
   private calculateNutrition(recipe: Recipe) {
-    const total = { protein: 0, fat: 0, carbs: 0 };
+    const total: Record<string, number> = {};
     let hasData = false;
 
     recipe.items?.forEach((item) => {
-      if (item.ingredient?.nutrition) {
-        const qty = item.quantity;
-        total.protein += (item.ingredient.nutrition.protein || 0) * qty;
-        total.fat += (item.ingredient.nutrition.fat || 0) * qty;
-        total.carbs += (item.ingredient.nutrition.carbs || 0) * qty;
-        hasData = true;
+      const n = item.ingredient?.nutrition || {};
+      const qty = item.quantity;
+
+      // Iterate over dynamic keys
+      for (const [key, value] of Object.entries(n)) {
+          // New structure: value is { amount: number, unit: string }
+          // Legacy check in case of mixed data (optional, but safer)
+          let amount = 0;
+          if (typeof value === 'object' && value !== null && 'amount' in value) {
+              amount = Number((value as any).amount) || 0;
+          } else if (typeof value === 'number') {
+              amount = value;
+          }
+
+          if (!total[key]) total[key] = 0;
+          total[key] += amount * qty;
+          if (amount > 0) hasData = true;
       }
     });
 
     return hasData ? total : null;
   }
 
-  private generatePieChartSvg(data: { protein: number; fat: number; carbs: number }): string {
-    // 1. Fix Math: Calculate rounded values first to ensure sum matches display
-    const roundedData = {
-      protein: Math.round(data.protein),
-      fat: Math.round(data.fat),
-      carbs: Math.round(data.carbs),
-    };
-    const total = roundedData.protein + roundedData.fat + roundedData.carbs;
+  private generatePieChartSvg(data: Record<string, number>): string {
+    // 1. Sort and Pick Top data to avoid overcrowding the chart
+    // Filter out zero or negative values
+    const validData = Object.entries(data)
+        .filter(([_, val]) => val > 0)
+        .sort((a, b) => b[1] - a[1]); // Descending
+
+    // Take top 6 items + "Others" if needed? For now just take all valid ones, assuming usually not too many macro nutrients.
+    // If we have micro-nutrients (mg/ug), they are negligible compared to macros (g) in a by-weight pie chart.
+    // However, usually we want to confirm units. Assuming the "g" unit for everything here is a simplification inherited from previous code.
+    // For visual correctness, we really should only chart things with the same unit (e.g. Grams).
+    // Given previous context, we likely care about Macros (Protein, Fat, Carbs, Fiber, Sugar, Water etc).
+    // Let's assume the values are all roughly compatible or we just show what we have.
+
+    const roundedData: Record<string, number> = {};
+    let total = 0;
+    validData.forEach(([key, val]) => {
+        const rVal = Math.round(val);
+        if (rVal > 0) {
+            roundedData[key] = rVal;
+            total += rVal;
+        }
+    });
+
     if (total === 0) return '';
 
     const width = 450;
@@ -363,46 +390,59 @@ export class DitaRunnerService {
     const cx = width / 2;
     const cy = height / 2;
 
-    // 2. Fix Visuals: Use Filled Path with Stroke Join Rounding
-    // This allows for controlled corner radius (not full semi-circles) and clean gaps.
-    const cornerRadius = 4; // Small rounded corners
-    const strokeWidth = cornerRadius * 2; // Stroke width to create the rounding
-    const gapDegrees = 8; // Visible gap between slices
-
-    // Adjust radii for the stroke expansion (stroke extends half-width outward/inward)
+    const cornerRadius = 4;
+    const strokeWidth = cornerRadius * 2;
+    const gapDegrees = 8;
     const drawOuterRadius = outerRadius - cornerRadius;
     const drawInnerRadius = innerRadius + cornerRadius;
 
-    // Modern Palette with Gradients
-    const colors = {
-      protein: { start: '#34D399', end: '#059669', id: 'grad-protein' }, // Emerald
-      fat: { start: '#FBBF24', end: '#D97706', id: 'grad-fat' }, // Amber
-      carbs: { start: '#60A5FA', end: '#2563EB', id: 'grad-carbs' }, // Blue
+    // Helper to generate colors deterministically
+    const getColor = (key: string): { start: string, end: string, id: string } => {
+        const map: Record<string, any> = {
+            'Protein': { start: '#34D399', end: '#059669' }, // Emerald
+            'Fat': { start: '#FBBF24', end: '#D97706' }, // Amber
+            'Carbohydrates': { start: '#60A5FA', end: '#2563EB' }, // Blue
+            'Fiber': { start: '#A78BFA', end: '#7C3AED' }, // Violet
+            'Sugar': { start: '#FCA5A5', end: '#DC2626' }, // Red
+            'Sodium': { start: '#D1D5DB', end: '#9CA3AF' }, // Gray
+        };
+
+        if (map[key]) return { ...map[key], id: `grad-${key.toLowerCase()}` };
+        
+        // Hash for others
+        let hash = 0;
+        for (let i = 0; i < key.length; i++) {
+            hash = key.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const c1 = (hash & 0x00ffffff).toString(16).toUpperCase().padStart(6, '0');
+        const c2 = ((hash >> 4) & 0x00ffffff).toString(16).toUpperCase().padStart(6, '0'); // Slightly different for gradient
+        
+        return { 
+            start: '#' + c1, 
+            end: '#' + c2, 
+            id: `grad-${key.replace(/[^a-zA-Z0-9]/g, '')}` 
+        };
     };
 
     let startAngle = 0;
     const slices = Object.entries(roundedData).map(([key, value]) => {
       const angle = (value / total) * 360;
-
-      // Handle full circle case or very small slices
       const isFullCircle = angle >= 359.9;
       const effectiveGap = isFullCircle ? 0 : gapDegrees;
-
-      // Adjust start/end angles to account for gap
       const currentStartAngle = startAngle + effectiveGap / 2;
       const currentEndAngle = startAngle + angle - effectiveGap / 2;
 
-      // Convert to radians (SVG uses 0 at 3 o'clock, we want 12 o'clock so -90)
+      // Ensure angles don't cross due to gap being larger than slice
+      if (currentEndAngle < currentStartAngle) return null;
+
       const rStart = (Math.PI * (currentStartAngle - 90)) / 180;
       const rEnd = (Math.PI * (currentEndAngle - 90)) / 180;
 
-      // Outer arc points
       const x1 = cx + drawOuterRadius * Math.cos(rStart);
       const y1 = cy + drawOuterRadius * Math.sin(rStart);
       const x2 = cx + drawOuterRadius * Math.cos(rEnd);
       const y2 = cy + drawOuterRadius * Math.sin(rEnd);
 
-      // Inner arc points
       const x3 = cx + drawInnerRadius * Math.cos(rEnd);
       const y3 = cy + drawInnerRadius * Math.sin(rEnd);
       const x4 = cx + drawInnerRadius * Math.cos(rStart);
@@ -410,7 +450,6 @@ export class DitaRunnerService {
 
       const largeArcFlag = currentEndAngle - currentStartAngle > 180 ? 1 : 0;
 
-      // Closed Path: Outer Arc -> Line to Inner -> Inner Arc (Reverse) -> Close
       const pathData = [
         `M ${x1} ${y1}`,
         `A ${drawOuterRadius} ${drawOuterRadius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
@@ -419,74 +458,72 @@ export class DitaRunnerService {
         'Z',
       ].join(' ');
 
-      // Label position
       const midAngle = startAngle + angle / 2;
       const rMid = (Math.PI * (midAngle - 90)) / 180;
       const labelRadius = outerRadius + 30;
       const lx = cx + labelRadius * Math.cos(rMid);
       const ly = cy + labelRadius * Math.sin(rMid);
-
       const anchor = lx > cx ? 'start' : 'end';
 
       startAngle += angle;
+      const color = getColor(key);
 
       return {
         path: pathData,
-        colorId: colors[key as keyof typeof colors].id,
-        baseColor: colors[key as keyof typeof colors].end,
+        colorId: color.id,
+        itemColor: color, // Store full color obj for defs
+        baseColor: color.end,
         label: `${key.charAt(0).toUpperCase() + key.slice(1)}`,
         value: `${value}g`,
         lx,
         ly,
         anchor,
       };
-    });
+    }).filter(s => s !== null);
 
-    // Increase resolution for better rasterization quality (4x)
     const scaleFactor = 4;
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width * scaleFactor}" height="${height * scaleFactor}" viewBox="0 0 ${width} ${height}" shape-rendering="geometricPrecision">`;
 
-    // Defs for gradients
-    svg += `
-    <defs>
-      <linearGradient id="grad-protein" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:${colors.protein.start};stop-opacity:1" />
-        <stop offset="100%" style="stop-color:${colors.protein.end};stop-opacity:1" />
-      </linearGradient>
-      <linearGradient id="grad-fat" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:${colors.fat.start};stop-opacity:1" />
-        <stop offset="100%" style="stop-color:${colors.fat.end};stop-opacity:1" />
-      </linearGradient>
-      <linearGradient id="grad-carbs" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:${colors.carbs.start};stop-opacity:1" />
-        <stop offset="100%" style="stop-color:${colors.carbs.end};stop-opacity:1" />
-      </linearGradient>
-    </defs>
-    `;
+    // Generate Defs for unique colors found
+    svg += '<defs>';
+    const definedGradients = new Set();
+    slices.forEach(slice => {
+        if (!slice) return;
+        if (!definedGradients.has(slice.colorId)) {
+            svg += `
+              <linearGradient id="${slice.colorId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:${slice.itemColor.start};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${slice.itemColor.end};stop-opacity:1" />
+              </linearGradient>
+            `;
+            definedGradients.add(slice.colorId);
+        }
+    });
+    svg += '</defs>';
 
-    svg += `<rect width="100%" height="100%" fill="white"/>`; // Background
+    svg += `<rect width="100%" height="100%" fill="white"/>`;
 
-    // 1. Draw Shadow Layer (Vector based)
-    // Use stroke-linejoin="round" to round the corners of the filled shape
+    // Shadows
     slices.forEach((slice) => {
-      svg += `<path d="${slice.path}" fill="#000000" fill-opacity="0.2" stroke="#000000" stroke-opacity="0.2" stroke-width="${strokeWidth}" stroke-linejoin="round" transform="translate(3, 3)" />`;
+      if (slice) svg += `<path d="${slice.path}" fill="#000000" fill-opacity="0.2" stroke="#000000" stroke-opacity="0.2" stroke-width="${strokeWidth}" stroke-linejoin="round" transform="translate(3, 3)" />`;
     });
 
-    // 2. Draw Main Slices
-    // Fill with gradient, and stroke with gradient to create rounded corners
+    // Main Slices
     slices.forEach((slice) => {
-      svg += `<path d="${slice.path}" fill="url(#${slice.colorId})" stroke="url(#${slice.colorId})" stroke-width="${strokeWidth}" stroke-linejoin="round" />`;
+      if (slice) svg += `<path d="${slice.path}" fill="url(#${slice.colorId})" stroke="url(#${slice.colorId})" stroke-width="${strokeWidth}" stroke-linejoin="round" />`;
     });
 
-    // Center Text (Total)
+    // Center Text
     svg += `<text x="${cx}" y="${cy - 10}" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#888" font-weight="bold">TOTAL</text>`;
     svg += `<text x="${cx}" y="${cy + 15}" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">${total}g</text>`;
 
     // Labels
     slices.forEach((slice) => {
-      svg += `<text x="${slice.lx}" y="${slice.ly}" text-anchor="${slice.anchor}" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
-        <tspan font-weight="bold" fill="${slice.baseColor}">${slice.label}</tspan> ${slice.value}
-      </text>`;
+      if (slice) {
+          svg += `<text x="${slice.lx}" y="${slice.ly}" text-anchor="${slice.anchor}" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
+            <tspan font-weight="bold" fill="${slice.baseColor}">${slice.label}</tspan> ${slice.value}
+          </text>`;
+      }
     });
 
     svg += `<text x="${cx}" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#2c3e50">Nutrition Facts</text>`;

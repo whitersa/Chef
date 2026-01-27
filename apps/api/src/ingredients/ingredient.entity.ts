@@ -18,6 +18,9 @@ export class Ingredient {
   @Column({ comment: 'Name of the ingredient' })
   name!: string;
 
+  @Column({ nullable: true, comment: 'Original name (e.g. in English) if translated' })
+  originalName?: string;
+
   @Column('decimal', {
     precision: 10,
     scale: 6,
@@ -30,14 +33,9 @@ export class Ingredient {
 
   @Column('jsonb', {
     nullable: true,
-    comment: 'Nutritional information (e.g., protein, carbs)',
+    comment: 'Nutritional information (e.g., protein, carbs, vitamins, etc.)',
   })
-  nutrition!: {
-    calories?: number;
-    protein: number;
-    fat: number;
-    carbs: number;
-  };
+  nutrition!: Record<string, any>;
 
   @Column('decimal', {
     precision: 10,

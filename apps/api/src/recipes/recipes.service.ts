@@ -7,7 +7,7 @@ import { RecipeCostView } from './recipe-cost-view.entity';
 import { Ingredient } from '../ingredients/ingredient.entity';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
-import { NutritionDto } from './dto/nutrition.dto';
+
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { AuditService } from '../audit/audit.service';
 import { UnitConversionUtil } from '@chefos/utils';
@@ -227,14 +227,22 @@ export class RecipesService implements OnModuleInit {
     return totalCostWithLabor.dividedBy(yieldQuantity).toDecimalPlaces(2).toNumber();
   }
 
-  async calculateNutrition(id: string): Promise<NutritionDto> {
-    return this.calculateNutritionRecursive(id, new Set());
+  async calculateNutrition(id: string): Promise<Record<string, number>> {
+    const rawTotal = await this.calculateNutritionRecursive(id, new Set());
+    // Convert all Decimals to numbers
+    const result: Record<string, number> = {};
+    for (const [key, value] of Object.entries(rawTotal)) {
+        if (key !== 'totalWeight') {
+            result[key] = value.toDecimalPlaces(2).toNumber();
+        }
+    }
+    return result;
   }
 
   private async calculateNutritionRecursive(
     id: string,
     visited: Set<string>,
-  ): Promise<NutritionDto> {
+  ): Promise<Record<string, Decimal>> {
     if (visited.has(id)) {
       throw new Error(`Circular dependency detected in recipe: ${id}`);
     }
@@ -246,77 +254,58 @@ export class RecipesService implements OnModuleInit {
     }
 
     let totalWeight = new Decimal(0);
-    const totalNutrition = {
-      calories: new Decimal(0),
-      protein: new Decimal(0),
-      fat: new Decimal(0),
-      carbs: new Decimal(0),
-    };
+    // Dynamic accumulator: { [nutrientName]: Decimal }
+    const totalNutrition: Record<string, Decimal> = {};
 
     for (const item of recipe.items) {
       let itemWeightInGrams = new Decimal(0);
-      let itemNutrition = {
-        calories: new Decimal(0),
-        protein: new Decimal(0),
-        fat: new Decimal(0),
-        carbs: new Decimal(0),
-      };
+      let itemNutrition: Record<string, Decimal> = {};
 
       if (item.ingredient) {
-        // Convert ingredient quantity to grams
-        // item.quantity is Net Quantity (what goes into the pot)
         itemWeightInGrams = UnitConversionUtil.toGrams(item.quantity, item.ingredient.unit);
+        
+        const n = item.ingredient.nutrition || {};
+        const factor = itemWeightInGrams.dividedBy(100);
 
-        if (item.ingredient.nutrition) {
-          // Nutrition is per 100g
-          const factor = itemWeightInGrams.dividedBy(100);
-          const n = item.ingredient.nutrition;
-          // Use provided calories or calculate if not present (4-4-9 rule)
-          const caloriesPer100g =
-            n.calories || (n.protein || 0) * 4 + (n.carbs || 0) * 4 + (n.fat || 0) * 9;
-
-          itemNutrition = {
-            calories: new Decimal(caloriesPer100g).times(factor),
-            protein: new Decimal(n.protein || 0).times(factor),
-            fat: new Decimal(n.fat || 0).times(factor),
-            carbs: new Decimal(n.carbs || 0).times(factor),
-          };
+        // Iterate over dynamic keys (e.g., Protein, Fat, Vitamin C)
+        for (const [key, value] of Object.entries(n)) {
+            // New structure: value is { amount: number, unit: string }
+            // Legacy/Simple structure fallback: value is number (handled if we kept types strict, but here we assume migration)
+            let amount = 0;
+            if (typeof value === 'object' && value !== null && 'amount' in value) {
+                amount = Number((value as any).amount) || 0;
+            } else if (typeof value === 'number') {
+                amount = value;
+            }
+            
+            itemNutrition[key] = new Decimal(amount).times(factor);
         }
       } else if (item.childRecipe) {
-        // Recursive call
         const childStats = await this.calculateNutritionRecursive(item.childRecipe.id, visited);
-
-        // NEW LOGIC: item.quantity is Number of Batches (e.g. 0.5 batches)
         const batches = new Decimal(item.quantity);
+        itemWeightInGrams = new Decimal(childStats.totalWeight || 0).times(batches);
 
-        // Weight = Child Total Weight * Batches
-        itemWeightInGrams = new Decimal(childStats.totalWeight).times(batches);
-
-        // Nutrition = Child Total Nutrition * Batches
-        itemNutrition = {
-          calories: new Decimal(childStats.calories).times(batches),
-          protein: new Decimal(childStats.protein).times(batches),
-          fat: new Decimal(childStats.fat).times(batches),
-          carbs: new Decimal(childStats.carbs).times(batches),
-        };
+        for (const [key, val] of Object.entries(childStats)) {
+            if (key !== 'totalWeight') {
+                itemNutrition[key] = val.times(batches);
+            }
+        }
       }
 
       totalWeight = totalWeight.plus(itemWeightInGrams);
-      totalNutrition.calories = totalNutrition.calories.plus(itemNutrition.calories);
-      totalNutrition.protein = totalNutrition.protein.plus(itemNutrition.protein);
-      totalNutrition.fat = totalNutrition.fat.plus(itemNutrition.fat);
-      totalNutrition.carbs = totalNutrition.carbs.plus(itemNutrition.carbs);
+      
+      // Merge itemNutrition into totalNutrition
+      for (const [key, val] of Object.entries(itemNutrition)) {
+          if (!totalNutrition[key]) {
+              totalNutrition[key] = new Decimal(0);
+          }
+          totalNutrition[key] = totalNutrition[key].plus(val);
+      }
     }
 
     visited.delete(id);
-
-    return {
-      totalWeight: totalWeight.toNumber(),
-      calories: totalNutrition.calories.toDecimalPlaces(2).toNumber(),
-      protein: totalNutrition.protein.toDecimalPlaces(2).toNumber(),
-      fat: totalNutrition.fat.toDecimalPlaces(2).toNumber(),
-      carbs: totalNutrition.carbs.toDecimalPlaces(2).toNumber(),
-    };
+    totalNutrition['totalWeight'] = totalWeight;
+    return totalNutrition;
   }
 
   private async calculateCostRecursive(id: string, visited: Set<string>): Promise<Decimal> {

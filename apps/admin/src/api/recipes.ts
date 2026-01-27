@@ -18,13 +18,7 @@ export interface CreateRecipeRequest {
   items?: CreateRecipeItemRequest[];
 }
 
-export interface Nutrition {
-  totalWeight: number;
-  calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-}
+export type Nutrition = Record<string, number>;
 
 export interface CostBreakdown {
   total: number;

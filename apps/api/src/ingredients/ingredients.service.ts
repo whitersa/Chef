@@ -36,25 +36,41 @@ export class IngredientsService implements OnModuleInit {
           name: '番茄',
           price: 5.0,
           unit: 'kg',
-          nutrition: { protein: 0.9, fat: 0.2, carbs: 3.9 },
+          nutrition: {
+             Protein: { amount: 0.9, unit: 'g' },
+             Fat: { amount: 0.2, unit: 'g' },
+             Carbohydrates: { amount: 3.9, unit: 'g' }
+          },
         },
         {
           name: '鸡蛋',
           price: 10.0,
           unit: 'kg',
-          nutrition: { protein: 13, fat: 10, carbs: 1 },
+          nutrition: {
+             Protein: { amount: 13, unit: 'g' },
+             Fat: { amount: 10, unit: 'g' },
+             Carbohydrates: { amount: 1, unit: 'g' }
+          },
         },
         {
           name: '牛肉',
           price: 80.0,
           unit: 'kg',
-          nutrition: { protein: 26, fat: 15, carbs: 0 },
+          nutrition: {
+             Protein: { amount: 26, unit: 'g' },
+             Fat: { amount: 15, unit: 'g' },
+             Carbohydrates: { amount: 0, unit: 'g' }
+          },
         },
         {
           name: '土豆',
           price: 3.0,
           unit: 'kg',
-          nutrition: { protein: 2, fat: 0.1, carbs: 17 },
+          nutrition: {
+             Protein: { amount: 2, unit: 'g' },
+             Fat: { amount: 0.1, unit: 'g' },
+             Carbohydrates: { amount: 17, unit: 'g' }
+          },
         },
       ];
 

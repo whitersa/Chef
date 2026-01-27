@@ -2,10 +2,19 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { UsdaService } from '../integrations/usda/usda.service';
 
 @Controller('ingredients')
 export class IngredientsController {
-  constructor(private readonly ingredientsService: IngredientsService) {}
+  constructor(
+    private readonly ingredientsService: IngredientsService,
+    private readonly usdaService: UsdaService,
+  ) {}
+
+  @Post('sync/usda')
+  async syncUsda(@Query('page') page?: number) {
+    return this.usdaService.syncIngredients(page ? Number(page) : 1);
+  }
 
   @Post()
   create(@Body() createIngredientDto: CreateIngredientDto) {

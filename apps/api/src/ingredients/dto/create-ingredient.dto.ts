@@ -18,11 +18,11 @@ export class CreateIngredientDto {
   unit!: string;
 
   @ApiProperty({
-    example: { protein: 0.9, fat: 0.2, carbs: 3.9 },
+    example: { Protein: { amount: 0.9, unit: 'g' } },
     description: 'Nutritional information per unit',
     required: false,
   })
   @IsOptional()
   @IsObject()
-  nutrition?: Record<string, number>;
+  nutrition?: Record<string, any>;
 }

@@ -91,6 +91,17 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     }
   }
 
+  async function syncUsda(page: number) {
+    try {
+      const result = await ingredientsApi.syncUsda(page);
+      fetchIngredients(); // Refresh list to show new items
+      return result;
+    } catch (error) {
+      console.error('Failed to sync USDA:', error);
+      throw error;
+    }
+  }
+
   return {
     ingredients,
     loading,
@@ -104,5 +115,6 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     createIngredient,
     updateIngredient,
     deleteIngredient,
+    syncUsda,
   };
 });

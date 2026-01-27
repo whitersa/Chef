@@ -46,7 +46,7 @@ interface DraggableChangeEvent {
       name: string;
       unit: string;
       price: number;
-      nutrition?: { protein: number; fat: number; carbs: number };
+      nutrition?: Record<string, any>;
       items?: unknown[];
     };
     newIndex: number;
@@ -68,7 +68,7 @@ function handleIngredientAdd(evt: DraggableChangeEvent) {
       unit: isRecipe ? 'batch' : element.unit,
       price: isRecipe ? 0 : element.price,
       yieldRate: 1.0,
-      nutrition: element.nutrition || { protein: 0, fat: 0, carbs: 0 },
+      nutrition: element.nutrition || {},
     };
 
     // Replace the raw item with the initialized item
@@ -104,9 +104,15 @@ function confirmProcessing() {
 }
 
 const nutritionOptions = computed<EChartsOption>(() => {
-  const { protein, fat, carbs } = recipeStore.totalNutrition;
-  // 如果没有数据，显示默认值避免空图表
-  const hasData = protein > 0 || fat > 0 || carbs > 0;
+  const nutrition = recipeStore.totalNutrition;
+  const keys = Object.keys(nutrition);
+  const hasData = keys.some(k => nutrition[k] > 0);
+
+  const data = keys.map(key => ({
+      value: parseFloat(nutrition[key].toFixed(2)),
+      name: key,
+      itemStyle: { color: getNutrientColorInChart(key) }
+  })).filter(d => d.value > 0);
 
   return {
     tooltip: {
@@ -117,6 +123,7 @@ const nutritionOptions = computed<EChartsOption>(() => {
       top: '0%',
       left: 'center',
       icon: 'circle',
+      type: 'scroll',
     },
     series: [
       {
@@ -145,28 +152,33 @@ const nutritionOptions = computed<EChartsOption>(() => {
           show: false,
         },
         data: hasData
-          ? [
-              {
-                value: parseFloat(protein.toFixed(2)),
-                name: '蛋白质',
-                itemStyle: { color: '#18181b' }, // Zinc 900
-              },
-              {
-                value: parseFloat(fat.toFixed(2)),
-                name: '脂肪',
-                itemStyle: { color: '#71717a' }, // Zinc 500
-              },
-              {
-                value: parseFloat(carbs.toFixed(2)),
-                name: '碳水',
-                itemStyle: { color: '#d4d4d8' }, // Zinc 300
-              },
-            ]
+          ? data
           : [{ value: 0, name: '无数据', itemStyle: { color: '#f4f4f5' } }], // Zinc 100
       },
     ],
   };
 });
+
+function getNutrientColorInChart(key: string) {
+    const map: Record<string, string> = {
+        'Protein': '#e6a23c', // Orange
+        'Fat': '#f56c6c', // Red
+        'Carbohydrates': '#409eff', // Blue
+        'Energy': '#67c23a', // Green
+        'Fiber': '#a0cfff',
+        'Sugar': '#f3d19e',
+        'Sodium': '#d9d9d9'
+    };
+    if (map[key]) return map[key];
+    
+    // Hash string to color for others
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+        hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c = (hash & 0x00ffffff).toString(16).toUpperCase();
+    return '#' + '00000'.substring(0, 6 - c.length) + c;
+}
 </script>
 
 <template>
@@ -422,9 +434,9 @@ const nutritionOptions = computed<EChartsOption>(() => {
           <BaseChart :options="nutritionOptions" />
         </div>
         <div v-if="recipeStore.items.length > 0" class="nutrition-summary">
-          <p>蛋白质: {{ recipeStore.totalNutrition.protein.toFixed(1) }}g</p>
-          <p>脂肪: {{ recipeStore.totalNutrition.fat.toFixed(1) }}g</p>
-          <p>碳水: {{ recipeStore.totalNutrition.carbs.toFixed(1) }}g</p>
+          <p v-for="(value, key) in recipeStore.totalNutrition" :key="key">
+            <span v-if="value > 0">{{ key }}: {{ value.toFixed(1) }}g</span>
+          </p>
         </div>
       </div>
     </div>

@@ -21,7 +21,9 @@
     <!-- 工具栏 -->
     <template #toolbar>
       <div class="toolbar-left">
-        <!-- 预留左侧工具栏位置，如批量操作等 -->
+        <el-button type="warning" plain @click="handleOpenSync">
+          <el-icon class="el-icon--left"><Refresh /></el-icon>同步 USDA 数据
+        </el-button>
       </div>
       <div class="toolbar-right">
         <el-button type="primary" @click="handleAdd">
@@ -38,7 +40,16 @@
       border
       @sort-change="handleSortChange"
     >
-      <el-table-column prop="name" label="名称" width="180" sortable="custom" />
+      <el-table-column label="名称" min-width="180" sortable="custom" prop="name">
+        <template #default="{ row }">
+          <div>
+            <div>{{ row.name }}</div>
+            <div v-if="row.originalName" style="font-size: 12px; color: #909399">
+              {{ row.originalName }}
+            </div>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="stockQuantity" label="库存" width="120">
         <template #default="scope">
           <el-tag :type="scope.row.stockQuantity > 0 ? 'success' : 'danger'">
@@ -65,26 +76,22 @@
                 <span class="subtitle">每单位含量</span>
               </div>
               <div class="card-body">
-                <div class="nutrient-row">
+                <div
+                  v-for="(value, key) in scope.row.nutrition || {}"
+                  :key="key"
+                  class="nutrient-row"
+                >
                   <div class="nutrient-label">
-                    <span class="dot protein" />
-                    <span>蛋白质</span>
+                    <span class="dot" :style="{ backgroundColor: getNutrientColor(key) }" />
+                    <span>{{ key }}</span>
                   </div>
-                  <span class="nutrient-value">{{ scope.row.nutrition?.protein || 0 }}</span>
+                  <span class="nutrient-value"> {{ value.amount }} {{ value.unit }} </span>
                 </div>
-                <div class="nutrient-row">
-                  <div class="nutrient-label">
-                    <span class="dot fat" />
-                    <span>脂肪</span>
-                  </div>
-                  <span class="nutrient-value">{{ scope.row.nutrition?.fat || 0 }}</span>
-                </div>
-                <div class="nutrient-row">
-                  <div class="nutrient-label">
-                    <span class="dot carbs" />
-                    <span>碳水化合物</span>
-                  </div>
-                  <span class="nutrient-value">{{ scope.row.nutrition?.carbs || 0 }}</span>
+                <div
+                  v-if="!scope.row.nutrition || Object.keys(scope.row.nutrition).length === 0"
+                  class="no-data"
+                >
+                  暂无数据
                 </div>
               </div>
             </div>
@@ -149,21 +156,51 @@
               />
             </el-select>
           </el-form-item>
-          <el-divider content-position="left"> 营养成分 </el-divider>
+          <el-divider content-position="left"> 营养成分 (每100g) </el-divider>
           <el-form-item label="蛋白质">
-            <el-input-number v-model="form.nutrition.protein" :min="0" :precision="1" />
+            <el-input-number v-model="form.nutrition.Protein.amount" :min="0" :precision="1" />
+            <span style="margin-left: 8px">g</span>
           </el-form-item>
           <el-form-item label="脂肪">
-            <el-input-number v-model="form.nutrition.fat" :min="0" :precision="1" />
+            <el-input-number v-model="form.nutrition.Fat.amount" :min="0" :precision="1" />
+            <span style="margin-left: 8px">g</span>
           </el-form-item>
           <el-form-item label="碳水">
-            <el-input-number v-model="form.nutrition.carbs" :min="0" :precision="1" />
+            <el-input-number
+              v-model="form.nutrition.Carbohydrates.amount"
+              :min="0"
+              :precision="1"
+            />
+            <span style="margin-left: 8px">g</span>
           </el-form-item>
         </el-form>
         <template #footer>
           <span class="dialog-footer">
             <el-button @click="dialogVisible = false">取消</el-button>
             <el-button type="primary" @click="handleSubmit">确定</el-button>
+          </span>
+        </template>
+      </el-dialog>
+
+      <!-- Sync Dialog -->
+      <el-dialog v-model="syncDialogVisible" title="同步 USDA 数据" width="30%">
+        <div style="margin-bottom: 20px">
+          <p>USDA 数据量巨大，为了防止请求超时或触发限流，请按页码分批拉取。</p>
+          <p style="color: #909399; font-size: 12px">每页约拉取 20 条最基础的食材数据。</p>
+        </div>
+
+        <el-form label-width="100px">
+          <el-form-item label="拉取页码">
+            <el-input-number v-model="syncPage" :min="1" />
+          </el-form-item>
+        </el-form>
+
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="syncDialogVisible = false">取消</el-button>
+            <el-button type="primary" :loading="syncLoading" @click="handleSync">
+              开始同步
+            </el-button>
           </span>
         </template>
       </el-dialog>
@@ -203,9 +240,9 @@ const form = reactive({
   price: 0,
   unit: 'kg',
   nutrition: {
-    protein: 0,
-    fat: 0,
-    carbs: 0,
+    Protein: { amount: 0, unit: 'g' },
+    Fat: { amount: 0, unit: 'g' },
+    Carbohydrates: { amount: 0, unit: 'g' },
   },
 });
 
@@ -230,10 +267,15 @@ const handleEdit = (row: Ingredient) => {
   form.name = row.name;
   form.price = row.price;
   form.unit = row.unit;
+  // Handle legacy or missing data safely
+  const n = row.nutrition || {};
   form.nutrition = {
-    protein: row.nutrition?.protein || 0,
-    fat: row.nutrition?.fat || 0,
-    carbs: row.nutrition?.carbs || 0,
+    Protein: { amount: n.Protein?.amount || n.protein || 0, unit: n.Protein?.unit || 'g' },
+    Fat: { amount: n.Fat?.amount || n.fat || 0, unit: n.Fat?.unit || 'g' },
+    Carbohydrates: {
+      amount: n.Carbohydrates?.amount || n.carbs || 0,
+      unit: n.Carbohydrates?.unit || 'g',
+    },
   };
   dialogVisible.value = true;
 };
@@ -274,10 +316,50 @@ const resetForm = () => {
   form.price = 0;
   form.unit = 'kg';
   form.nutrition = {
-    protein: 0,
-    fat: 0,
-    carbs: 0,
+    Protein: { amount: 0, unit: 'g' },
+    Fat: { amount: 0, unit: 'g' },
+    Carbohydrates: { amount: 0, unit: 'g' },
   };
+};
+
+const getNutrientColor = (key: string) => {
+  const map: Record<string, string> = {
+    Protein: '#e6a23c',
+    Fat: '#f56c6c',
+    Carbohydrates: '#409eff',
+    Energy: '#67c23a',
+  };
+  return map[key] || '#909399';
+};
+
+// Sync USDA Logic
+const syncDialogVisible = ref(false);
+const syncPage = ref(1);
+const syncLoading = ref(false);
+
+const handleOpenSync = () => {
+  syncDialogVisible.value = true;
+};
+
+const handleSync = async () => {
+  if (syncPage.value < 1) {
+    ElMessage.warning('页码必须大于0');
+    return;
+  }
+
+  syncLoading.value = true;
+  try {
+    const res = await ingredientsStore.syncUsda(syncPage.value);
+    ElMessage.success(`同步成功，共获取 ${res.count} 条数据`);
+    syncDialogVisible.value = false;
+    // Auto increment for next time
+    syncPage.value++;
+  } catch (error) {
+    console.error(error);
+    ElMessage.error('同步失败，请检查网络或 Key 配置');
+  } finally {
+    syncLoading.value = false;
+  }
 };
 </script>
 

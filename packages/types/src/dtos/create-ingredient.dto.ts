@@ -11,5 +11,5 @@ export class CreateIngredientDto {
   unit: string;
 
   @IsOptional()
-  nutrition?: Record<string, number>;
+  nutrition?: Record<string, any>;
 }

@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { recipesApi } from '../api/recipes';
+import { type Ingredient } from '../api/ingredients';
 import { ElMessage } from 'element-plus';
-import type { ProcessingStep, Recipe, Ingredient } from '@chefos/types';
+import type { ProcessingStep, Recipe } from '@chefos/types';
 
 export interface RecipeItem {
   id: string; // temporary UI ID
@@ -13,11 +14,7 @@ export interface RecipeItem {
   unit: string;
   price: number;
   yieldRate: number;
-  nutrition: {
-    protein: number;
-    fat: number;
-    carbs: number;
-  };
+  nutrition: Record<string, { amount: number; unit: string }>;
 }
 
 export const useRecipeStore = defineStore('recipe', () => {
@@ -56,13 +53,24 @@ export const useRecipeStore = defineStore('recipe', () => {
   const totalNutrition = computed(() => {
     return items.value.reduce(
       (acc, item) => {
-        return {
-          protein: acc.protein + item.nutrition.protein * item.quantity,
-          fat: acc.fat + item.nutrition.fat * item.quantity,
-          carbs: acc.carbs + item.nutrition.carbs * item.quantity,
-        };
+         // item.nutrition is now Record<string, {amount, unit}>
+         const n = item.nutrition || {};
+         for (const [key, val] of Object.entries(n)) {
+             if (!acc[key]) {
+                 acc[key] = 0;
+             }
+             // Handle both new structure {amount, unit} and legacy number
+             let amount = 0;
+             if (typeof val === 'object' && val !== null && 'amount' in val) {
+                 amount = Number((val as any).amount) || 0;
+             } else if (typeof val === 'number') {
+                 amount = val;
+             }
+             acc[key] += amount * item.quantity;
+         }
+         return acc;
       },
-      { protein: 0, fat: 0, carbs: 0 },
+      {} as Record<string, number>,
     );
   });
 
@@ -127,7 +135,7 @@ export const useRecipeStore = defineStore('recipe', () => {
         unit: item.ingredient?.unit || 'batch',
         price: Number(item.ingredient?.price || 0), // For sub-recipes, price might be 0 initially or we need to fetch cost
         yieldRate: Number(item.yieldRate),
-        nutrition: item.ingredient?.nutrition || { protein: 0, fat: 0, carbs: 0 },
+        nutrition: item.ingredient?.nutrition || {},
       }));
     } catch (error) {
       console.error('Failed to fetch recipe:', error);
@@ -146,7 +154,7 @@ export const useRecipeStore = defineStore('recipe', () => {
       unit: isRecipe ? 'batch' : (item as Ingredient).unit,
       price: isRecipe ? 0 : (item as Ingredient).price, // Sub-recipe cost is calculated dynamically on backend usually, or we fetch it
       yieldRate: 1.0,
-      nutrition: (item as Ingredient).nutrition || { protein: 0, fat: 0, carbs: 0 },
+      nutrition: (item as Ingredient).nutrition || {},
     });
   }
 
