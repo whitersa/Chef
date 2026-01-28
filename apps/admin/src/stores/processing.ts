@@ -10,22 +10,21 @@ export const useProcessingStore = defineStore('processing', () => {
     page: 1,
     limit: 10,
     total: 0,
+    sorts: [] as { field: string; order: 'ASC' | 'DESC' }[],
   });
   const query = reactive({
     search: '',
-    sort: '',
-    order: 'ASC' as 'ASC' | 'DESC',
   });
 
   async function fetchMethods() {
     loading.value = true;
     try {
+      const sortStr = pagination.sorts.map((s) => `${s.field}:${s.order}`).join(',');
       const { data, meta } = await processingApi.getAll({
         page: pagination.page,
         limit: pagination.limit,
         search: query.search,
-        sort: query.sort,
-        order: query.order,
+        sort: sortStr || undefined,
       });
       methods.value = data;
       pagination.total = meta.total;
@@ -48,6 +47,15 @@ export const useProcessingStore = defineStore('processing', () => {
   }
 
   function setLimit(limit: number) {
+    pagination.limit = limit;
+    pagination.page = 1;
+    fetchMethods();
+  }
+
+  function setSort(sorts: { field: string; order: 'ASC' | 'DESC' }[]) {
+    pagination.sorts = sorts;
+    fetchMethods();
+  }
     pagination.limit = limit;
     pagination.page = 1;
     fetchMethods();

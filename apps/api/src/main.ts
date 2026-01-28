@@ -23,10 +23,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(Logger));
 
-  // Configure helmet with CORS-friendly settings
+  // 1. Enable CORS first
+  app.enableCors({
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5173', process.env.CORS_ORIGIN].filter(
+      Boolean,
+    ) as string[],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
+  // 2. Security Middleware
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      // Content Security Policy can sometimes block requests if not configured
+      contentSecurityPolicy: false,
     }),
   );
 
@@ -48,12 +59,6 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
-
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true,
-  });
 
   // Global Error Handling for Uncaught Exceptions and Rejections
   process.on('uncaughtException', (err: unknown) => {

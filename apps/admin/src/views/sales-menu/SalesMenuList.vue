@@ -10,7 +10,7 @@ import { storeToRefs } from 'pinia';
 const router = useRouter();
 const store = useSalesMenuStore();
 const { pagination } = storeToRefs(store);
-const { handlePageChange, handleSizeChange } = useListFilter(store);
+const { handlePageChange, handleSizeChange, handleSortChange } = useListFilter(store);
 
 onMounted(() => {
   store.fetchMenus();
@@ -39,13 +39,7 @@ function handleDelete(id: string) {
   <ListLayout>
     <template #toolbar>
       <div class="toolbar-right">
-        <el-button
-          type="primary"
-          :icon="Plus"
-          @click="handleCreate"
-        >
-          新建菜单
-        </el-button>
+        <el-button type="primary" :icon="Plus" @click="handleCreate"> 新建菜单 </el-button>
       </div>
     </template>
 
@@ -54,19 +48,11 @@ function handleDelete(id: string) {
       :data="store.menus"
       style="width: 100%; height: 100%"
       border
+      @sort-change="handleSortChange"
     >
-      <el-table-column
-        prop="name"
-        label="菜单名称"
-      />
-      <el-table-column
-        prop="description"
-        label="描述"
-      />
-      <el-table-column
-        prop="active"
-        label="状态"
-      >
+      <el-table-column prop="name" label="菜单名称" sortable="custom" />
+      <el-table-column prop="description" label="描述" />
+      <el-table-column prop="active" label="状态" sortable="custom">
         <template #default="{ row }">
           <el-tag :type="row.active ? 'success' : 'info'">
             {{ row.active ? '启用' : '禁用' }}
@@ -78,24 +64,10 @@ function handleDelete(id: string) {
           {{ row.items?.length || 0 }}
         </template>
       </el-table-column>
-      <el-table-column
-        label="操作"
-        width="200"
-      >
+      <el-table-column label="操作" width="200">
         <template #default="{ row }">
-          <el-button
-            size="small"
-            :icon="Edit"
-            @click="handleEdit(row.id)"
-          >
-            编辑
-          </el-button>
-          <el-button
-            size="small"
-            type="danger"
-            :icon="Delete"
-            @click="handleDelete(row.id)"
-          >
+          <el-button size="small" :icon="Edit" @click="handleEdit(row.id)"> 编辑 </el-button>
+          <el-button size="small" type="danger" :icon="Delete" @click="handleDelete(row.id)">
             删除
           </el-button>
         </template>

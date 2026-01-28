@@ -27,7 +27,8 @@ interface UsdaFoodDetails {
   fdcId: number;
   description: string;
   foodNutrients: Array<{
-    amount: number;
+    amount?: number;
+    value?: number;
     name?: string;
     nutrient?: {
       id?: number;
@@ -144,6 +145,12 @@ export class UsdaService {
           food.foodNutrients.forEach((n) => {
             // In 'full' format, nutrient info is nested in 'nutrient' object
             const nutrientInfo = n.nutrient || {};
+            const amount = n.amount ?? n.value;
+
+            // Skip if no amount is present (sometimes categories are listed without values)
+            if (amount === undefined || amount === null) {
+              return;
+            }
 
             // We key by nutrient name for readability, but include ID for precision
             // e.g. "Protein": { amount: 10, unit: "g", id: 1003 }
@@ -154,7 +161,7 @@ export class UsdaService {
 
             if (translatedName) {
               nutrientMap[translatedName as string] = {
-                amount: n.amount,
+                amount,
                 unit: nutrientInfo.unitName || 'g',
                 nutrientId: nutrientInfo.id,
                 nutrientNumber: nutrientInfo.number, // e.g. "203" for Protein

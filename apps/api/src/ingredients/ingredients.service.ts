@@ -37,9 +37,9 @@ export class IngredientsService implements OnModuleInit {
           price: 5.0,
           unit: 'kg',
           nutrition: {
-             Protein: { amount: 0.9, unit: 'g' },
-             Fat: { amount: 0.2, unit: 'g' },
-             Carbohydrates: { amount: 3.9, unit: 'g' }
+            Protein: { amount: 0.9, unit: 'g' },
+            Fat: { amount: 0.2, unit: 'g' },
+            Carbohydrates: { amount: 3.9, unit: 'g' },
           },
         },
         {
@@ -47,9 +47,9 @@ export class IngredientsService implements OnModuleInit {
           price: 10.0,
           unit: 'kg',
           nutrition: {
-             Protein: { amount: 13, unit: 'g' },
-             Fat: { amount: 10, unit: 'g' },
-             Carbohydrates: { amount: 1, unit: 'g' }
+            Protein: { amount: 13, unit: 'g' },
+            Fat: { amount: 10, unit: 'g' },
+            Carbohydrates: { amount: 1, unit: 'g' },
           },
         },
         {
@@ -57,9 +57,9 @@ export class IngredientsService implements OnModuleInit {
           price: 80.0,
           unit: 'kg',
           nutrition: {
-             Protein: { amount: 26, unit: 'g' },
-             Fat: { amount: 15, unit: 'g' },
-             Carbohydrates: { amount: 0, unit: 'g' }
+            Protein: { amount: 26, unit: 'g' },
+            Fat: { amount: 15, unit: 'g' },
+            Carbohydrates: { amount: 0, unit: 'g' },
           },
         },
         {
@@ -67,9 +67,9 @@ export class IngredientsService implements OnModuleInit {
           price: 3.0,
           unit: 'kg',
           nutrition: {
-             Protein: { amount: 2, unit: 'g' },
-             Fat: { amount: 0.1, unit: 'g' },
-             Carbohydrates: { amount: 17, unit: 'g' }
+            Protein: { amount: 2, unit: 'g' },
+            Fat: { amount: 0.1, unit: 'g' },
+            Carbohydrates: { amount: 17, unit: 'g' },
           },
         },
       ];
@@ -120,7 +120,20 @@ export class IngredientsService implements OnModuleInit {
 
     const orderOption: Record<string, 'ASC' | 'DESC'> = {};
     if (sort) {
-      orderOption[sort] = order;
+      // Support multi-sort string like "field1:ASC,field2:DESC"
+      if (sort.includes(':') || sort.includes(',')) {
+        const sortFields = sort.split(',');
+        sortFields.forEach((fieldStr) => {
+          const [field, fieldOrder] = fieldStr.split(':');
+          if (field) {
+            orderOption[field.trim()] = (fieldOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as
+              | 'ASC'
+              | 'DESC';
+          }
+        });
+      } else {
+        orderOption[sort] = order;
+      }
     } else {
       orderOption['name'] = 'ASC';
     }

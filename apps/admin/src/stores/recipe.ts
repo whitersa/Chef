@@ -24,8 +24,7 @@ export const useRecipeStore = defineStore('recipe', () => {
     page: 1,
     limit: 10,
     total: 0,
-    sort: '',
-    order: 'ASC' as 'ASC' | 'DESC',
+    sorts: [] as { field: string; order: 'ASC' | 'DESC' }[],
   });
   const search = ref('');
 
@@ -64,8 +63,12 @@ export const useRecipeStore = defineStore('recipe', () => {
           }
           // Handle both new structure {amount, unit} and legacy number
           let amount = 0;
-          if (val && typeof val === 'object' && 'amount' in val) {
-            amount = Number(val.amount) || 0;
+          if (val && typeof val === 'object') {
+            if ('amount' in val) {
+              amount = Number(val.amount) || 0;
+            } else if ('value' in (val as any)) {
+              amount = Number((val as any).value) || 0;
+            }
           } else if (typeof val === 'number') {
             amount = val;
           }
@@ -80,12 +83,12 @@ export const useRecipeStore = defineStore('recipe', () => {
   async function fetchRecipes() {
     loading.value = true;
     try {
+      const sort = pagination.value.sorts.map((s) => `${s.field}:${s.order}`).join(',');
       const response = await recipesApi.getAll({
         page: pagination.value.page,
         limit: pagination.value.limit,
         search: search.value,
-        sort: pagination.value.sort,
-        order: pagination.value.order,
+        sort: sort || undefined,
       });
       recipes.value = response.data;
       pagination.value.total = response.meta.total;
@@ -107,9 +110,8 @@ export const useRecipeStore = defineStore('recipe', () => {
     fetchRecipes();
   }
 
-  function setSort(sort: string, order: 'ASC' | 'DESC') {
-    pagination.value.sort = sort;
-    pagination.value.order = order;
+  function setSort(sorts: { field: string; order: 'ASC' | 'DESC' }[]) {
+    pagination.value.sorts = sorts;
     fetchRecipes();
   }
 

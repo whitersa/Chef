@@ -6,14 +6,20 @@
       </div>
     </template>
 
-    <el-table v-loading="loading" :data="users" style="width: 100%; height: 100%" border>
-      <el-table-column prop="hireDate" label="入职日期" width="180">
+    <el-table
+      v-loading="loading"
+      :data="users"
+      style="width: 100%; height: 100%"
+      border
+      @sort-change="handleSortChange"
+    >
+      <el-table-column prop="hireDate" label="入职日期" width="180" sortable="custom">
         <template #default="scope">
           {{ formatDate(scope.row.hireDate) }}
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="姓名" width="180" />
-      <el-table-column prop="role" label="角色" />
+      <el-table-column prop="name" label="姓名" width="180" sortable="custom" />
+      <el-table-column prop="role" label="角色" sortable="custom" />
       <el-table-column prop="status" label="状态">
         <template #default="scope">
           <el-tag :type="scope.row.status === 'Active' ? 'success' : 'info'">
@@ -96,7 +102,7 @@ import { useListFilter } from '@/composables/useListFilter';
 const userStore = useUserStore();
 const { users, loading, pagination } = storeToRefs(userStore);
 
-const { handlePageChange, handleSizeChange } = useListFilter(userStore);
+const { handlePageChange, handleSizeChange, handleSortChange } = useListFilter(userStore);
 
 const dialogVisible = ref(false);
 const form = reactive({

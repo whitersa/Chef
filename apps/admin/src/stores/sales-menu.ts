@@ -10,11 +10,10 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
     page: 1,
     limit: 10,
     total: 0,
+    sorts: [] as { field: string; order: 'ASC' | 'DESC' }[],
   });
   const query = reactive({
     search: '',
-    sort: '',
-    order: 'ASC' as 'ASC' | 'DESC',
   });
 
   // Editor state
@@ -28,12 +27,12 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
   async function fetchMenus() {
     loading.value = true;
     try {
+      const sortStr = pagination.sorts.map((s) => `${s.field}:${s.order}`).join(',');
       const res = await salesMenusApi.getAll({
         page: pagination.page,
         limit: pagination.limit,
         search: query.search,
-        sort: query.sort,
-        order: query.order,
+        sort: sortStr || undefined,
       });
 
       // Defensive check for response format
@@ -65,6 +64,11 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
   function setLimit(limit: number) {
     pagination.limit = limit;
     pagination.page = 1;
+    fetchMenus();
+  }
+
+  function setSort(sorts: { field: string; order: 'ASC' | 'DESC' }[]) {
+    pagination.sorts = sorts;
     fetchMenus();
   }
 

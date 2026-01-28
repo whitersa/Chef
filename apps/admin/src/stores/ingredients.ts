@@ -11,20 +11,19 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     page: 1,
     limit: 10,
     total: 0,
-    sort: '',
-    order: 'ASC' as 'ASC' | 'DESC',
+    sorts: [] as { field: string; order: 'ASC' | 'DESC' }[],
   });
   const search = ref('');
 
   async function fetchIngredients() {
     loading.value = true;
     try {
+      const sort = pagination.value.sorts.map((s) => `${s.field}:${s.order}`).join(',');
       const response = await ingredientsApi.getAll({
         page: pagination.value.page,
         limit: pagination.value.limit,
         search: search.value,
-        sort: pagination.value.sort,
-        order: pagination.value.order,
+        sort: sort || undefined,
       });
       ingredients.value = response.data;
       pagination.value.total = response.meta.total;
@@ -46,9 +45,8 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     fetchIngredients();
   }
 
-  function setSort(sort: string, order: 'ASC' | 'DESC') {
-    pagination.value.sort = sort;
-    pagination.value.order = order;
+  function setSort(sorts: { field: string; order: 'ASC' | 'DESC' }[]) {
+    pagination.value.sorts = sorts;
     fetchIngredients();
   }
 

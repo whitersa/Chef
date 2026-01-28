@@ -24,7 +24,19 @@ export class SalesMenusService {
 
     const orderOption: Record<string, 'ASC' | 'DESC'> = {};
     if (sort) {
-      orderOption[sort] = order;
+      if (sort.includes(':') || sort.includes(',')) {
+        const sortFields = sort.split(',');
+        sortFields.forEach((fieldStr) => {
+          const [field, fieldOrder] = fieldStr.split(':');
+          if (field) {
+            orderOption[field.trim()] = (fieldOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as
+              | 'ASC'
+              | 'DESC';
+          }
+        });
+      } else {
+        orderOption[sort] = order;
+      }
     } else {
       orderOption['name'] = 'ASC';
     }

@@ -92,16 +92,35 @@ export class UsersService implements OnModuleInit {
   }
 
   async findAll(query: PaginationQueryDto) {
-    const { page = 1, limit = 10, search } = query;
+    const { page = 1, limit = 10, search, sort, order = 'ASC' } = query;
     const skip = (page - 1) * limit;
 
     const where = search ? [{ username: Like(`%${search}%`) }, { name: Like(`%${search}%`) }] : {};
+
+    const orderOption: Record<string, 'ASC' | 'DESC'> = {};
+    if (sort) {
+      if (sort.includes(':') || sort.includes(',')) {
+        const sortFields = sort.split(',');
+        sortFields.forEach((fieldStr) => {
+          const [field, fieldOrder] = fieldStr.split(':');
+          if (field) {
+            orderOption[field.trim()] = (fieldOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as
+              | 'ASC'
+              | 'DESC';
+          }
+        });
+      } else {
+        orderOption[sort] = order;
+      }
+    } else {
+      orderOption['id'] = 'DESC';
+    }
 
     const [data, total] = await this.userRepository.findAndCount({
       where,
       skip,
       take: limit,
-      order: { id: 'DESC' },
+      order: orderOption,
     });
 
     return {
