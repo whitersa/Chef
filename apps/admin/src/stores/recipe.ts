@@ -55,7 +55,7 @@ export const useRecipeStore = defineStore('recipe', () => {
         // item.nutrition is now Record<string, {amount, unit}>
         const n = (item.nutrition || {}) as Record<
           string,
-          number | { amount: number; unit?: string }
+          number | { amount?: number | string; value?: number | string; unit?: string }
         >;
         for (const [key, val] of Object.entries(n)) {
           if (!acc[key]) {
@@ -66,8 +66,8 @@ export const useRecipeStore = defineStore('recipe', () => {
           if (val && typeof val === 'object') {
             if ('amount' in val) {
               amount = Number(val.amount) || 0;
-            } else if ('value' in (val as any)) {
-              amount = Number((val as any).value) || 0;
+            } else if ('value' in val) {
+              amount = Number(val.value) || 0;
             }
           } else if (typeof val === 'number') {
             amount = val;

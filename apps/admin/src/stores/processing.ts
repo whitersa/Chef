@@ -56,16 +56,6 @@ export const useProcessingStore = defineStore('processing', () => {
     pagination.sorts = sorts;
     fetchMethods();
   }
-    pagination.limit = limit;
-    pagination.page = 1;
-    fetchMethods();
-  }
-
-  function setSort(field: string, order: 'ASC' | 'DESC') {
-    query.sort = field;
-    query.order = order;
-    fetchMethods();
-  }
 
   async function createMethod(name: string, description?: string) {
     try {

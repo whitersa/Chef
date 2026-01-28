@@ -316,6 +316,12 @@ import { useListFilter } from '@/composables/useListFilter';
 import { getUnits } from '@/api/units';
 import type { Unit } from '@chefos/types';
 
+interface NutrientValue {
+  amount?: number | string;
+  value?: number | string;
+  unit?: string;
+}
+
 const ingredientsStore = useIngredientsStore();
 const { ingredients, loading, pagination } = storeToRefs(ingredientsStore);
 
@@ -342,7 +348,11 @@ const form = reactive({
     蛋白质: { amount: 0, unit: 'g' },
     脂肪: { amount: 0, unit: 'g' },
     碳水化合物: { amount: 0, unit: 'g' },
-  } as Record<string, any>,
+  } as {
+    蛋白质: { amount: number; unit: string };
+    脂肪: { amount: number; unit: string };
+    碳水化合物: { amount: number; unit: string };
+  } & Record<string, { amount: number; unit: string }>,
 });
 
 onMounted(async () => {
@@ -462,7 +472,7 @@ const getNutrientColor = (key: string) => {
   return '#c8c9cc';
 };
 
-const isNutrientValid = (value: any) => {
+const isNutrientValid = (value: number | NutrientValue | undefined | null) => {
   if (value === null || value === undefined) return false;
   if (typeof value === 'number') return value > 0;
   if (typeof value === 'object') {
@@ -526,7 +536,7 @@ const NUTRIENT_TRANSLATIONS: Record<string, string> = {
   Starch: '淀粉',
   'Total Sugars': '总糖',
   'Fatty acids, total trans': '反式脂肪',
-  'Fatty acids, total saturated': '饱和脂肪',
+  // 'Fatty acids, total saturated': '饱和脂肪', 已在上方定义
   Alanine: '丙氨酸',
   Arginine: '精氨酸',
   AsparticAcid: '天冬氨酸',
@@ -572,7 +582,7 @@ const isCore = (key: string) => {
   return CORE_NUTRIENTS.includes(key) || CORE_NUTRIENTS.includes(translateNutrient(key));
 };
 
-const getSortedNutrients = (nutrition: Record<string, any>) => {
+const getSortedNutrients = (nutrition: Record<string, number | NutrientValue>) => {
   const keys = Object.keys(nutrition || {}).filter((k) => isNutrientValid(nutrition[k]));
   return keys.sort((a, b) => {
     const aName = translateNutrient(a);

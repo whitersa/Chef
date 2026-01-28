@@ -56,16 +56,6 @@ export const useUserStore = defineStore('user', () => {
     pagination.sorts = sorts;
     fetchUsers();
   }
-    pagination.limit = limit;
-    pagination.page = 1;
-    fetchUsers();
-  }
-
-  function setSort(field: string, order: 'ASC' | 'DESC') {
-    query.sort = field;
-    query.order = order;
-    fetchUsers();
-  }
 
   async function createUser(user: Partial<User>) {
     try {

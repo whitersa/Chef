@@ -72,12 +72,6 @@ export const useSalesMenuStore = defineStore('salesMenu', () => {
     fetchMenus();
   }
 
-  function setSort(field: string, order: 'ASC' | 'DESC') {
-    query.sort = field;
-    query.order = order;
-    fetchMenus();
-  }
-
   async function fetchMenu(id: string) {
     loading.value = true;
     try {

@@ -102,9 +102,13 @@ const handleSizeChange = (limit: number) => {
   recipeStore.setLimit(limit);
 };
 
-const handleSortChange = ({ prop, order }: { prop: string; order: string }) => {
+const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
+  if (!order) {
+    recipeStore.setSort([]);
+    return;
+  }
   const sortOrder = order === 'ascending' ? 'ASC' : 'DESC';
-  recipeStore.setSort(prop, sortOrder);
+  recipeStore.setSort([{ field: prop, order: sortOrder }]);
 };
 
 const handleDownloadPdf = async (recipe: Recipe) => {
