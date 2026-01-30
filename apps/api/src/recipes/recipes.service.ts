@@ -178,9 +178,7 @@ export class RecipesService implements OnModuleInit {
         sortFields.forEach((fieldStr) => {
           const [field, fieldOrder] = fieldStr.split(':');
           if (field) {
-            orderOption[field.trim()] = (fieldOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as
-              | 'ASC'
-              | 'DESC';
+            orderOption[field.trim()] = fieldOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
           }
         });
       } else {
@@ -269,7 +267,7 @@ export class RecipesService implements OnModuleInit {
 
     for (const item of recipe.items) {
       let itemWeightInGrams = new Decimal(0);
-      let itemNutrition: Record<string, Decimal> = {};
+      const itemNutrition: Record<string, Decimal> = {};
 
       if (item.ingredient) {
         itemWeightInGrams = UnitConversionUtil.toGrams(item.quantity, item.ingredient.unit);

@@ -12,7 +12,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { Logger as NestLogger } from '@nestjs/common';
 import helmet from 'helmet';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger as NestLogger } from '@nestjs/common';
+import { Request, Response, Application } from 'express';
 import { AppModule } from './app.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -46,8 +47,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Root redirect middleware
-  const server = app.getHttpAdapter().getInstance();
-  server.get('/', (req: any, res: any) => {
+  const server = app.getHttpAdapter().getInstance() as Application;
+  server.get('/', (_req: Request, res: Response) => {
     res.redirect('/api/docs');
   });
 
@@ -85,7 +86,7 @@ async function bootstrap() {
   });
 
   console.log('Starting application listen on 0.0.0.0...');
-  let port = process.env.PORT ? parseInt(process.env.PORT) : (API_PORT as number);
+  let port = process.env.PORT ? parseInt(process.env.PORT) : API_PORT;
   if (isNaN(port)) {
     port = 4000;
   }

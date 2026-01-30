@@ -42,6 +42,15 @@ interface UsdaFoodDetails {
   }>;
 }
 
+interface SyncStatus {
+  isSyncing: boolean;
+  totalSynced: number;
+  currentPage: number;
+  lastError: string | null;
+  startTime: Date | null;
+  logs: string[];
+}
+
 @Injectable()
 export class UsdaService {
   private readonly logger = new Logger(UsdaService.name);
@@ -49,13 +58,13 @@ export class UsdaService {
   private readonly baseUrl = 'https://api.nal.usda.gov/fdc/v1';
 
   private static isSyncingStatic = false;
-  private static syncStatusStatic = {
+  private static syncStatusStatic: SyncStatus = {
     isSyncing: false,
     totalSynced: 0,
     currentPage: 0,
-    lastError: null as string | null,
-    startTime: null as Date | null,
-    logs: [] as string[],
+    lastError: null,
+    startTime: null,
+    logs: [],
   };
 
   private get isSyncing() {
@@ -67,11 +76,11 @@ export class UsdaService {
   private get syncStatus() {
     return UsdaService.syncStatusStatic;
   }
-  private set syncStatus(value: any) {
+  private set syncStatus(value: SyncStatus) {
     UsdaService.syncStatusStatic = value;
   }
 
-  private readonly syncStatus$ = new BehaviorSubject<any>(UsdaService.syncStatusStatic);
+  private readonly syncStatus$ = new BehaviorSubject<SyncStatus>(UsdaService.syncStatusStatic);
   private readonly SYNC_STATUS_KEY = 'usda_sync_status';
 
   constructor(
@@ -93,23 +102,27 @@ export class UsdaService {
   async onModuleInit() {
     // 从 Redis 恢复状态
     try {
-      const persistedStatus = await this.cacheManager.get(this.SYNC_STATUS_KEY);
+      const persistedStatus = await this.cacheManager.get<SyncStatus>(this.SYNC_STATUS_KEY);
       if (persistedStatus) {
-        const status = persistedStatus as any;
-        UsdaService.syncStatusStatic = status;
+        UsdaService.syncStatusStatic = persistedStatus;
 
         // 如果发现重启前正在同步，自动触发“断点续传”
-        if (status.isSyncing) {
+        if (persistedStatus.isSyncing) {
           this.logger.warn('Detecting interrupted sync task after restart. Resuming...');
-          this.runSyncWorker(status.currentPage || 1, status.totalSynced || 0, true);
+          this.runSyncWorker(
+            persistedStatus.currentPage || 1,
+            persistedStatus.totalSynced || 0,
+            true,
+          );
         } else {
           this.syncStatus$.next(UsdaService.syncStatusStatic);
         }
 
         this.logger.log('Restored USDA sync status from Redis cache');
       }
-    } catch (err: any) {
-      this.logger.error('Failed to restore sync status from Redis', err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.logger.error('Failed to restore sync status from Redis', errorMessage);
     }
   }
 
@@ -137,12 +150,14 @@ export class UsdaService {
    * 自动化收集同步错误：将异常持久化到数据库
    * K8s 环境下本地文件不可靠，存入数据库是最佳实践
    */
-  private async recordDetailedError(fdcId: string | number, rawData: any, error: any) {
+  private async recordDetailedError(fdcId: string | number, rawData: unknown, error: unknown) {
     try {
+      const errorObj = error as { message?: string };
+      const rawDataObj = rawData as { description?: string };
       const issue = this.syncIssueRepository.create({
         fdcId: fdcId.toString(),
-        foodDescription: rawData?.description || 'Unknown',
-        errorMessage: error.message,
+        foodDescription: rawDataObj?.description || 'Unknown',
+        errorMessage: errorObj?.message || 'Unknown error',
         rawData: rawData,
       });
 
@@ -207,15 +222,20 @@ export class UsdaService {
    */
   private async clearIngredientsCache() {
     try {
-      const store = this.cacheManager.store as any;
       // 支持 redis-yet 的 keys/mdel 模式
+      const store = this.cacheManager.store as unknown as {
+        keys?: (pattern: string) => Promise<string[]>;
+        mdel?: (...keys: string[]) => Promise<void>;
+        del?: (key: string) => Promise<void>;
+      };
+
       if (store.keys) {
         const keys = await store.keys('ingredients_list*');
         if (keys && keys.length > 0) {
           if (store.mdel) {
             await store.mdel(...keys);
           } else if (store.del) {
-            await Promise.all(keys.map((k: string) => store.del(k)));
+            await Promise.all(keys.map((k) => store.del!(k)));
           }
           this.logger.log(`Cleared ${keys.length} ingredient list cache keys`);
         }
@@ -314,11 +334,15 @@ export class UsdaService {
             await this.updateStatus({ totalSynced });
             await this.addServerLog(`✅ 本页成功导入 ${result.count} 条数据 (累计 ${totalSynced})`);
             currentPage++;
-          } catch (pageErr: any) {
+          } catch (pageErr: unknown) {
             retryCount++;
-            const isRateLimit = pageErr?.response?.status === 429;
+            const errorObj = pageErr as {
+              response?: { status?: number; data?: { error?: { message?: string } } };
+              message?: string;
+            };
+            const isRateLimit = errorObj.response?.status === 429;
             const errorMsg =
-              pageErr?.response?.data?.error?.message || pageErr?.message || '未知错误';
+              errorObj.response?.data?.error?.message || errorObj.message || '未知错误';
 
             await this.updateStatus({ lastError: `第 ${currentPage} 页错误: ${errorMsg}` });
 
@@ -378,11 +402,9 @@ export class UsdaService {
                 await this.updateStatus({ totalSynced });
                 await this.addServerLog(`✅ 重试抓取第 ${page} 页成功！导入 ${result.count} 条。`);
               }
-            } catch (retryErr: any) {
-              await this.addServerLog(
-                `❌ 最终放弃第 ${page} 页: 仍然失败 (${retryErr.message})`,
-                true,
-              );
+            } catch (retryErr: unknown) {
+              const errorMessage = retryErr instanceof Error ? retryErr.message : String(retryErr);
+              await this.addServerLog(`❌ 最终放弃第 ${page} 页: 仍然失败 (${errorMessage})`, true);
             }
           }
         }
@@ -390,38 +412,13 @@ export class UsdaService {
         this.isSyncing = false;
         await this.updateStatus({ isSyncing: false });
         await this.addServerLog(`🏁 全量同步工作执行完毕，共导入/更新 ${totalSynced} 条食材。`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         this.isSyncing = false;
-        const finalError = err?.message || '关键性服务异常';
+        const finalError = err instanceof Error ? err.message : '关键性服务异常';
         await this.updateStatus({ isSyncing: false, lastError: finalError });
         await this.addServerLog(`💥 同步任务由于关键错误异常终止: ${finalError}`, true);
       }
     })();
-  }
-
-  private async clearCache() {
-    const store = this.cacheManager.store;
-    // Some stores like redis-cache-manager have keys() and mdel()
-    // We use type casting to a specific interface to satisfy ESLint
-    interface CacheStoreWithKeys {
-      keys?: (pattern: string) => Promise<string[]>;
-      mdel?: (...keys: string[]) => Promise<void>;
-      del?: (key: string) => Promise<void>;
-    }
-
-    const extendedStore = store as unknown as CacheStoreWithKeys;
-
-    if (extendedStore.keys) {
-      const keys = await extendedStore.keys('ingredients_list*');
-      if (keys && keys.length > 0) {
-        if (extendedStore.mdel) {
-          await extendedStore.mdel(...keys);
-        } else if (extendedStore.del) {
-          const store_for_del = extendedStore;
-          await Promise.all(keys.map((k: string) => store_for_del.del!(k)));
-        }
-      }
-    }
   }
 
   async syncIngredients(page: number = 1, limit: number = 3) {
@@ -446,12 +443,13 @@ export class UsdaService {
             timeout: 5000,
           }),
         );
-        const outboundIp = testRes.data.ip;
+        const outboundIp = (testRes.data as { ip: string }).ip;
         await this.addServerLog(
           `🔎 代理验证成功: 正在通过代理 [${httpsProxy}] 访问, 出口 IP: ${outboundIp}`,
         );
-      } catch (e: any) {
-        await this.addServerLog(`⚠️ 代理验证失败: 无法通过代理访问网络 (${e.message})`, true);
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        await this.addServerLog(`⚠️ 代理验证失败: 无法通过代理访问网络 (${errorMessage})`, true);
       }
     } else {
       await this.addServerLog('ℹ️ 未检测到环境变量中的代理配置，将尝试直连。');
@@ -536,7 +534,7 @@ export class UsdaService {
                 (nutrientInfo.id ? NUTRIENT_MAP[nutrientInfo.id] : undefined) || rawName;
 
               if (translatedName) {
-                nutrientMap[translatedName as string] = {
+                nutrientMap[translatedName] = {
                   amount,
                   unit: nutrientInfo.unitName || 'g',
                   nutrientId: nutrientInfo.id,
@@ -584,30 +582,29 @@ export class UsdaService {
       }
 
       this.logger.log(`Successfully synced ${syncedCount} ingredients from USDA (Full Format).`);
-      await this.clearCache();
+      await this.clearIngredientsCache();
       return { count: syncedCount, message: 'Sync successful' };
-    } catch (error: any) {
-      const status = error.response?.status;
-      const errorData = error.response?.data;
+    } catch (error: unknown) {
+      const err = error as {
+        message: string;
+        code?: string;
+        response?: { status: number; data: { error?: { message?: string } } };
+      };
+      const status = err.response?.status;
+      const errorData = err.response?.data;
 
       this.logger.error(
         `USDA sync error (Status: ${status}):`,
-        JSON.stringify(errorData || error.message),
+        JSON.stringify(errorData || err.message),
       );
 
-      let displayMessage = error.message;
+      let displayMessage = err.message;
       if (status === 400) {
         displayMessage = `请求无效(400): 请检查参数或API Key。错误详情: ${JSON.stringify(errorData)}`;
       }
 
       await this.addServerLog(`USDA服务异常: ${displayMessage}`, true);
 
-      const err = error as {
-        message: string;
-        code?: string;
-        cause?: string;
-        response?: { status: number; data: any };
-      };
       const errorMessage =
         err.response?.data?.error?.message || err.message || 'Unknown USDA API Error';
       this.logger.error(`USDA API Error: ${errorMessage}`, err.code);

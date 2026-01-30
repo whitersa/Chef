@@ -4,6 +4,13 @@ import axios from 'axios';
 import { randomUUID } from 'crypto';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 
+interface AzureTranslateResponse {
+  translations: {
+    text: string;
+    to: string;
+  }[];
+}
+
 @Injectable()
 export class TranslationService {
   private readonly logger = new Logger(TranslationService.name);
@@ -48,11 +55,13 @@ export class TranslationService {
         proxy: false, // 强制禁用 Axios 自带的代理逻辑
       });
 
-      const translatedText = response.data[0].translations[0].text;
+      const data = response.data as AzureTranslateResponse[];
+      const translatedText = data[0].translations[0].text;
       this.logger.debug(`Translated: "${text}" -> "${translatedText}"`);
       return translatedText;
-    } catch (error: any) {
-      this.logger.error(`Translation failed for "${text}": ${error.message}`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Translation failed for "${text}": ${errorMessage}`);
       return text; // Fallback to original text
     }
   }

@@ -7,10 +7,7 @@ import { IngredientVersion } from './ingredient-version.entity';
 import { UsdaModule } from '../integrations/usda/usda.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Ingredient, IngredientVersion]),
-    UsdaModule
-  ],
+  imports: [TypeOrmModule.forFeature([Ingredient, IngredientVersion]), UsdaModule],
   controllers: [IngredientsController],
   providers: [IngredientsService],
   exports: [IngredientsService],

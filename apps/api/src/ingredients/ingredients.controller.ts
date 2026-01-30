@@ -39,7 +39,7 @@ export class IngredientsController {
   }
 
   @Get('sync/usda/status')
-  async getSyncStatus() {
+  getSyncStatus() {
     return this.usdaService.getSyncStatus();
   }
 

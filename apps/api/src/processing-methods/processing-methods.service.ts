@@ -30,9 +30,7 @@ export class ProcessingMethodsService {
         sortFields.forEach((fieldStr) => {
           const [field, fieldOrder] = fieldStr.split(':');
           if (field) {
-            orderOption[field.trim()] = (fieldOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as
-              | 'ASC'
-              | 'DESC';
+            orderOption[field.trim()] = fieldOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
           }
         });
       } else {
