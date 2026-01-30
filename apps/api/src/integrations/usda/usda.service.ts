@@ -57,6 +57,7 @@ interface UsdaFoodDetails {
 interface SyncStatus {
   isSyncing: boolean;
   totalSynced: number;
+  totalIngredients?: number;
   currentPage: number;
   lastError: string | null;
   startTime: Date | null;
@@ -76,6 +77,7 @@ export class UsdaService {
   private static syncStatusStatic: SyncStatus = {
     isSyncing: false,
     totalSynced: 0,
+    totalIngredients: 0,
     currentPage: 0,
     lastError: null,
     startTime: null,
@@ -172,17 +174,25 @@ export class UsdaService {
 
     void (async () => {
       const overallStartTime = Date.now();
+      const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
+
       try {
-        await this.addServerLog('🔍 Phase 1: Scanning USDA database for IDs...');
+        if (httpsProxy) {
+          await this.addServerLog(`🌐 Proxy detected: ${httpsProxy}. Verifying connectivity...`);
+        }
+
+        await this.addServerLog(
+          '🔍 Phase 1: Scanning USDA database (Foundation & SR Legacy) for ID list...',
+        );
         const allFdcIds: number[] = [];
         let discoPage = 1;
         const discoLimit = 50;
+        const dataTypes = 'Foundation,SR Legacy';
 
         const discoveryStartTime = Date.now();
         while (true) {
           if (!this.isSyncing || signal.aborted) break;
           try {
-            const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
             const httpsAgent = httpsProxy
               ? new HttpsProxyAgent(httpsProxy)
               : new https.Agent({ rejectUnauthorized: false });
@@ -191,7 +201,7 @@ export class UsdaService {
               this.httpService.get<UsdaFoodListItem[]>(`${this.baseUrl}/foods/list`, {
                 params: {
                   api_key: this.apiKey,
-                  dataType: 'Foundation',
+                  dataType: dataTypes,
                   pageSize: discoLimit,
                   pageNumber: discoPage,
                 },
@@ -203,12 +213,17 @@ export class UsdaService {
             const pageIds = (res.data || []).map((f) => f.fdcId);
             if (pageIds.length === 0) break;
             allFdcIds.push(...pageIds);
+
+            if (discoPage === 1 && httpsProxy) {
+              await this.addServerLog(`📡 Connection verified via proxy. Start fetching IDs...`);
+            }
+
             discoPage++;
             if (discoPage % 5 === 0)
-              await this.addServerLog(`📡 Scanned ${allFdcIds.length} IDs...`);
-          } catch {
+              await this.addServerLog(`📡 ID Discovery: Found ${allFdcIds.length} items so far...`);
+          } catch (err) {
             await this.addServerLog(
-              `⚠️ Error scanning IDs on page ${discoPage}. Proceeding with found IDs.`,
+              `⚠️ Error scanning IDs on page ${discoPage}: ${err instanceof Error ? err.message : 'Unknown'}. Proceeding with found IDs.`,
             );
             break;
           }
@@ -223,18 +238,29 @@ export class UsdaService {
 
         const discoveryDuration = Date.now() - discoveryStartTime;
         await this.addServerLog(
-          `✅ Discovery complete: ${allFdcIds.length} items found in ${(discoveryDuration / 1000).toFixed(1)}s. Starting adaptive ingestion...`,
+          `✅ Discovery complete: ${allFdcIds.length} items found in ${(discoveryDuration / 1000).toFixed(1)}s.`,
         );
+        await this.addServerLog(
+          '🚀 Phase 2: Starting detailed data ingestion with adaptive batching...',
+        );
+
         let currentIndex = 0;
         let totalSynced = 0;
         const totalToProcess = allFdcIds.length;
+        this.updateStatus({ totalIngredients: totalToProcess });
 
         while (currentIndex < totalToProcess) {
           if (!this.isSyncing || signal.aborted) break;
           const currentBatchSize = this.adaptiveBatchSize;
           const batchIds = allFdcIds.slice(currentIndex, currentIndex + currentBatchSize);
+
+          const batchNum = Math.floor(currentIndex / currentBatchSize) + 1;
+          await this.addServerLog(
+            `📥 Fetching batch #${batchNum} (${batchIds.length} ingredients)...`,
+          );
+
           this.updateStatus({
-            currentPage: Math.floor(currentIndex / currentBatchSize) + 1,
+            currentPage: batchNum,
             totalSynced,
           });
 
@@ -246,7 +272,7 @@ export class UsdaService {
             currentIndex += batchIds.length;
 
             await this.addServerLog(
-              `📦 Batch processed: ${result.count} items in ${(duration / 1000).toFixed(1)}s (Size: ${currentBatchSize})`,
+              `✅ Batch #${batchNum} processed: ${result.count} data points imported in ${(duration / 1000).toFixed(1)}s (Size: ${currentBatchSize})`,
             );
 
             if (duration > 35000) {
@@ -454,24 +480,58 @@ export class UsdaService {
     if (this.isSyncing) {
       throw new HttpException('Cannot reset while syncing', HttpStatus.CONFLICT);
     }
-    // Delete only ingredients that came from USDA (have fdcId)
-    await this.ingredientRepository
-      .createQueryBuilder()
-      .delete()
-      .where('fdcId IS NOT NULL')
-      .execute();
 
-    // Clear all sync issues
-    await this.syncIssueRepository.clear();
+    try {
+      // 1. Separate ingredients from USDA categories first to avoid FK violations
+      await this.ingredientRepository
+        .createQueryBuilder()
+        .update()
+        .set({ categoryId: null as any })
+        .where('categoryId IN (SELECT id FROM categories WHERE "originalName" IS NOT NULL)')
+        .execute();
 
-    this.updateStatus({
-      totalSynced: 0,
-      currentPage: 0,
-      lastError: null,
-      logs: [`[${new Date().toLocaleTimeString()}] ♻️ All USDA sync data has been reset.`],
-    });
+      // 2. Delete USDA ingredients
+      await this.ingredientRepository
+        .createQueryBuilder()
+        .delete()
+        .where('fdcId IS NOT NULL')
+        .execute();
 
-    return { message: 'Data reset successfully' };
+      // 3. Clear all sync issues
+      await this.syncIssueRepository.clear();
+
+      // 4. Delete categories created by USDA
+      await this.categoryRepository
+        .createQueryBuilder()
+        .delete()
+        .where('originalName IS NOT NULL')
+        .execute();
+
+      // 5. Clear and reset status object completely
+      UsdaService.syncStatusStatic = {
+        isSyncing: false,
+        totalSynced: 0,
+        totalIngredients: 0,
+        currentPage: 0,
+        lastError: null,
+        startTime: null,
+        logs: [
+          `[${new Date().toLocaleTimeString()}] ♻️ All USDA sync data and cache has been reset.`,
+        ],
+      };
+      this.syncStatus$.next(UsdaService.syncStatusStatic);
+
+      // 6. Clear USDA and Ingredient related cache
+      await this.cacheManager.reset();
+
+      return { message: 'Data reset successfully' };
+    } catch (err) {
+      this.logger.error('Reset failed', err);
+      throw new HttpException(
+        `Reset failed: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   private updateStatus(status: Partial<SyncStatus>) {
@@ -487,10 +547,9 @@ export class UsdaService {
     } else {
       this.logger.log(message);
     }
-    UsdaService.syncStatusStatic.logs = [entry, ...(UsdaService.syncStatusStatic.logs || [])].slice(
-      0,
-      100,
-    );
+    // Append to end, keep last 100 lines
+    const currentLogs = UsdaService.syncStatusStatic.logs || [];
+    UsdaService.syncStatusStatic.logs = [...currentLogs, entry].slice(-100);
     this.syncStatus$.next(UsdaService.syncStatusStatic);
     await Promise.resolve();
   }
@@ -504,7 +563,7 @@ export class UsdaService {
           fdcId: fdcId.toString(),
           foodDescription: data?.description,
           errorMessage: msg,
-          rawData: data as any,
+          rawData: data,
         }),
       );
     } catch {
