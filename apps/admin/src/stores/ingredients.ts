@@ -138,6 +138,5 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     syncUsda,
     isTreeView,
     setTreeView,
-    search,
   };
 });
