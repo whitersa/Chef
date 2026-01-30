@@ -56,7 +56,12 @@ export class TranslationService {
       });
 
       const data = response.data as AzureTranslateResponse[];
-      const translatedText = data[0].translations[0].text;
+      const translatedText = data?.[0]?.translations?.[0]?.text;
+
+      if (!translatedText) {
+        throw new Error('Invalid response structure from Azure Translator');
+      }
+
       this.logger.debug(`Translated: "${text}" -> "${translatedText}"`);
       return translatedText;
     } catch (error) {

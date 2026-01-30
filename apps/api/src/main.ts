@@ -10,7 +10,6 @@ if (!(global as any).crypto) {
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
-import { Logger as NestLogger } from '@nestjs/common';
 import helmet from 'helmet';
 import { ValidationPipe, Logger as NestLogger } from '@nestjs/common';
 import { Request, Response, Application } from 'express';
