@@ -66,11 +66,12 @@ export class TranslationService {
       });
 
       const data = response.data as AzureTranslateResponse[];
-      return data.map((item, index) => {
+      return data.map((item, index): string => {
         const result = item.translations?.[0]?.text;
+        const fallback = validTexts[index] ?? '';
         if (!result) {
-          this.logger.warn(`Translation failed for index ${index}: ${validTexts[index]}`);
-          return validTexts[index];
+          this.logger.warn(`Translation failed for index ${index}: ${fallback}`);
+          return fallback;
         }
         return result;
       });
@@ -87,6 +88,6 @@ export class TranslationService {
     }
 
     const results = await this.translateBatch([text], from, to);
-    return results[0];
+    return results[0] ?? text;
   }
 }

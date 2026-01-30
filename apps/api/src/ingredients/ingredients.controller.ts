@@ -24,13 +24,13 @@ export class IngredientsController {
   ) {}
 
   @Post('sync/usda')
-  async syncUsda(@Query('page') page?: number) {
-    return this.usdaService.syncIngredients(page ? Number(page) : 1);
+  async syncUsda() {
+    return this.usdaService.startSync();
   }
 
   @Post('sync/usda/full')
   async fullSyncUsda() {
-    return this.usdaService.startFullSync();
+    return this.usdaService.startSync();
   }
 
   @Post('sync/usda/stop')
@@ -40,7 +40,7 @@ export class IngredientsController {
 
   @Get('sync/usda/status')
   getSyncStatus() {
-    return this.usdaService.getSyncStatus();
+    return this.usdaService.getStatusInstant();
   }
 
   @Get('sync/usda/issues')
@@ -55,7 +55,7 @@ export class IngredientsController {
 
   @Sse('sync/usda/events')
   syncEvents(): Observable<any> {
-    return this.usdaService.getSyncStatusObservable().pipe(
+    return this.usdaService.getSyncStatus().pipe(
       map((data) => {
         // 显式序列化以确保数据一致性
         return { data: JSON.stringify(data) };
