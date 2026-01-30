@@ -6,10 +6,11 @@ import { FadeIn, StaggerContainer, StaggerItem } from '../components/MotionWrapp
 
 async function getRecipes(): Promise<Recipe[]> {
   // Fetch from the API (running on localhost:4000)
-  // Note: In Docker/K8s this would be the service name, but for local dev localhost is fine.
+  // In Docker/K8s we use the service name 'api' through the environment variable.
   // We use ISR (Incremental Static Regeneration) to cache the result for 60 seconds
+  const apiUrl = process.env.API_URL || API_URL;
   try {
-    const res = await fetch(`${API_URL}/api/recipes`, { next: { revalidate: 60 } });
+    const res = await fetch(`${apiUrl}/api/recipes`, { next: { revalidate: 60 } });
 
     if (!res.ok) {
       console.error('Failed to fetch recipes:', res.status, res.statusText);

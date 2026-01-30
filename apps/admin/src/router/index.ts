@@ -81,6 +81,12 @@ const routes: Array<RouteRecordRaw> = [
         ],
       },
       {
+        path: 'console',
+        name: 'Console',
+        component: () => import('../views/console/ConsoleView.vue'),
+        meta: { title: '系统控制台' },
+      },
+      {
         path: 'procurement',
         name: 'Procurement',
         component: () => import('../views/procurement/ProcurementList.vue'),

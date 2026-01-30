@@ -12,10 +12,12 @@ export class UnitsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    console.log('UnitsService: onModuleInit started');
     const count = await this.unitsRepository.count();
     if (count === 0) {
       await this.seed();
     }
+    console.log('UnitsService: onModuleInit completed');
   }
 
   async seed() {

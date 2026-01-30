@@ -1,8 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  Sse,
+  MessageEvent,
+} from '@nestjs/common';
 import { IngredientsService } from './ingredients.service';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { UsdaService } from '../integrations/usda/usda.service';
+import { Observable, map } from 'rxjs';
 
 @Controller('ingredients')
 export class IngredientsController {
@@ -14,6 +26,41 @@ export class IngredientsController {
   @Post('sync/usda')
   async syncUsda(@Query('page') page?: number) {
     return this.usdaService.syncIngredients(page ? Number(page) : 1);
+  }
+
+  @Post('sync/usda/full')
+  async fullSyncUsda() {
+    return this.usdaService.startFullSync();
+  }
+
+  @Post('sync/usda/stop')
+  async stopSyncUsda() {
+    return this.usdaService.stopSync();
+  }
+
+  @Get('sync/usda/status')
+  async getSyncStatus() {
+    return this.usdaService.getSyncStatus();
+  }
+
+  @Get('sync/usda/issues')
+  async getSyncIssues() {
+    return this.usdaService.getSyncIssues();
+  }
+
+  @Post('sync/usda/reset')
+  async resetSyncData() {
+    return this.usdaService.resetSyncData();
+  }
+
+  @Sse('sync/usda/events')
+  syncEvents(): Observable<any> {
+    return this.usdaService.getSyncStatusObservable().pipe(
+      map((data) => {
+        // 显式序列化以确保数据一致性
+        return { data: JSON.stringify(data) };
+      }),
+    );
   }
 
   @Post()

@@ -59,6 +59,9 @@ graph TD
 3.  **配置环境变量**：
     - 复制 `.env.example` 为 `.env`。
     - 修改里面的数据库配置 (`DB_HOST`, `DB_PASSWORD` 等) 和 Redis 配置。
+    - **集成服务配置**：
+      - `AZURE_TRANSLATOR_KEY`: 填入 Azure Translator 服务密钥。
+      - `AZURE_TRANSLATOR_REGION`: 填入服务区域（如 `eastus`）。
     - **重要**: 设置 `CORS_ORIGIN` 为你的前端域名 (例如 `http://your-domain.com`)，否则前端会报跨域错误。
 4.  **数据库迁移**:
     生产环境通常不开启自动同步 (`synchronize: true`)，所以需要手动运行迁移来创建表结构。

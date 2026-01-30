@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # 安装 pnpm
 RUN npm install -g pnpm
@@ -7,20 +7,17 @@ RUN npm install -g pnpm
 FROM base AS builder
 WORKDIR /app
 
-# 复制 monorepo 配置文件
+# 复制所有包的 package.json
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-
-# 复制所有包的 package.json (为了利用缓存，这里简化处理，实际项目可用 turbo prune)
 COPY apps/api/package.json apps/api/package.json
-COPY apps/admin/package.json apps/admin/package.json
-COPY packages/types/package.json packages/types/package.json
-
-# 安装依赖
-RUN pnpm install --frozen-lockfile
+COPY packages/ ./packages/
+# 为了 pnpm install 成功，我们需要先有一个基本的结构，
+# 或者干脆在这里复制所有 package.json。
+# 简单做法：复制所有 packages 目录，因为它们通常比较小
+RUN pnpm install
 
 # 复制源代码
 COPY apps/api ./apps/api
-COPY packages/types ./packages/types
 
 # 构建 API (使用 turbo 以确保依赖被构建)
 RUN pnpm exec turbo run build --filter=@chefos/api

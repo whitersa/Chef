@@ -1,14 +1,14 @@
 import type { NextConfig } from 'next';
-import { API_URL } from '@chefos/utils';
 
 const nextConfig: NextConfig = {
   /* config options here */
   // reactCompiler: true,
   async rewrites() {
+    const apiUrl = process.env.API_URL || 'http://localhost:4000';
     return [
       {
         source: '/api/:path*',
-        destination: `${API_URL}/api/:path*`, // Proxy to NestJS
+        destination: `${apiUrl}/api/:path*`, // Proxy to NestJS
       },
     ];
   },

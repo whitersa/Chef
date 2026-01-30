@@ -44,6 +44,13 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.setGlobalPrefix('api');
+
+  // Root redirect middleware
+  const server = app.getHttpAdapter().getInstance();
+  server.get('/', (req: any, res: any) => {
+    res.redirect('/api/docs');
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Strip properties not in DTO
@@ -77,9 +84,17 @@ async function bootstrap() {
     );
   });
 
-  console.log('Starting application listen...');
-  const port = process.env.PORT ?? (API_PORT as number);
-  await app.listen(port, '0.0.0.0');
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  console.log('Starting application listen on 0.0.0.0...');
+  let port = process.env.PORT ? parseInt(process.env.PORT) : (API_PORT as number);
+  if (isNaN(port)) {
+    port = 4000;
+  }
+
+  try {
+    await app.listen(port, '0.0.0.0');
+    console.log(`Application is running on: ${await app.getUrl()}`);
+  } catch (err) {
+    console.error('Failed to start application:', err);
+  }
 }
 void bootstrap();

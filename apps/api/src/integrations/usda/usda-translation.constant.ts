@@ -124,6 +124,21 @@ export const COMMON_FOOD_TERMS: Record<string, string> = {
   'Oil, soybean': '大豆油',
   'Water, tap': '自来水',
   'Water, bottled': '瓶装水',
+  Cabbage: '卷心菜',
+  'Cabbage, green': '绿卷心菜',
+  'Cabbage, red': '紫甘蓝',
+  'Cabbage, napa': '大白菜',
+  Carrots: '胡萝卜',
+  'Carrots, baby': '小胡萝卜',
+  Cauliflower: '花菜 (菜花)',
+  Celery: '芹菜',
+  Cheese: '奶酪 (芝士)',
+  'Cheese, feta': '菲达奶酪',
+  'Cheese, parmesan': '帕玛森奶酪',
+  Spinach: '菠菜',
+  Strawberries: '草莓',
+  Tomatillos: '酸浆果 (墨西哥番茄)',
+  'Sugars, granulated': '砂糖',
 };
 
 export function translateFoodName(englishName: string): string {
@@ -132,8 +147,17 @@ export function translateFoodName(englishName: string): string {
     return COMMON_FOOD_TERMS[englishName];
   }
 
-  // 2. Simple Partial Replacements (Naive)
+  // 2. Partial Match by splitting (Simple strategy)
   let translated = englishName;
+
+  // Try to translate the main component (before the first comma)
+  const parts = englishName.split(',');
+  const mainPart = parts[0]?.trim();
+  if (mainPart && COMMON_FOOD_TERMS[mainPart]) {
+    translated = translated.replace(mainPart, COMMON_FOOD_TERMS[mainPart]);
+  }
+
+  // 3. Simple Partial Replacements (Naive)
   const replacements: [RegExp, string][] = [
     [/, raw/gi, ' (生)'],
     [/, fresh/gi, ' (新鲜)'],

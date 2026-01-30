@@ -39,8 +39,18 @@
 
 访问:
 
-- Admin: http://localhost:3000
+- Portal (门户): http://localhost:3000
+- Admin (管理后台): http://localhost:5173
 - API: http://localhost:4000
+
+#### 🚀 K8s 部署访问 (Local Kubernetes)
+
+如果使用 `deploy-local.bat` 部署到 K8s，可通过以下地址访问（请确保 Pod 状态为 Running）：
+
+- **Portal**: [http://localhost:3000](http://localhost:3000)
+- **Admin**: [http://localhost:5173](http://localhost:5173)
+- **API (Health)**: [http://localhost:4000/api/health](http://localhost:4000/api/health)
+- **数据库/缓存**: 仅集群内部访问，宿主机可通过 `kubectl port-forward` 调试。
 
 ---
 
@@ -58,6 +68,27 @@
 | **前端 (Portal)** | **Next.js (React)**              | **全球 SSR 标准**。虽然后台用了 Vue，但采用“混合技术栈”策略（Vue Admin + React Portal）能让你同时掌握两大主流框架。Next.js 在 SEO 和服务端渲染领域的生态统治力目前强于 Nuxt。 | vs Nuxt: 强迫自己跳出舒适区，掌握 React 的思维方式（函数式编程、Hooks），提升简历竞争力。          |
 | **前端 (Mobile)** | **Vue 3 + Vant UI**              | **轻量级移动端方案**。Vant 是 Vue 生态最成熟的移动端组件库。配合 PWA 技术，可以用 Web 技术栈开发接近原生体验的应用（离线访问）。                                              | vs React Native/Flutter: 学习曲线太陡峭。对于“后厨”这种场景，网页版(PWA)足够轻量且易于分发。       |
 | **运维 (DevOps)** | **Docker + Kubernetes (K8s)**    | **云原生标准**。虽然对本项目略显“过度设计”，但掌握 K8s 是从“高级开发”迈向“架构师”的必经之路。                                                                                 | vs PM2: PM2 适合简单部署，但无法学习容器编排、服务发现和弹性伸缩等核心架构概念。                   |
+
+---
+
+## 🎁 最新增强功能 (Recent Enhancements)
+
+为了提升系统在云原生环境（Kubernetes）下的稳定性和实用性，近期完成了以下核心功能的升级：
+
+### 1. USDA 原料同步引擎 v2
+
+- **断点续传 (Breakpoint Resume)**: 利用 Redis 缓存同步状态。如果 K8s Pod 因资源限制重启，系统会自动从上次成功处理的 `fdcId` 恢复，无需重新同步数万条数据。
+- **智能翻译 (Azure AI Translator)**: 集成 Azure 翻译服务，在同步过程中动态将食材名称转化为中文，解决了原始数据仅支持英文的问题。
+
+### 2. K8s 弹性异常收集系统
+
+- **数据库持久化**: 废弃了不可靠的本地 `.json` 错误日志，所有同步失败的记录（Sync Issues）直接存入 PostgreSQL。即使容器被销毁，错误现场依然可以通过数据库完美回溯。
+- **原始现场保留**: `sync_issues` 表采用 `jsonb` 格式存储 USDA 原始 Payload，支持后续使用 AI 工具进行离线批量分析和修复。
+
+### 3. 可视化实时监控台
+
+- **Admin 仪表盘**: 重新设计了 `ConsoleView.vue`，采用“设置 + 终端”双栏布局。
+- **SSE 实时流**: 通过 Server-Sent Events 在前端模拟“开发终端”效果，实时展示后端翻译及入库进度，告别盲目等待。
 
 ---
 
@@ -537,3 +568,73 @@
   - [x] 强制注入 `xml:lang='zh-CN'` 以触发正确的字体映射。
 
 > 📚 **详细文档**: 请阅读 [DITA-OT PDF 导出功能详解](./docs/DITA_PDF_EXPORT.md)
+
+---
+
+## 🛠️ Milestone 11: 生产级运维与云原生演进 (Production-Ready DevOps)
+
+**目标**：将项目从“本地跑通”提升到“生产级高可用”架构。
+
+### 🧠 涉及知识点 (Knowledge Points)
+
+- **CI/CD (持续集成与部署)**：理解如何通过 GitHub Actions 实现代码提交即自动构建、测试、部署。
+- **可观测性 (Observability)**：学习日志收集 (ELK/Loki)、性能监控 (Prometheus + Grafana) 和全链路追踪。
+- **配置与密钥管理**：理解为何生产环境严禁使用 `.env` 文件，学习使用 K8s Secrets 或云端 Key Vault。
+- **弹性与负载均衡**：掌握 HPA (自动伸缩) 机制，应对高并发流量。
+
+### 11.1 自动化流水线 (CI/CD)
+
+- [ ] **GitHub Actions 配置**：实现 Push 到 `main` 分支时自动触发：
+  - [ ] 自动化单元测试与 Lint 检查。
+  - [ ] 多架构 Docker 镜像构建（amd64/arm64）。
+  - [ ] 镜像自动推送到私有仓库 (ACR/Docker Hub)。
+- [ ] **自动更新部署**：配置 `kubectl` 在流水线中自动更新 K8s 集群中的镜像版本。
+
+### 11.2 可观测性与监控
+
+- [ ] **集中式日志**：部署 **EFK (Elasticsearch + Fluentd + Kibana)** 收集所有 Pod 的控制台输出。
+- [ ] **指标监控**：在 K8s 中部署 **Prometheus** 采集 Node.js 的内存、CPU 使用率及接口 QPS。
+- [ ] **报警机制**：配置 **Alertmanager**，当 Pod 意外崩溃或接口 500 比例过高时，实时向**飞书/钉钉机器人**发送 Webhook 通知。
+
+### 11.3 安全与稳定性增强
+
+- [ ] **资源配额 (Resources)**：为每个 Pod 设置精确的 `requests` 和 `limits`，防止内存溢出导致节点崩溃。
+- [ ] **Pod 拓扑约束**：配置副本分散在不同的物理节点，实现机房级的高可用。
+- [ ] **网络策略 (NetworkPolicy)**：配置 K8s 防火墙，仅允许 API 访问数据库，阻断非必要的内网访问。
+
+### 11.4 生产级数据持久化策略 (Data Persistence Reference)
+
+> **核心原则**：在生产环境中，数据必须与计算节点（Node）解耦。
+
+| 方案                    | 适用场景              | 实现原理                                              | 优缺点                                                             |
+| :---------------------- | :-------------------- | :---------------------------------------------------- | :----------------------------------------------------------------- |
+| **托管数据库 (RDS)**    | **核心业务数据**      | 使用云厂商提供的 PaaS 服务（如阿里云 RDS/Postgres）。 | **优**：高可用、自动备份、专业运维。**缺**：需额外付费。           |
+| **云原生存储 (PVC/PV)** | **文件存储/自建库**   | 通过 K8s 的 CSI 驱动挂载高性能云磁盘（如 SSD 云盘）。 | **优**：数据随 Pod 漂移，符合 K8s 原生思维。**缺**：维护成本较高。 |
+| **对象存储 (OSS/S3)**   | **静态资源/导出文件** | 通过 API 读写云端 bucket（如存储生成的 PDF 报告）。   | **优**：无限扩容、成本极低。**缺**：不适合随机读写。               |
+
+---
+
+## 🏛️ Milestone 12: 架构高级演进 (Advanced Architecture Evolution)
+
+**目标**：当业务规模从“单店”成长为“全球连锁”时，如何通过微服务和流量治理应对极端复杂度。
+
+### 🧠 涉及知识点 (Knowledge Points)
+
+- **微服务改造 (Microservices)**：学习如何将单体 API 拆分为独立的 `Order-Service`, `Inventory-Service`, `Menu-Service`。
+- **服务网格 (Service Mesh)**：理解 Istio/Linkerd 机制，学习 Sidecar 模式和“零信任”网络流量加密。
+- **流量治理 (Traffic Management)**：掌握灰度发布、蓝绿部署以及熔断降级策略。
+
+### 12.1 微服务拆分与治理
+
+- [ ] **领域驱动拆分 (DDD)**：根据业务领域，将当前 API 模块物理拆分为独立的容器。
+- [ ] **服务发现与负载均衡**：利用 K8s 原生的 Service 机制或 Consul 实现微服务间的动态寻址。
+- [ ] **分布式事务 (SAGA)**：学习如何在跨服务的操作（如采购下单同步库存）中保持最终一致性。
+
+### 12.2 高级流量调控 (灰度发布)
+
+- [ ] **Istio 集成**：在集群中安装 Service Mesh，实现服务间的流量精细控制。
+- [ ] **全链路追踪 (Tracing)**：使用 **Jaeger** 或 **SkyWalking**，观察一个用户请求是如何穿过 10 个微服务的，定位性能瓶颈。
+- [ ] **灰度/全量切换**：配置虚拟服务 (VirtualService)，实现：
+  - [ ] **金丝雀发布 (Canary)**：让 5% 的用户先行体验新功能。
+  - [ ] **A/B 测试**：根据用户特征分流到不同版本的 UI 和逻辑。
+- [ ] **熔断降级**：当 USDA 第三方接口挂掉时，自动切换到本地缓存或返回友好提示，保证核心业务（点餐）不被拖垮。

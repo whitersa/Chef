@@ -18,6 +18,13 @@ export class Ingredient {
   @Column({ comment: 'Name of the ingredient' })
   name!: string;
 
+  @Column({
+    nullable: true,
+    unique: true,
+    comment: 'Food Data Central ID from USDA',
+  })
+  fdcId?: string;
+
   @Column({ nullable: true, comment: 'Original name (e.g. in English) if translated' })
   originalName?: string;
 

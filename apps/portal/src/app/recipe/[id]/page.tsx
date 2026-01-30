@@ -5,8 +5,9 @@ import { API_URL } from '@chefos/utils';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/MotionWrapper';
 
 async function getRecipe(id: string): Promise<Recipe | null> {
+  const apiUrl = process.env.API_URL || API_URL;
   try {
-    const res = await fetch(`${API_URL}/api/recipes/${id}`, { cache: 'no-store' });
+    const res = await fetch(`${apiUrl}/api/recipes/${id}`, { cache: 'no-store' });
 
     if (!res.ok) {
       return null;

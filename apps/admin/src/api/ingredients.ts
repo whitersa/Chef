@@ -12,4 +12,16 @@ export const ingredientsApi = {
   delete: (id: string) => api.delete(`/ingredients/${id}`),
   syncUsda: (page: number) =>
     api.post<{ count: number; message: string }>(`/ingredients/sync/usda?page=${page}`),
+  getFullSyncStatus: () =>
+    api.get<{
+      isSyncing: boolean;
+      totalSynced: number;
+      currentPage: number;
+      lastError: string | null;
+      startTime: string | null;
+    }>('/ingredients/sync/usda/status'),
+  startFullSync: () => api.post('/ingredients/sync/usda/full'),
+  stopSync: () => api.post('/ingredients/sync/usda/stop'),
+  getSyncIssues: () => api.get<any[]>('/ingredients/sync/usda/issues'),
+  resetSyncData: () => api.post('/ingredients/sync/usda/reset'),
 };

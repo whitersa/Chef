@@ -85,5 +85,18 @@
         "order": 2
       }
     ]
+  },
+  {
+    "title": "系统管理",
+    "icon": "Monitor",
+    "order": 4,
+    "children": [
+      {
+        "title": "控制台",
+        "path": "/console",
+        "icon": "DataBoard",
+        "order": 1
+      }
+    ]
   }
 ]

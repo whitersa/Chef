@@ -43,3 +43,6 @@ yarn-error.log*
 dita-builds/
 temp/
 temp/
+
+# Kubernetes Data
+deploy/k8s/data/

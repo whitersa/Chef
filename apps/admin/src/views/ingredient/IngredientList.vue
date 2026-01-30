@@ -20,11 +20,7 @@
 
     <!-- 工具栏 -->
     <template #toolbar>
-      <div class="toolbar-left">
-        <el-button type="warning" plain @click="handleOpenSync">
-          <el-icon class="el-icon--left"><Refresh /></el-icon>同步 USDA 数据
-        </el-button>
-      </div>
+      <div class="toolbar-left"></div>
       <div class="toolbar-right">
         <el-button type="primary" @click="handleAdd">
           <el-icon class="el-icon--left"> <Plus /> </el-icon>添加食材
@@ -277,29 +273,6 @@
           <span class="dialog-footer">
             <el-button @click="dialogVisible = false">取消</el-button>
             <el-button type="primary" @click="handleSubmit">确定</el-button>
-          </span>
-        </template>
-      </el-dialog>
-
-      <!-- Sync Dialog -->
-      <el-dialog v-model="syncDialogVisible" title="同步 USDA 数据" width="30%">
-        <div style="margin-bottom: 20px">
-          <p>USDA 数据量巨大，为了防止请求超时或触发限流，请按页码分批拉取。</p>
-          <p style="color: #909399; font-size: 12px">每页约拉取 20 条最基础的食材数据。</p>
-        </div>
-
-        <el-form label-width="100px">
-          <el-form-item label="拉取页码">
-            <el-input-number v-model="syncPage" :min="1" />
-          </el-form-item>
-        </el-form>
-
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="syncDialogVisible = false">取消</el-button>
-            <el-button type="primary" :loading="syncLoading" @click="handleSync">
-              开始同步
-            </el-button>
           </span>
         </template>
       </el-dialog>
@@ -601,36 +574,6 @@ const getSortedNutrients = (nutrition: Record<string, number | NutrientValue>) =
     if (bIdx !== -1) return 1;
     return aName.localeCompare(bName);
   });
-};
-
-// Sync USDA Logic
-const syncDialogVisible = ref(false);
-const syncPage = ref(1);
-const syncLoading = ref(false);
-
-const handleOpenSync = () => {
-  syncDialogVisible.value = true;
-};
-
-const handleSync = async () => {
-  if (syncPage.value < 1) {
-    ElMessage.warning('页码必须大于0');
-    return;
-  }
-
-  syncLoading.value = true;
-  try {
-    const res = await ingredientsStore.syncUsda(syncPage.value);
-    ElMessage.success(`同步成功，共获取 ${res.count} 条数据`);
-    syncDialogVisible.value = false;
-    // Auto increment for next time
-    syncPage.value++;
-  } catch (error) {
-    console.error(error);
-    ElMessage.error('同步失败，请检查网络或 Key 配置');
-  } finally {
-    syncLoading.value = false;
-  }
 };
 </script>
 
