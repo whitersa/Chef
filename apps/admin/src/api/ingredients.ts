@@ -7,6 +7,7 @@ export type { Ingredient };
 export const ingredientsApi = {
   getAll: (query?: PaginationQuery) =>
     api.get<PaginatedResponse<Ingredient>>('/ingredients', { params: query }),
+  getTree: (search?: string) => api.get<any[]>('/ingredients/tree', { params: { search } }),
   create: (data: Omit<Ingredient, 'id'>) => api.post<Ingredient>('/ingredients', data),
   update: (id: string, data: Partial<Ingredient>) => api.patch(`/ingredients/${id}`, data),
   delete: (id: string) => api.delete(`/ingredients/${id}`),

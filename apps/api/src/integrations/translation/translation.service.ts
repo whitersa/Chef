@@ -26,10 +26,18 @@ export class TranslationService {
       'https://api.cognitive.microsofttranslator.com/';
   }
 
-  async translate(text: string, from = 'en', to = 'zh-Hans'): Promise<string> {
-    if (!this.key || !text) {
-      return text;
+  async translateBatch(
+    texts: string[],
+    from = 'en',
+    to = 'zh-Hans',
+    signal?: AbortSignal,
+  ): Promise<string[]> {
+    if (!this.key || !texts || texts.length === 0) {
+      return texts;
     }
+
+    // Filter out empty strings but keep track of indices
+    const validTexts = texts.map((t) => t || '');
 
     const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy;
     const httpsAgent = httpsProxy ? new HttpsProxyAgent(httpsProxy) : undefined;
@@ -50,24 +58,35 @@ export class TranslationService {
           from,
           to,
         },
-        data: [{ text }],
+        data: validTexts.map((text) => ({ text })),
         httpsAgent,
-        proxy: false, // 强制禁用 Axios 自带的代理逻辑
+        proxy: false,
+        timeout: 30000,
+        signal,
       });
 
       const data = response.data as AzureTranslateResponse[];
-      const translatedText = data?.[0]?.translations?.[0]?.text;
-
-      if (!translatedText) {
-        throw new Error('Invalid response structure from Azure Translator');
-      }
-
-      this.logger.debug(`Translated: "${text}" -> "${translatedText}"`);
-      return translatedText;
+      return data.map((item, index) => {
+        const result = item.translations?.[0]?.text;
+        if (!result) {
+          this.logger.warn(`Translation failed for index ${index}: ${validTexts[index]}`);
+          return validTexts[index];
+        }
+        return result;
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Translation failed for "${text}": ${errorMessage}`);
-      return text; // Fallback to original text
+      this.logger.error(`Batch translation failed for ${texts.length} items: ${errorMessage}`);
+      return texts; // Fallback to original texts
     }
+  }
+
+  async translate(text: string, from = 'en', to = 'zh-Hans'): Promise<string> {
+    if (!this.key || !text) {
+      return text;
+    }
+
+    const results = await this.translateBatch([text], from, to);
+    return results[0];
   }
 }

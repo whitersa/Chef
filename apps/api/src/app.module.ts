@@ -27,6 +27,7 @@ import { DishesModule } from './dishes/dishes.module';
 import { UnitsModule } from './units/units.module';
 import { PublisherModule } from './publisher/publisher.module';
 import { TranslationModule } from './integrations/translation/translation.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -139,6 +140,7 @@ import { TranslationModule } from './integrations/translation/translation.module
     UnitsModule,
     PublisherModule,
     TranslationModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

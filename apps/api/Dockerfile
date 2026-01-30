@@ -27,17 +27,22 @@ FROM base AS runner
 WORKDIR /app
 
 # 安装 Java (DITA-OT 需要)
-RUN apk add --no-cache openjdk17 curl unzip fontconfig ttf-dejavu wqy-zenhei
+RUN apk add --no-cache openjdk17 curl unzip fontconfig ttf-dejavu wqy-zenhei bash
 
 # 安装 DITA-OT
 RUN curl -L https://github.com/dita-ot/dita-ot/releases/download/4.2/dita-ot-4.2.zip -o /tmp/dita.zip && \
     unzip /tmp/dita.zip -d /opt && \
-    rm /tmp/dita.zip
+    rm /tmp/dita.zip && \
+    chmod +x /opt/dita-ot-4.2/bin/dita
 ENV PATH="/opt/dita-ot-4.2/bin:${PATH}"
+ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
 
 # 安装自定义插件
-COPY tools/dita-plugins/com.chefos.pdf /opt/dita-ot-4.2/plugins/com.chefos.pdf
-RUN dita --install
+RUN mkdir -p /app/tools/dita-plugins
+COPY tools/dita-plugins/com.chefos.pdf /app/tools/dita-plugins/com.chefos.pdf
+RUN rm -rf /opt/dita-ot-4.2/plugins/com.chefos.pdf && \
+    ln -s /app/tools/dita-plugins/com.chefos.pdf /opt/dita-ot-4.2/plugins/com.chefos.pdf && \
+    dita --install
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
@@ -47,6 +52,7 @@ COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/tsconfig*.json ./apps/api/
 COPY --from=builder /app/apps/api/nest-cli.json ./apps/api/
 COPY --from=builder /app/apps/api/webpack.config.js ./apps/api/
+COPY --from=builder /app/apps/api/.env* ./apps/api/
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml

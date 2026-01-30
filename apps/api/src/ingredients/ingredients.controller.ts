@@ -63,6 +63,11 @@ export class IngredientsController {
     );
   }
 
+  @Get('tree')
+  async getTree(@Query('search') search?: string) {
+    return this.ingredientsService.getTree(search);
+  }
+
   @Post()
   create(@Body() createIngredientDto: CreateIngredientDto) {
     return this.ingredientsService.create(createIngredientDto);

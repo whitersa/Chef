@@ -8,6 +8,7 @@ import { Ingredient } from '../../ingredients/ingredient.entity';
 import { SyncIssue } from './sync-issue.entity';
 import { NUTRIENT_MAP, translateFoodName } from './usda-translation.constant';
 import { TranslationService } from '../translation/translation.service';
+import { Category } from '../../categories/category.entity';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
@@ -26,20 +27,31 @@ interface NutrientData {
   nutrientNumber?: string;
 }
 
+interface UsdaFoodNutrient {
+  amount?: number;
+  value?: number;
+  name?: string;
+  nutrientId?: number;
+  nutrientName?: string;
+  nutrientNumber?: string;
+  unitName?: string;
+  nutrient?: {
+    id?: number;
+    name?: string;
+    unitName?: string;
+    number?: string;
+  };
+}
+
 interface UsdaFoodDetails {
   fdcId: number;
   description: string;
-  foodNutrients: Array<{
-    amount?: number;
-    value?: number;
-    name?: string;
-    nutrient?: {
-      id?: number;
-      name?: string;
-      unitName?: string;
-      number?: string;
-    };
-  }>;
+  foodCategory?: {
+    id: number;
+    name: string;
+    code?: string;
+  };
+  foodNutrients: UsdaFoodNutrient[];
 }
 
 interface SyncStatus {
@@ -58,6 +70,7 @@ export class UsdaService {
   private readonly baseUrl = 'https://api.nal.usda.gov/fdc/v1';
 
   private static isSyncingStatic = false;
+  private static abortController: AbortController | null = null;
   private static syncStatusStatic: SyncStatus = {
     isSyncing: false,
     totalSynced: 0,
@@ -88,6 +101,8 @@ export class UsdaService {
     private readonly configService: ConfigService,
     @InjectRepository(Ingredient)
     private readonly ingredientRepository: Repository<Ingredient>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @InjectRepository(SyncIssue)
     private readonly syncIssueRepository: Repository<SyncIssue>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -109,6 +124,8 @@ export class UsdaService {
         // 如果发现重启前正在同步，自动触发“断点续传”
         if (persistedStatus.isSyncing) {
           this.logger.warn('Detecting interrupted sync task after restart. Resuming...');
+          this.isSyncing = true;
+          UsdaService.abortController = new AbortController();
           this.runSyncWorker(
             persistedStatus.currentPage || 1,
             persistedStatus.totalSynced || 0,
@@ -133,6 +150,16 @@ export class UsdaService {
   }
 
   private async addServerLog(message: string, isError = false) {
+    // 鲁棒性检查：如果同步已停止，不再接受普通的同步过程日志（除非是停止或重置相关的通知）
+    if (
+      !this.isSyncing &&
+      !message.includes('停止') &&
+      !message.includes('重置') &&
+      !message.includes('完成')
+    ) {
+      return;
+    }
+
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = `[${timestamp}] ${message}`;
     if (isError) {
@@ -142,7 +169,8 @@ export class UsdaService {
     }
 
     // 保持最近 50 条日志
-    const newLogs = [...(UsdaService.syncStatusStatic.logs || []), logEntry].slice(-50);
+    const currentLogs = UsdaService.syncStatusStatic.logs || [];
+    const newLogs = [...currentLogs, logEntry].slice(-50);
     await this.updateStatus({ logs: newLogs });
   }
 
@@ -183,13 +211,19 @@ export class UsdaService {
    * 用于调试或重新开始同步
    */
   async resetSyncData() {
-    if (UsdaService.isSyncingStatic) {
-      throw new Error('正在同步中，请先停止同步后再重置数据。');
-    }
-
     this.logger.warn('Resetting USDA sync data...');
 
-    // 1. 删除所有标记为 USDA 的食材
+    // 1. 如果有正在运行的同步，先尝试停止它
+    if (this.isSyncing) {
+      this.isSyncing = false;
+      if (UsdaService.abortController) {
+        UsdaService.abortController.abort();
+        UsdaService.abortController = null;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 给一点点时间让异步任务退出
+    }
+
+    // 2. 删除所有标记为 USDA 的食材
     // 逻辑升级：删除 fdcId 不为空的，或者名字里包含 (USDA) 后缀的（清理早期未标记 fdcId 的重复数据）
     const deleteResult = await this.ingredientRepository
       .createQueryBuilder()
@@ -200,14 +234,15 @@ export class UsdaService {
 
     this.logger.warn(`Reset: Deleted ${deleteResult.affected} USDA ingredients.`);
 
-    // 2. 清空异常记录
+    // 3. 清空异常记录
     await this.syncIssueRepository.clear();
 
-    // 3. 清除相关缓存，防止前端看到旧数据
+    // 4. 清除相关缓存，防止前端看到旧数据
     await this.clearIngredientsCache();
 
-    // 4. 重置同步状态
+    // 5. 重置同步状态（清空日志）
     await this.updateStatus({
+      isSyncing: false,
       totalSynced: 0,
       currentPage: 0,
       lastError: null,
@@ -258,6 +293,7 @@ export class UsdaService {
       throw new HttpException('Sync already in progress', HttpStatus.CONFLICT);
     }
 
+    // 重置状态
     const newStatus = {
       isSyncing: true,
       totalSynced: 0,
@@ -266,6 +302,9 @@ export class UsdaService {
       startTime: new Date(),
       logs: [],
     };
+
+    this.isSyncing = true;
+    UsdaService.abortController = new AbortController();
     await this.updateStatus(newStatus);
     await this.addServerLog('🚀 初始化全量同步任务...');
 
@@ -283,6 +322,10 @@ export class UsdaService {
     }
 
     this.isSyncing = false;
+    if (UsdaService.abortController) {
+      UsdaService.abortController.abort();
+      UsdaService.abortController = null;
+    }
     await this.updateStatus({ isSyncing: false });
     await this.addServerLog('🛑 收到停止指令，正在尝试停止同步任务...');
     return { message: 'Sync stop command sent' };
@@ -292,7 +335,14 @@ export class UsdaService {
    * 核心同步工作者逻辑（支持断点续传）
    */
   private runSyncWorker(startPage: number, startCount: number, isResuming = false) {
+    // 防止并发运行多个工作者
+    if (UsdaService.isSyncingStatic && !isResuming) {
+      this.logger.warn('Sync worker is already running. Skipping duplicate start.');
+      return;
+    }
+
     this.isSyncing = true;
+    UsdaService.abortController = new AbortController();
 
     // 立即广播状态
     this.syncStatus$.next(UsdaService.syncStatusStatic);
@@ -308,21 +358,21 @@ export class UsdaService {
         let retryCount = 0;
         const maxRetriesPerPage = 3;
         const failedPages: number[] = []; // 记录抓取失败的页码，用于最后重试
-        const limit = 25;
+        const limit = 10; // 从 25 降低到 10，显著减轻详情请求负载并减少超时概率
 
         // 第一阶段：主循环同步
         while (true) {
           // 每次循环开始前，检查是否被外部停止
-          if (!this.isSyncing) {
-            await this.addServerLog('✅ 同步任务已成功停止。');
-            break;
-          }
+          if (!this.isSyncing) break;
 
           await this.updateStatus({ currentPage, isSyncing: true });
           await this.addServerLog(`📡 正在抓取第 ${currentPage} 页数据...`);
 
           try {
             const result = await this.syncIngredients(currentPage, limit);
+
+            // 如果在同步期间被取消，立即退出
+            if (!this.isSyncing) break;
 
             if (!result.count || result.count === 0) {
               await this.addServerLog('🏁 已到达 USDA 数据末尾，第一阶段主循环完成。');
@@ -335,6 +385,9 @@ export class UsdaService {
             await this.addServerLog(`✅ 本页成功导入 ${result.count} 条数据 (累计 ${totalSynced})`);
             currentPage++;
           } catch (pageErr: unknown) {
+            // 如果是因为任务取消抛出的异常，立即退出
+            if (!this.isSyncing) break;
+
             retryCount++;
             const errorObj = pageErr as {
               response?: { status?: number; data?: { error?: { message?: string } } };
@@ -397,22 +450,44 @@ export class UsdaService {
               // 重试时可以增加延时或减少并发考虑
               await new Promise((resolve) => setTimeout(resolve, 20000));
               const result = await this.syncIngredients(page, limit);
+
+              if (!this.isSyncing) break;
+
               if (result.count > 0) {
                 totalSynced += result.count;
                 await this.updateStatus({ totalSynced });
                 await this.addServerLog(`✅ 重试抓取第 ${page} 页成功！导入 ${result.count} 条。`);
               }
             } catch (retryErr: unknown) {
+              if (!this.isSyncing) break;
               const errorMessage = retryErr instanceof Error ? retryErr.message : String(retryErr);
               await this.addServerLog(`❌ 最终放弃第 ${page} 页: 仍然失败 (${errorMessage})`, true);
             }
           }
         }
 
+        // 统一出口逻辑
+        const wasSyncing = this.isSyncing;
         this.isSyncing = false;
         await this.updateStatus({ isSyncing: false });
-        await this.addServerLog(`🏁 全量同步工作执行完毕，共导入/更新 ${totalSynced} 条食材。`);
+
+        if (wasSyncing) {
+          await this.addServerLog(`🏁 全量同步工作执行完毕，共导入/更新 ${totalSynced} 条食材。`);
+        } else {
+          // 如果是因为 isSyncing 变为 false 进入这里的，说明是外部手动停止或重置
+          await this.addServerLog('✅ 同步任务已成功停止。');
+        }
       } catch (err: unknown) {
+        // 如果是在停止过程中发生的非预期异常，且已经标记为停止，则忽略大量错误输出
+        if (!this.isSyncing) {
+          await this.updateStatus({ isSyncing: false });
+          // 如果没有停止日志，补充一条
+          if (!UsdaService.syncStatusStatic.logs?.some((l) => l.includes('停止'))) {
+            await this.addServerLog('✅ 同步任务已成功停止。');
+          }
+          return;
+        }
+
         this.isSyncing = false;
         const finalError = err instanceof Error ? err.message : '关键性服务异常';
         await this.updateStatus({ isSyncing: false, lastError: finalError });
@@ -425,6 +500,8 @@ export class UsdaService {
     if (!this.apiKey) {
       throw new HttpException('USDA_API_KEY is missing', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    const signal = UsdaService.abortController?.signal;
 
     this.logger.log(`Starting USDA sync (page: ${page}, limit: ${limit})...`);
 
@@ -441,6 +518,7 @@ export class UsdaService {
             httpsAgent,
             proxy: false,
             timeout: 5000,
+            signal,
           }),
         );
         const outboundIp = (testRes.data as { ip: string }).ip;
@@ -448,6 +526,7 @@ export class UsdaService {
           `🔎 代理验证成功: 正在通过代理 [${httpsProxy}] 访问, 出口 IP: ${outboundIp}`,
         );
       } catch (e: unknown) {
+        if (signal?.aborted) return { count: 0, message: 'Aborted' };
         const errorMessage = e instanceof Error ? e.message : String(e);
         await this.addServerLog(`⚠️ 代理验证失败: 无法通过代理访问网络 (${errorMessage})`, true);
       }
@@ -468,6 +547,7 @@ export class UsdaService {
           },
           httpsAgent,
           proxy: false, // 强制禁用 Axios 自带的代理逻辑，完全交给 httpsAgent 处理
+          signal,
         }),
       );
 
@@ -478,29 +558,54 @@ export class UsdaService {
         return { count: 0, message: 'No foods found' };
       }
 
+      if (signal?.aborted) return { count: 0, message: 'Aborted' };
+
       const fdcIds = foods.map((f) => f.fdcId);
       this.logger.log(
         `Found ${fdcIds.length} foods (IDs: ${fdcIds.join(', ')}). Fetching details...`,
       );
 
-      // 2. Fetch details (Batch)
-      const detailsResponse = await firstValueFrom(
-        this.httpService.post<UsdaFoodDetails[]>(
-          `${this.baseUrl}/foods`,
-          {
-            fdcIds: fdcIds,
-            format: 'full', // Return full data for accuracy
-          },
-          {
-            params: { api_key: this.apiKey },
-            timeout: 120000, // Increase to 2 minutes for larger Foundation food payloads
-            httpsAgent: httpsAgent,
-            proxy: false, // 强制禁用 Axios 自带的代理逻辑
-          },
-        ),
-      );
+      // 2. Fetch details (Batch) - 增加局部重试逻辑
+      // 这里的妥协策略：将 format 从 'full' 改为 'abridged'
+      // 理由：Foundation Food 的 'full' 包含大量加工步骤、原始实验数据，payload 极其庞大
+      // 'abridged' 已包含我们需要的核心营养成分（蛋白质、脂肪、碳水等）
+      let foodDetails: UsdaFoodDetails[] = [];
+      let detailRetryCount = 0;
+      const maxDetailRetries = 2;
 
-      const foodDetails = detailsResponse.data;
+      while (detailRetryCount <= maxDetailRetries) {
+        try {
+          const detailsResponse = await firstValueFrom(
+            this.httpService.post<UsdaFoodDetails[]>(
+              `${this.baseUrl}/foods`,
+              {
+                fdcIds: fdcIds,
+                format: 'abridged', // 关键妥协：极大减小响应数据量，防止超时
+              },
+              {
+                params: { api_key: this.apiKey },
+                timeout: 60000, // 降低到 60s，因为 abridged 响应快得多
+                httpsAgent: httpsAgent,
+                proxy: false,
+                signal,
+              },
+            ),
+          );
+          foodDetails = detailsResponse.data;
+          break; // 成功则跳出重试
+        } catch (err) {
+          if (signal?.aborted) return { count: 0, message: 'Aborted' };
+          detailRetryCount++;
+          if (detailRetryCount > maxDetailRetries) throw err; // 最终失败，抛给外层分页循环
+
+          await this.addServerLog(
+            `⚠️ 详情拉取失败，正在进行局部重试 (${detailRetryCount}/${maxDetailRetries})...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+        }
+      }
+
+      if (signal?.aborted) return { count: 0, message: 'Aborted' };
 
       // 鲁棒性检查：确保返回的是数组
       if (!Array.isArray(foodDetails)) {
@@ -510,54 +615,103 @@ export class UsdaService {
         throw new Error('USDA 详情接口返回格式异常，预期为数组。');
       }
 
+      // --- 批量翻译优化：一次性处理整页所有食材名称和分类名 ---
+      const descriptionsToTranslate = foodDetails.map((f) => f.description);
+      const rawCategoryNames = foodDetails
+        .map((f) => f.foodCategory?.name)
+        .filter((n): n is string => !!n);
+      const uniqueCategoryNames = [...new Set(rawCategoryNames)];
+
+      const allTextsToTranslate = [...descriptionsToTranslate, ...uniqueCategoryNames];
+      await this.addServerLog(`🌐 正在批量翻译本页 ${allTextsToTranslate.length} 条文本...`);
+
+      if (signal?.aborted) return { count: 0, message: 'Aborted' };
+
+      const translatedResults = await this.translationService.translateBatch(
+        allTextsToTranslate,
+        'en',
+        'zh-Hans',
+        signal,
+      );
+
+      if (signal?.aborted) return { count: 0, message: 'Aborted' };
+
+      const translationMap = new Map<string, string>();
+      allTextsToTranslate.forEach((text, i) => {
+        translationMap.set(text, translatedResults[i] || text);
+      });
+      // --------------------------------------------------
+
       let syncedCount = 0;
 
       // 3. Transform and Save
       for (const food of foodDetails) {
         try {
-          // Detailed mapping for full USDA structure
+          // ... (Nutrient mapping skipped for brevity in this thought but I will include in tool call)
           const nutrientMap: Record<string, NutrientData> = {};
 
           if (food.foodNutrients) {
-            food.foodNutrients.forEach((n) => {
-              // In 'full' format, nutrient info is nested in 'nutrient' object
-              const nutrientInfo = n.nutrient || {};
+            food.foodNutrients.forEach((n: UsdaFoodNutrient) => {
+              // 兼容性适配：abridged 模式下属性名缩写，full 模式下在 nutrient 对象中
               const amount = n.amount ?? n.value;
+              if (amount === undefined || amount === null) return;
 
-              // Skip if no amount is present (sometimes categories are listed without values)
-              if (amount === undefined || amount === null) {
-                return;
-              }
+              const nutrientId = n.nutrient?.id || n.nutrientId;
+              const rawName = n.nutrient?.name || n.nutrientName || n.name || 'Unknown';
+              const unitName = n.nutrient?.unitName || n.unitName || 'g';
+              const nutrientNumber = n.nutrient?.number || n.nutrientNumber;
 
-              const rawName = nutrientInfo.name || n.name || 'Unknown';
-              const translatedName =
-                (nutrientInfo.id ? NUTRIENT_MAP[nutrientInfo.id] : undefined) || rawName;
+              const translatedName = (nutrientId ? NUTRIENT_MAP[nutrientId] : undefined) || rawName;
 
               if (translatedName) {
                 nutrientMap[translatedName] = {
-                  amount,
-                  unit: nutrientInfo.unitName || 'g',
-                  nutrientId: nutrientInfo.id,
-                  nutrientNumber: nutrientInfo.number,
+                  amount: amount,
+                  unit: unitName,
+                  nutrientId: nutrientId,
+                  nutrientNumber: nutrientNumber,
                 };
               }
             });
           }
 
-          let translatedName = await this.translationService.translate(food.description);
+          // 使用批量翻译的结果
+          const description = food.description || 'Unknown Food';
+          let translatedName = translationMap.get(description) || description;
 
           // 增强翻译：如果远程翻译失败（返回原文）或未配置，回退到本地词汇映射
-          if (translatedName === food.description) {
-            translatedName = translateFoodName(food.description);
+          if (translatedName === description) {
+            translatedName = translateFoodName(description);
+          }
+
+          // 处理分类逻辑 (以英文原文作为唯一标识)
+          let categoryId: string | undefined;
+          const categoryName = food.foodCategory?.name;
+          if (categoryName) {
+            const rawCategoryName = categoryName;
+            let category = await this.categoryRepository.findOne({
+              where: { originalName: rawCategoryName },
+            });
+
+            if (!category) {
+              const translatedCategoryName = translationMap.get(rawCategoryName) || rawCategoryName;
+              category = this.categoryRepository.create({
+                name: translatedCategoryName,
+                originalName: rawCategoryName,
+                description: `USDA Category: ${rawCategoryName}`,
+              });
+              category = await this.categoryRepository.save(category);
+            }
+            categoryId = category.id;
           }
 
           const ingredientData = {
-            fdcId: food.fdcId.toString(),
+            fdcId: food.fdcId?.toString(),
             name: `${translatedName} (USDA)`,
-            originalName: food.description,
+            originalName: description,
             price: 0,
-            unit: '100g', // USDA 营养数据通常基于 100g
+            unit: '100g',
             nutrition: nutrientMap,
+            categoryId,
           };
 
           // 优先使用 fdcId 进行唯一性检查，避免同名不同 ID 的数据重复
@@ -573,9 +727,9 @@ export class UsdaService {
             await this.ingredientRepository.save(newIngredient);
           }
           syncedCount++;
-        } catch (itemError: any) {
+        } catch (itemError: unknown) {
           // 保存具体导致失败的那个食物的 ID 和原始数据
-          await this.recordDetailedError(food.fdcId, food, itemError);
+          await this.recordDetailedError(food.fdcId || 'Unknown', food, itemError);
           // 继续处理下一个，不让单个失败拖死整批同步任务
           continue;
         }
@@ -585,6 +739,10 @@ export class UsdaService {
       await this.clearIngredientsCache();
       return { count: syncedCount, message: 'Sync successful' };
     } catch (error: unknown) {
+      if (signal?.aborted) {
+        throw error; // 信号已取消，不再记录异常日志，直接向上抛出由工作者处理
+      }
+
       const err = error as {
         message: string;
         code?: string;

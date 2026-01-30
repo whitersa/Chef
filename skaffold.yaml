@@ -12,7 +12,11 @@ build:
         manual:
           - src: 'apps/api/src/**/*.ts'
             dest: .
+          - src: 'apps/api/.env'
+            dest: .
           - src: 'packages/**/*.ts'
+            dest: .
+          - src: 'tools/dita-plugins/**/*'
             dest: .
     - image: chefos-admin
       context: .

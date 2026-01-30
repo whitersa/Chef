@@ -6,7 +6,10 @@ import {
   UpdateDateColumn,
   VersionColumn,
   DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Category } from '../categories/category.entity';
 
 @Entity({ comment: 'Raw ingredients used in recipes' })
 export class Ingredient {
@@ -17,6 +20,13 @@ export class Ingredient {
 
   @Column({ comment: 'Name of the ingredient' })
   name!: string;
+
+  @Column({ nullable: true, comment: 'Category ID for grouping' })
+  categoryId?: string;
+
+  @ManyToOne(() => Category, (category) => category.ingredients, { nullable: true })
+  @JoinColumn({ name: 'categoryId' })
+  category?: Category;
 
   @Column({
     nullable: true,

@@ -14,8 +14,12 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     sorts: [] as { field: string; order: 'ASC' | 'DESC' }[],
   });
   const search = ref('');
+  const isTreeView = ref(false);
 
   async function fetchIngredients() {
+    if (isTreeView.value) {
+      return fetchTree();
+    }
     loading.value = true;
     try {
       const sort = pagination.value.sorts.map((s) => `${s.field}:${s.order}`).join(',');
@@ -32,6 +36,24 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     } finally {
       loading.value = false;
     }
+  }
+
+  async function fetchTree() {
+    loading.value = true;
+    try {
+      const response = await ingredientsApi.getTree(search.value);
+      ingredients.value = response; // Tree data matches the structure needed for el-table tree-props
+      pagination.value.total = response.length;
+    } catch (error) {
+      console.error('Failed to fetch ingredient tree:', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function setTreeView(value: boolean) {
+    isTreeView.value = value;
+    fetchIngredients();
   }
 
   function setPage(page: number) {
@@ -114,5 +136,8 @@ export const useIngredientsStore = defineStore('ingredients', () => {
     updateIngredient,
     deleteIngredient,
     syncUsda,
+    isTreeView,
+    setTreeView,
+    search,
   };
 });

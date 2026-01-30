@@ -20,7 +20,15 @@
 
     <!-- 工具栏 -->
     <template #toolbar>
-      <div class="toolbar-left"></div>
+      <div class="toolbar-left">
+        <el-radio-group
+          v-model="ingredientsStore.isTreeView"
+          @change="ingredientsStore.setTreeView"
+        >
+          <el-radio-button :label="false">列表视图</el-radio-button>
+          <el-radio-button :label="true">树形分组</el-radio-button>
+        </el-radio-group>
+      </div>
       <div class="toolbar-right">
         <el-button type="primary" @click="handleAdd">
           <el-icon class="el-icon--left"> <Plus /> </el-icon>添加食材
@@ -30,17 +38,27 @@
 
     <!-- 列表区域 -->
     <el-table
+      :key="isTreeView + (search ? '-expanded' : '-collapsed')"
       v-loading="loading"
       :data="ingredients"
       style="width: 100%; height: 100%"
       border
+      row-key="id"
+      :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+      :default-expand-all="!!search"
       @sort-change="handleSortChange"
     >
       <el-table-column label="名称" min-width="180" sortable="custom" prop="name">
         <template #default="{ row }">
-          <div>
-            <div>{{ row.name }}</div>
-            <div v-if="row.originalName" style="font-size: 12px; color: #909399">
+          <div :style="{ fontWeight: row.isCategory ? 'bold' : 'normal' }">
+            <div>
+              <el-icon v-if="row.isCategory" style="margin-right: 4px"><Folder /></el-icon>
+              <span>{{ row.name }}</span>
+              <el-tag v-if="row.isCategory" size="small" type="info" style="margin-left: 8px">
+                分类
+              </el-tag>
+            </div>
+            <div v-if="row.originalName" style="font-size: 12px; color: #909399; margin-left: 20px">
               {{ row.originalName }}
             </div>
           </div>
@@ -48,18 +66,34 @@
       </el-table-column>
       <el-table-column prop="stockQuantity" label="库存" width="120" sortable="custom">
         <template #default="scope">
-          <el-tag :type="scope.row.stockQuantity > 0 ? 'success' : 'danger'">
+          <el-tag
+            v-if="!scope.row.isCategory"
+            :type="scope.row.stockQuantity > 0 ? 'success' : 'danger'"
+          >
             {{ scope.row.stockQuantity || 0 }} {{ scope.row.stockUnit || scope.row.unit }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="price" label="单价" width="180" sortable="custom">
-        <template #default="scope"> ¥{{ scope.row.price }} </template>
+        <template #default="scope">
+          <span v-if="!scope.row.isCategory">¥{{ scope.row.price }}</span>
+        </template>
       </el-table-column>
-      <el-table-column prop="unit" label="单位" width="100" />
+      <el-table-column prop="unit" label="单位" width="100">
+        <template #default="scope">
+          <span v-if="!scope.row.isCategory">{{ scope.row.unit }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="营养成分" width="100" align="center">
         <template #default="scope">
-          <el-popover placement="left" :width="580" trigger="hover" :show-arrow="true" :offset="25">
+          <el-popover
+            v-if="!scope.row.isCategory"
+            placement="left"
+            :width="580"
+            trigger="hover"
+            :show-arrow="true"
+            :offset="25"
+          >
             <template #reference>
               <el-tag class="nutrition-trigger" size="small" effect="plain" round>
                 <el-icon><DataAnalysis /></el-icon>
@@ -195,14 +229,16 @@
       </el-table-column>
       <el-table-column label="操作" width="180" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" size="small" @click="handleEdit(scope.row)">
-            编辑
-          </el-button>
-          <el-popconfirm title="确定要删除吗?" @confirm="handleDelete(scope.row.id)">
-            <template #reference>
-              <el-button link type="danger" size="small"> 删除 </el-button>
-            </template>
-          </el-popconfirm>
+          <div v-if="!scope.row.isCategory">
+            <el-button link type="primary" size="small" @click="handleEdit(scope.row)">
+              编辑
+            </el-button>
+            <el-popconfirm title="确定要删除吗?" @confirm="handleDelete(scope.row.id)">
+              <template #reference>
+                <el-button link type="danger" size="small"> 删除 </el-button>
+              </template>
+            </el-popconfirm>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -210,6 +246,7 @@
     <!-- 分页 -->
     <template #pagination>
       <el-pagination
+        v-if="!ingredientsStore.isTreeView"
         v-model:current-page="pagination.page"
         v-model:page-size="pagination.limit"
         :total="pagination.total"
@@ -285,6 +322,7 @@ import { ref, onMounted, reactive } from 'vue';
 import { useIngredientsStore, type Ingredient } from '@/stores/ingredients';
 import { storeToRefs } from 'pinia';
 import { ElMessage } from 'element-plus';
+import { Plus, Folder, DataAnalysis, TrendCharts } from '@element-plus/icons-vue';
 import { useListFilter } from '@/composables/useListFilter';
 import { getUnits } from '@/api/units';
 import type { Unit } from '@chefos/types';
@@ -296,7 +334,7 @@ interface NutrientValue {
 }
 
 const ingredientsStore = useIngredientsStore();
-const { ingredients, loading, pagination } = storeToRefs(ingredientsStore);
+const { ingredients, loading, pagination, isTreeView, search } = storeToRefs(ingredientsStore);
 
 const {
   searchQuery,

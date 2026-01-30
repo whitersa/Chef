@@ -1,10 +1,11 @@
 import { Inject, Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, DataSource } from 'typeorm';
+import { Repository, Like, DataSource, IsNull, ILike } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { Ingredient } from './ingredient.entity';
 import { IngredientVersion } from './ingredient-version.entity';
+import { Category } from '../categories/category.entity';
 import { CreateIngredientDto } from './dto/create-ingredient.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { AuditService } from '../audit/audit.service';
@@ -15,11 +16,25 @@ interface RedisStore {
   del: (key: string) => Promise<void>;
 }
 
+export interface IngredientTreeNode {
+  id: string;
+  name: string;
+  isCategory: boolean;
+  fdcId?: string;
+  price?: number;
+  unit?: string;
+  nutrition?: Record<string, any>;
+  categoryId?: string;
+  children?: IngredientTreeNode[];
+}
+
 @Injectable()
 export class IngredientsService implements OnModuleInit {
   constructor(
     @InjectRepository(Ingredient)
     private ingredientsRepository: Repository<Ingredient>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
     @InjectRepository(IngredientVersion)
     private ingredientVersionsRepository: Repository<IngredientVersion>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -154,6 +169,91 @@ export class IngredientsService implements OnModuleInit {
     };
 
     await this.cacheManager.set(cacheKey, result, 24 * 60 * 60 * 1000); // 1 day
+    return result;
+  }
+
+  async getTree(search?: string) {
+    const queryBuilder = this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoinAndSelect('category.ingredients', 'ingredient')
+      .orderBy('category.name', 'ASC')
+      .addOrderBy('ingredient.name', 'ASC');
+
+    if (search) {
+      // If searching, we also want to filter ingredients
+      queryBuilder.where('ingredient.name ILIKE :search', { search: `%${search}%` });
+    }
+
+    const categories = await queryBuilder.getMany();
+
+    const result: IngredientTreeNode[] = categories
+      .map((cat): IngredientTreeNode | null => {
+        const ingredients = cat.ingredients || [];
+        if (ingredients.length === 0 && search) return null;
+
+        // --- Smart Sub-grouping Logic ---
+        const subGroups = new Map<string, Ingredient[]>();
+        const standaloneIngredients: Ingredient[] = [];
+
+        ingredients.forEach((ing) => {
+          const nameParts = ing.name.split(/[、,，\s]/);
+          const baseName = (nameParts[0] || '')
+            .trim()
+            .replace(/\(USDA\)$/, '')
+            .trim();
+
+          if (baseName && baseName.length > 1) {
+            const group = subGroups.get(baseName) || [];
+            if (!subGroups.has(baseName)) subGroups.set(baseName, group);
+            group.push(ing);
+          } else {
+            standaloneIngredients.push(ing);
+          }
+        });
+
+        const children: IngredientTreeNode[] = [];
+        subGroups.forEach((items, name) => {
+          if (items.length > 1) {
+            children.push({
+              id: `group-${cat.id}-${name}`,
+              name: name,
+              isCategory: true,
+              children: items.map((i) => ({ ...i, isCategory: false })),
+            });
+          } else {
+            standaloneIngredients.push(...items);
+          }
+        });
+
+        children.push(...standaloneIngredients.map((i) => ({ ...i, isCategory: false })));
+        children.sort((a, b) => (a.isCategory === b.isCategory ? 0 : a.isCategory ? -1 : 1));
+
+        return {
+          id: cat.id,
+          name: cat.name,
+          isCategory: true,
+          children: children,
+        };
+      })
+      .filter((c): c is IngredientTreeNode => c !== null);
+
+    // Add "Uncategorized" group for ingredients without a category
+    const uncategorizedItems = await this.ingredientsRepository.find({
+      where: {
+        categoryId: IsNull(),
+        ...(search ? { name: ILike(`%${search}%`) } : {}),
+      },
+    });
+
+    if (uncategorizedItems.length > 0) {
+      result.push({
+        id: 'uncategorized',
+        name: '未分类 (Orphaned)',
+        isCategory: true,
+        children: uncategorizedItems.map((i) => ({ ...i, isCategory: false })),
+      });
+    }
+
     return result;
   }
 
