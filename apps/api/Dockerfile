@@ -27,7 +27,7 @@ FROM base AS runner
 WORKDIR /app
 
 # 安装 Java (DITA-OT 需要)
-RUN apk add --no-cache openjdk17 curl unzip
+RUN apk add --no-cache openjdk17 curl unzip fontconfig ttf-dejavu wqy-zenhei
 
 # 安装 DITA-OT
 RUN curl -L https://github.com/dita-ot/dita-ot/releases/download/4.2/dita-ot-4.2.zip -o /tmp/dita.zip && \
@@ -43,8 +43,15 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/src ./apps/api/src
 COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=builder /app/packages/types/dist ./packages/types/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder /app/apps/api/tsconfig*.json ./apps/api/
+COPY --from=builder /app/apps/api/nest-cli.json ./apps/api/
+COPY --from=builder /app/apps/api/webpack.config.js ./apps/api/
+COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/turbo.json ./turbo.json
 
 # 设置环境变量
 ENV NODE_ENV production

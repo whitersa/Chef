@@ -1,0 +1,8 @@
+resources:
+  - namespace.yaml
+  - base/postgres.yaml
+  - base/redis.yaml
+  - apps/api-deployment.yaml
+  - apps/api-service.yaml
+  - apps/admin.yaml
+  - apps/portal.yaml

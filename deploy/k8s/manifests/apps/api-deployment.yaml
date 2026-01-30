@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: chefos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      initContainers:
+        - name: init-db
+          image: postgres:15-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -p 5432; do
+                echo "waiting for postgres..."
+                sleep 2
+              done
+              PGPASSWORD=$DB_PASSWORD psql -h postgres -U $DB_USERNAME -lqt | cut -d \| -f 1 | grep -qw $DB_DATABASE || \
+              PGPASSWORD=$DB_PASSWORD psql -h postgres -U $DB_USERNAME -c "CREATE DATABASE $DB_DATABASE;"
+          env:
+            - name: DB_USERNAME
+              value: 'postgres'
+            - name: DB_PASSWORD
+              value: 'password'
+            - name: DB_DATABASE
+              value: 'chefos'
+      containers:
+        - name: api
+          image: chefos-api:latest # 需要先构建镜像
+          imagePullPolicy: Never # 强制使用本地镜像
+          ports:
+            - containerPort: 4000
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
+          env:
+            - name: DB_HOST
+              value: 'postgres'
+            - name: DB_PORT
+              value: '5432'
+            - name: DB_USERNAME
+              value: 'postgres'
+            - name: DB_PASSWORD
+              value: 'password'
+            - name: DB_DATABASE
+              value: 'chefos'
+            - name: DB_SYNCHRONIZE
+              value: 'true'
+            - name: REDIS_HOST
+              value: 'redis'
+            - name: REDIS_PORT
+              value: '6379'
+            - name: NODE_ENV
+              value: 'production'
+            - name: JWT_SECRET
+              value: '<YOUR_JWT_SECRET>'
+            - name: USDA_API_KEY
+              value: '<YOUR_USDA_API_KEY>'
+            - name: AZURE_TRANSLATOR_KEY
+              value: '<YOUR_AZURE_TRANSLATOR_KEY>'
+            - name: AZURE_TRANSLATOR_REGION
+              value: 'eastus'
+            - name: AZURE_TRANSLATOR_ENDPOINT
+              value: 'https://api.cognitive.microsofttranslator.com/'
+            # 使用宿主机的 VPN 代理 (10808 端口)
+            - name: HTTP_PROXY
+              value: 'http://host.docker.internal:10808'
+            - name: HTTPS_PROXY
+              value: 'http://host.docker.internal:10808'
+            - name: NO_PROXY
+              value: 'localhost,127.0.0.1,postgres,redis,admin,api,portal'

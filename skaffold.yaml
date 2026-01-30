@@ -1,0 +1,47 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: chefos
+build:
+  artifacts:
+    - image: chefos-api
+      context: .
+      docker:
+        dockerfile: apps/api/Dockerfile
+      sync:
+        manual:
+          - src: 'apps/api/src/**/*.ts'
+            dest: .
+          - src: 'packages/**/*.ts'
+            dest: .
+    - image: chefos-admin
+      context: .
+      docker:
+        dockerfile: apps/admin/Dockerfile
+      sync:
+        manual:
+          - src: 'apps/admin/src/**/*'
+            dest: .
+          - src: 'apps/admin/public/**/*'
+            dest: .
+    - image: chefos-portal
+      context: .
+      docker:
+        dockerfile: apps/portal/Dockerfile
+      sync:
+        manual:
+          - src: 'apps/portal/src/**/*'
+            dest: .
+          - src: 'apps/portal/public/**/*'
+            dest: .
+  local:
+    push: false
+manifests:
+  kustomize:
+    paths:
+      - deploy/k8s/dev
+deploy:
+  kubectl:
+    flags:
+      apply:
+        - --namespace=chefos

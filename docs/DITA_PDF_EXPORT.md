@@ -43,17 +43,28 @@ ChefOS 使用 [DITA-OT (DITA Open Toolkit)](https://www.dita-ot.org/) 作为核�
 ### 2.2 逻辑字体映射 (`font-mappings.xml`)
 
 位于 `tools/dita-plugins/com.chefos.pdf/cfg/fo/font-mappings.xml`。
-我们将逻辑字体（Logical Font）映射到物理字体（Physical Font）：
+我们将逻辑字体（Logical Font）映射到物理字体（Physical Font）。为了兼容云原生环境，我们不仅配置了本地 Windows 字体，还增加了对 Linux 容器常用字体的支持：
 
 ```xml
 <logical-font name="Sans">
   <physical-font char-set="Simplified Chinese">
-    <font-face>Microsoft YaHei</font-face> <!-- 优先使用微软雅黑 -->
-    <font-face>SimHei</font-face>
+    <!-- 开发环境 (Windows) 优先级 -->
+    <font-face>Microsoft YaHei</font-face>
+    <!-- Docker 生产环境 (Alpine/Linux) 优先级 -->
+    <font-face>WenQuanYi Zen Hei</font-face>
     <font-face>SimSun</font-face>
   </physical-font>
 </logical-font>
 ```
+
+### 2.3 跨平台路径自适应 (`PluginManagerService`)
+
+在 Docker (Linux) 容器中，PDF 封面图片的路径处理与 Windows 不同。系统会自动识别运行平台并调整 XSL 变量中的 `file:` 规范：
+
+- **Windows**: 使用 `file:/C:/...` 格式。
+- **Linux (K8s)**: 使用 `file:/opt/...` 格式。
+
+这确保了无论是在本地开发环境还是在 K8s 集群中，PDF 的封面和资源文件都能被 FOP 引擎正确加载。
 
 ### 2.3 样式定义 (`custom.xsl`)
 
@@ -92,12 +103,17 @@ $env:JAVACMD = "C:\Users\lilong.bai\Documents\develop\chef\tools\java-17\bin\jav
 ### Q: 标题显示为 "####"
 
 - **检查**：生成的 XML 是否包含 `xml:lang="zh-CN"`。
-- **检查**：服务器/开发机是否安装了 `Microsoft YaHei` 或 `SimSun` 字体。
+- **检查**：服务器/开发机是否安装了 `Microsoft YaHei` 或 `SimSun` 字体。在 Docker 环境下，镜像必须包含 `wqy-zenhei` 字体包。
 
-### Q: 500 Error: stdout maxBuffer length exceeded
+### Q: 封面图片丢失或显示空白
 
-- **原因**：DITA-OT 输出日志过多，超过了 Node.js `exec` 的默认缓冲区。
-- **解决**：`DitaRunnerService` 中已将 `maxBuffer` 设置为 10MB。
+- **原因**：通常是由于 XSL 文件中的图片路径前缀 (`file:/`) 在 Windows 和 Linux 下不兼容导致的。
+- **解决**：检查 `PluginManagerService` 是否已根据 `process.platform` 动态生成了正确的 URI。
+
+### Q: Java Error: "InternalError: Fontconfig head is null"
+
+- **原因**：在精简版 Linux（如 Alpine）镜像中，JDK 找不到本地字体元数据。
+- **解决**：在 Dockerfile 中不仅要安装 Java，还必须安装 `fontconfig` 软件包。
 
 ### Q: Java 版本错误
 

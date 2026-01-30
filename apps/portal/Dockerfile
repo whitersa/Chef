@@ -27,11 +27,17 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 COPY --from=builder /app/apps/portal/package.json ./apps/portal/package.json
+COPY --from=builder /app/apps/portal/next.config.ts ./apps/portal/
+COPY --from=builder /app/apps/portal/postcss.config.mjs ./apps/portal/
+COPY --from=builder /app/apps/portal/tsconfig.json ./apps/portal/
 COPY --from=builder /app/apps/portal/.next ./apps/portal/.next
 COPY --from=builder /app/apps/portal/public ./apps/portal/public
 COPY --from=builder /app/apps/portal/node_modules ./apps/portal/node_modules
+COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
 EXPOSE 3000
 

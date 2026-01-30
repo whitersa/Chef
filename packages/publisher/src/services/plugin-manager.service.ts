@@ -129,6 +129,10 @@ export class PluginManagerService {
     const finalHeight = `${heightMm + bleedMm * 2}mm`;
     const bleedMargin = `${bleedMm}mm`;
 
+    // Fix file path prefix for Linux/Docker environments
+    const isWindows = process.platform === 'win32';
+    const filePrefix = isWindows ? 'file:/' : 'file:';
+
     const content = `<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:fo="http://www.w3.org/1999/XSL/Format"
@@ -150,7 +154,7 @@ export class PluginManagerService {
     <xsl:variable name="page-margins">${bleedMargin}</xsl:variable>
     
     <!-- Cover Image -->
-    <xsl:variable name="cover-image">file:/<xsl:value-of select="'${path.join(this.pluginsRoot, pluginName, 'cfg', 'common', 'artwork', config.components.cover.image || '').replace(/\\/g, '/')}'"/></xsl:variable>
+    <xsl:variable name="cover-image">${filePrefix}<xsl:value-of select="'${path.join(this.pluginsRoot, pluginName, 'cfg', 'common', 'artwork', config.components.cover.image || '').replace(/\\/g, '/')}'"/></xsl:variable>
 
     <!-- Color Theme Variables -->
     <xsl:variable name="theme-color-title">${config.palette.title}</xsl:variable>

@@ -16,5 +16,10 @@
     {
       "text": "The commit message subject must be in lowercase. Do not use sentence-case, start-case, pascal-case, or upper-case. Example: 'feat: add new feature' instead of 'feat: Add new feature'."
     }
-  ]
+  ],
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/tools/dita-ot-*/**"
+  ],
+  "java.configuration.updateBuildConfiguration": "disabled"
 }
