@@ -10,6 +10,10 @@
     version="2.0">
 
     <xsl:param name="customizationDir.url" />
+    <xsl:param name="generate-front-cover" select="true()" />
+    <xsl:param name="productName" select="'ChefOS'" />
+    <xsl:variable name="cover-image"
+        select="resolve-uri('../../common/artwork/cover.jpg', static-base-uri())" />
     <xsl:variable name="map" select="//opentopic:map" />
 
     <!-- Watermark Template -->
@@ -632,6 +636,29 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
+    </xsl:template>
+
+    <xsl:template name="createFrontCoverContents">
+        <fo:block xsl:use-attribute-sets="__frontmatter__title">
+            <xsl:choose>
+                <xsl:when
+                    test="$map/*[contains(@class,' bookmap/booktitle ')]/*[contains(@class,' bookmap/mainbooktitle ')]">
+                    <xsl:apply-templates
+                        select="$map/*[contains(@class,' bookmap/booktitle ')]/*[contains(@class,' bookmap/mainbooktitle ')]" />
+                </xsl:when>
+                <xsl:when test="$map/*[contains(@class,' bookmap/booktitle ')]">
+                    <xsl:apply-templates select="$map/*[contains(@class,' bookmap/booktitle ')]" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$map/*[contains(@class,' topic/title ')]" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </fo:block>
+        <fo:block
+            xsl:use-attribute-sets="__frontmatter__subtitle">
+            <xsl:apply-templates
+                select="$map/*[contains(@class,' bookmap/booktitle ')]/*[contains(@class,' bookmap/bookid ')]" />
+        </fo:block>
     </xsl:template>
 
 </xsl:stylesheet>

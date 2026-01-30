@@ -8,7 +8,7 @@
     </transtype>
     <feature extension="dita.conductor.target.relative" value="build.xml" type="file" />
     <feature extension="dita.xsl.xslfo" value="cfg/fo/xsl/custom.xsl" type="file" />
-    <feature extension="dita.xsl.xslfo" value="cfg/fo/attrs/custom.xsl" type="file" />
+    <feature extension="dita.xsl.xslfo.attrib" value="cfg/fo/attrs/custom.xsl" type="file" />
     <feature extension="depend.org.dita.pdf2.init.pre" value="chefos.pdf.init" type="text" />
     <!-- Force update for font configuration v26 -->
 </plugin>

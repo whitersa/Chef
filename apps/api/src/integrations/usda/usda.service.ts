@@ -122,7 +122,7 @@ export class UsdaService {
           this.syncStatus$.next(UsdaService.syncStatusStatic);
         }
       }
-    } catch (err) {
+    } catch (err: unknown) {
       this.logger.error('Failed to restore status', err);
     }
   }
@@ -221,7 +221,7 @@ export class UsdaService {
             discoPage++;
             if (discoPage % 5 === 0)
               await this.addServerLog(`📡 ID Discovery: Found ${allFdcIds.length} items so far...`);
-          } catch (err) {
+          } catch (err: unknown) {
             await this.addServerLog(
               `⚠️ Error scanning IDs on page ${discoPage}: ${err instanceof Error ? err.message : 'Unknown'}. Proceeding with found IDs.`,
             );
@@ -293,7 +293,7 @@ export class UsdaService {
               );
             }
             this.updateStatus({ totalSynced });
-          } catch (err) {
+          } catch (err: unknown) {
             await this.addServerLog(
               `❌ Batch failed: ${err instanceof Error ? err.message : 'Unknown'}, skipping.`,
               true,
@@ -310,7 +310,7 @@ export class UsdaService {
         await this.addServerLog(
           `🏁 Sync complete. Processed ${totalSynced} / ${totalToProcess} ingredients. Total time: ${(totalDuration / 60000).toFixed(1)}m`,
         );
-      } catch (err) {
+      } catch (err: unknown) {
         this.isSyncing = false;
         const msg = err instanceof Error ? err.message : 'Worker crash';
         this.updateStatus({ isSyncing: false, lastError: msg });
@@ -343,7 +343,7 @@ export class UsdaService {
       );
       if (!Array.isArray(res.data)) return { count: 0 };
       return this.processAndSaveIngredients(res.data, signal);
-    } catch (err) {
+    } catch (err: unknown) {
       throw new Error(
         `Batch detail fetch failed: ${err instanceof Error ? err.message : 'Network error'}`,
       );
@@ -438,7 +438,7 @@ export class UsdaService {
           await this.ingredientRepository.save(this.ingredientRepository.create(data));
         }
         synced++;
-      } catch (err) {
+      } catch (err: unknown) {
         await this.recordDetailedError(food.fdcId, food, err);
       }
     }
@@ -525,7 +525,7 @@ export class UsdaService {
       await this.cacheManager.reset();
 
       return { message: 'Data reset successfully' };
-    } catch (err) {
+    } catch (err: unknown) {
       this.logger.error('Reset failed', err);
       throw new HttpException(
         `Reset failed: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`,

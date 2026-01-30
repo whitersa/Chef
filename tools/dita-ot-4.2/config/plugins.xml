@@ -704,7 +704,7 @@ public IDs and system IDs for any DTD modules included in this plugin. -->
     </transtype>
     <feature extension="dita.conductor.target.relative" type="file" value="build.xml"/>
     <feature extension="dita.xsl.xslfo" type="file" value="cfg/fo/xsl/custom.xsl"/>
-    <feature extension="dita.xsl.xslfo" type="file" value="cfg/fo/attrs/custom.xsl"/>
+    <feature extension="dita.xsl.xslfo.attrib" type="file" value="cfg/fo/attrs/custom.xsl"/>
     <feature extension="depend.org.dita.pdf2.init.pre" type="text" value="chefos.pdf.init"/>
     <!-- Force update for font configuration v26 -->
 </plugin></plugins>

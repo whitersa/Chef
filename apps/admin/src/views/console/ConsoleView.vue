@@ -3,110 +3,100 @@
     <template #toolbar>
       <div class="header-toolbar">
         <div class="header-left">
-          <span class="title">USDA 数据同步中心</span>
+          <span class="title">USDA 核心数据控制台 (V2)</span>
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item>集成管理</el-breadcrumb-item>
-            <el-breadcrumb-item>数据工厂</el-breadcrumb-item>
+            <el-breadcrumb-item>系统集成</el-breadcrumb-item>
+            <el-breadcrumb-item>USDA 数据工厂</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
       </div>
     </template>
 
     <div v-if="!loading && status" class="dashboard-container">
-      <!-- 第一行：核心指标卡片 -->
-      <el-row :gutter="16" class="metrics-row">
-        <el-col :span="6">
-          <div class="metric-card">
-            <div class="metric-icon synced">
-              <el-icon><Finished /></el-icon>
+      <!-- 紧凑型顶部控制栏：合并指标、进度和操作 -->
+      <el-card shadow="never" class="compact-control-bar">
+        <div class="control-bar-content">
+          <!-- 左侧：核心指标 -->
+          <div class="metrics-block">
+            <div class="metric-item">
+              <span class="metric-label">已同步</span>
+              <span class="metric-value">{{ status.totalSynced }} <small>条</small></span>
             </div>
-            <div class="metric-info">
-              <div class="metric-label">已同步食材</div>
-              <div class="metric-value">{{ status.totalSynced }} <span class="unit">条</span></div>
+            <el-divider direction="vertical" />
+            <div class="metric-item">
+              <span class="metric-label">总数</span>
+              <span class="metric-value"
+                >{{ status.totalIngredients || '--' }} <small>条</small></span
+              >
             </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="metric-card">
-            <div class="metric-icon page">
-              <el-icon><Operation /></el-icon>
+            <el-divider direction="vertical" />
+            <div class="metric-item">
+              <span class="metric-label">当前进度</span>
+              <span class="metric-value">第 {{ status.currentPage }} 页</span>
             </div>
-            <div class="metric-info">
-              <div class="metric-label">当前处理进度</div>
-              <div class="metric-value">
-                第 {{ status.currentPage }} <span class="unit">页</span>
-              </div>
+            <el-divider direction="vertical" />
+            <div class="metric-item">
+              <span class="metric-label">耗时</span>
+              <span class="metric-value">{{ elapsedDisplay || '--' }}</span>
             </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="metric-card">
-            <div class="metric-icon speed">
-              <el-icon><Cpu /></el-icon>
-            </div>
-            <div class="metric-info">
-              <div class="metric-label">Worker 状态</div>
-              <div class="metric-value">
-                <el-tag :type="status.isSyncing ? 'warning' : 'success'" size="small">
-                  {{ status.isSyncing ? '执行中' : '空闲' }}
-                </el-tag>
-              </div>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="metric-card">
-            <div class="metric-icon time">
-              <el-icon><RefreshRight /></el-icon>
-            </div>
-            <div class="metric-info">
-              <div class="metric-label">最近成功耗时</div>
-              <div class="metric-value">
-                {{ elapsedDisplay || '--' }}
-              </div>
+            <el-divider direction="vertical" />
+            <div class="metric-item">
+              <span class="metric-label">状态</span>
+              <el-tag
+                :type="status.isSyncing ? 'warning' : 'success'"
+                size="small"
+                effect="dark"
+                round
+              >
+                {{ status.isSyncing ? '正在同步' : '队列空闲' }}
+              </el-tag>
             </div>
           </div>
-        </el-col>
-      </el-row>
 
-      <!-- 第二行：主控制面板 & 进度条 -->
-      <el-card shadow="never" class="control-panel">
-        <div class="panel-content">
-          <div class="progress-section">
-            <div class="progress-header">
-              <span class="label">任务总进度</span>
-              <span class="percent">{{ progressPercent }}%</span>
+          <!-- 中间：进度条 -->
+          <div class="progress-block">
+            <div class="progress-info">
+              <span class="label">任务完成度</span>
+              <span class="percentage">{{ progressPercent }}%</span>
             </div>
             <el-progress
               :percentage="progressPercent"
-              :stroke-width="12"
+              :stroke-width="10"
               :color="progressColors"
-              :format="() => ''"
+              :show-text="false"
+              class="custom-progress"
             />
           </div>
-          <div class="action-section">
+
+          <!-- 右侧：按钮组 -->
+          <div class="actions-block">
             <el-button
               type="primary"
               :icon="Promotion"
               :loading="status.isSyncing"
-              :disabled="status.isSyncing"
+              round
+              class="action-btn main-action"
               @click="handleStartSync"
             >
-              开始同步
+              {{ status.isSyncing ? '同步中' : '开始同步' }}
             </el-button>
             <el-button
+              v-if="status.isSyncing"
               type="danger"
               :icon="CircleClose"
-              :disabled="!status.isSyncing"
+              round
+              class="action-btn"
               @click="handleStopSync"
             >
-              停止任务
+              停止
             </el-button>
             <el-button
               type="info"
               plain
               :icon="Delete"
               :disabled="status.isSyncing"
+              round
+              class="action-btn"
               @click="handleResetData"
             >
               重置
@@ -115,7 +105,7 @@
         </div>
       </el-card>
 
-      <!-- 第三行：终端日志 & 异常记录 -->
+      <!-- 第二行：终端日志 & 异常记录 -->
       <el-row :gutter="16" class="main-content-row">
         <el-col :span="16">
           <div class="terminal-window">
@@ -222,10 +212,6 @@ import {
   Monitor,
   Delete,
   CircleClose,
-  Finished,
-  Operation,
-  Cpu,
-  RefreshRight,
   WarningFilled,
   Refresh,
   CircleCloseFilled,
@@ -308,7 +294,8 @@ const fetchIssues = async () => {
   try {
     const res = await ingredientsApi.getSyncIssues();
     issues.value = res;
-  } catch (e) {
+  } catch {
+    // Error handled by api-client or ignored
   } finally {
     setTimeout(() => {
       loadingIssues.value = false;
@@ -321,7 +308,7 @@ const fetchStatus = async () => {
     const res = await ingredientsApi.getFullSyncStatus();
     status.value = { ...status.value, ...res };
     loading.value = false;
-  } catch (err) {
+  } catch {
     loading.value = false;
   }
 };
@@ -334,13 +321,15 @@ const setupSSE = () => {
 
   eventSource.onmessage = (event) => {
     try {
-      let rawData = JSON.parse(event.data);
+      const rawData = JSON.parse(event.data);
       let data = rawData.data || rawData;
 
       if (typeof data === 'string') {
         try {
           data = JSON.parse(data);
-        } catch (e) {}
+        } catch {
+          // Ignore parse errors for nested strings
+        }
       }
 
       if (data && typeof data === 'object') {
@@ -350,8 +339,8 @@ const setupSSE = () => {
         if (loading.value) loading.value = false;
         if (status.value.logs?.length !== oldLogCount) scrollToBottom();
       }
-    } catch (err) {
-      console.error('SSE error', err);
+    } catch {
+      // JSON parse or structural error
     }
   };
 
@@ -377,7 +366,7 @@ const handleStartSync = async () => {
     status.value.isSyncing = true; // 乐观更新
     ElMessage.success('同步已启动');
     localLog('已下发启动指令');
-  } catch (err: unknown) {
+  } catch {
     ElMessage.error('启动失败');
   }
 };
@@ -387,7 +376,7 @@ const handleStopSync = async () => {
     await ingredientsApi.stopSync();
     status.value.isSyncing = false; // 乐观更新
     ElMessage.warning('正在尝试停止');
-  } catch (err: unknown) {
+  } catch {
     ElMessage.error('停止失败');
   }
 };
@@ -410,6 +399,7 @@ const handleResetData = async () => {
     fetchIssues();
   } catch (err: unknown) {
     if (err !== 'cancel') {
+      console.error('Reset failed', err);
       ElMessage.error('重置失败');
     }
   }
@@ -455,100 +445,88 @@ onUnmounted(() => {
   background-color: #f0f2f5;
 }
 
-/* 指标卡片 */
-.metrics-row {
-  margin-bottom: 12px;
+/* 紧凑型控制栏 */
+.compact-control-bar {
+  margin-bottom: 16px;
+  border: none;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
-.metric-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px 16px;
+:deep(.el-card__body) {
+  padding: 12px 20px !important;
+}
+.control-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.metrics-block {
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
 }
-.metric-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+.metric-item {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  font-size: 20px;
 }
-.metric-icon.synced {
-  background: #e8f4ff;
-  color: #1890ff;
-}
-.metric-icon.page {
-  background: #fff7e6;
-  color: #fa8c16;
-}
-.metric-icon.speed {
-  background: #f6ffed;
-  color: #52c41a;
-}
-.metric-icon.time {
-  background: #f9f0ff;
-  color: #722ed1;
-}
-
 .metric-label {
-  font-size: 13px;
+  font-size: 11px;
   color: #909399;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .metric-value {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 15px;
+  font-weight: 600;
   color: #303133;
 }
-.metric-value .unit {
-  font-size: 12px;
-  font-weight: normal;
+.metric-value small {
+  font-size: 10px;
   color: #999;
-  margin-left: 4px;
+  font-weight: normal;
+  margin-left: 2px;
 }
 
-/* 控制面板 */
-.control-panel {
-  margin-bottom: 12px;
-  border: none;
-}
-:deep(.el-card__body) {
-  padding: 8px 12px !important;
-}
-.panel-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.progress-section {
+.progress-block {
   flex: 1;
-  background: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #ebeef5;
+  min-width: 150px;
 }
-.progress-header {
+.progress-info {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 4px;
-  font-size: 12px;
+  margin-bottom: 6px;
+  font-size: 11px;
 }
-.progress-header .label {
+.progress-info .label {
   color: #909399;
 }
-.progress-header .percent {
-  font-weight: 600;
+.progress-info .percentage {
   color: #409eff;
+  font-weight: bold;
+}
+.custom-progress {
+  margin-top: 4px;
 }
 
-.action-section {
+.actions-block {
   flex-shrink: 0;
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+.action-btn {
+  padding: 8px 16px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.main-action {
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+}
+.main-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(64, 158, 255, 0.4);
 }
 
 /* 主内容区 */

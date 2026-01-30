@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { IngredientsService } from './ingredients.service';
 import { Ingredient } from './ingredient.entity';
 import { IngredientVersion } from './ingredient-version.entity';
+import { Category } from '../categories/category.entity';
 import { AuditService } from '../audit/audit.service';
 
 describe('IngredientsService', () => {
@@ -54,6 +55,10 @@ describe('IngredientsService', () => {
         IngredientsService,
         {
           provide: getRepositoryToken(Ingredient),
+          useValue: mockRepository,
+        },
+        {
+          provide: getRepositoryToken(Category),
           useValue: mockRepository,
         },
         {
