@@ -486,7 +486,7 @@ export class UsdaService {
       await this.ingredientRepository
         .createQueryBuilder()
         .update()
-        .set({ categoryId: null as any })
+        .set({ categoryId: () => 'NULL' })
         .where('categoryId IN (SELECT id FROM categories WHERE "originalName" IS NOT NULL)')
         .execute();
 
@@ -554,7 +554,7 @@ export class UsdaService {
     await Promise.resolve();
   }
 
-  private async recordDetailedError(fdcId: number, data: UsdaFoodDetails, error: any) {
+  private async recordDetailedError(fdcId: number, data: UsdaFoodDetails, error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
     await this.addServerLog(`❌ FDC ID ${fdcId} failed: ${msg}`, true);
     try {

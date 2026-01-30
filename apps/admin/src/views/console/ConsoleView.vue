@@ -216,7 +216,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
-import { ingredientsApi } from '../../api/ingredients';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   Promotion,
@@ -233,6 +232,7 @@ import {
   Checked,
 } from '@element-plus/icons-vue';
 import ListLayout from '../../components/ListLayout.vue';
+import { ingredientsApi, type SyncStatus, type SyncIssue } from '../../api/ingredients';
 import { API_URL } from '@chefos/utils';
 
 const progressColors = [
@@ -242,24 +242,29 @@ const progressColors = [
   { color: '#5cb87a', percentage: 100 },
 ];
 
-const status = ref<any>({
+const status = ref<SyncStatus>({
   totalSynced: 0,
+  totalIngredients: 0,
   currentPage: 0,
   isSyncing: false,
   logs: [],
   startTime: null,
+  lastError: null,
 });
-const issues = ref<any[]>([]);
+const issues = ref<SyncIssue[]>([]);
 const loading = ref(true);
 const loadingIssues = ref(false);
 const elapsedDisplay = ref('');
 const logContainer = ref<HTMLElement | null>(null);
 let eventSource: EventSource | null = null;
-let timerId: any = null;
+let timerId: ReturnType<typeof setInterval> | null = null;
 
 const progressPercent = computed(() => {
-  if (!status.value.totalSynced) return 0;
-  return Math.min(100, Math.round((status.value.totalSynced / 2500) * 100));
+  if (!status.value.totalIngredients || !status.value.totalSynced) return 0;
+  return Math.min(
+    100,
+    Math.round((status.value.totalSynced / status.value.totalIngredients) * 100),
+  );
 });
 
 const scrollToBottom = () => {
@@ -372,7 +377,7 @@ const handleStartSync = async () => {
     status.value.isSyncing = true; // 乐观更新
     ElMessage.success('同步已启动');
     localLog('已下发启动指令');
-  } catch (err: any) {
+  } catch (err: unknown) {
     ElMessage.error('启动失败');
   }
 };
@@ -382,7 +387,7 @@ const handleStopSync = async () => {
     await ingredientsApi.stopSync();
     status.value.isSyncing = false; // 乐观更新
     ElMessage.warning('正在尝试停止');
-  } catch (err: any) {
+  } catch (err: unknown) {
     ElMessage.error('停止失败');
   }
 };
@@ -403,9 +408,9 @@ const handleResetData = async () => {
     ElMessage.success('重置成功');
     fetchStatus();
     fetchIssues();
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err !== 'cancel') {
-      ElMessage.error(err.response?.data?.message || '重置失败');
+      ElMessage.error('重置失败');
     }
   }
 };

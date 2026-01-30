@@ -5,6 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["API_URL", "API_PORT", "DATABASE_URL", "JWT_SECRET", "USDA_API_KEY", "HTTPS_PROXY"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "lint": {
